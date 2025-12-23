@@ -1,48 +1,36 @@
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-# HEALTH-CHAIN
+## Getting Started
 
+First, run the development server:
 
-## OVERVIEW
-Health Chain is a decentralized Web3 health application built on blockchain technology, empowering users with complete sovereignty over their medical data. By leveraging distributed ledger systems like Ethereum and decentralized storage solutions (e.g., IPFS/Arweave), Health Chain ensures that individuals have full read and write access to their personal health records. This eliminates centralized silos, reduces data breaches, and enables seamless, permissioned sharing with healthcare providers worldwide.
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-## KEY PRINCIPLES:
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-User-Centric Control: Patients own their data—no more locked-in provider portals. Update, view, or revoke access anytime via your wallet.
-Global Accessibility: Medical records are instantly available to any hospital or clinic around the world with user consent, facilitating emergency care, telemedicine, and cross-border treatments.
-Security & Privacy: End-to-end encryption, smart contracts for access management, and compliance with standards like HIPAA/GDPR equivalents in a decentralized paradigm.
-Whether you're a patient managing chronic conditions, a doctor accessing verified records, or a developer building on health tech, Health Chain revolutionizes healthcare interoperability.
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## FEATURES
-Patient Dashboard: View recent records, linked providers, and health metrics in a secure, intuitive interface.
-Wallet Integration: Connect via MetaMask or WalletConnect to authenticate and manage data ownership.
-Decentralized Storage: Upload medical documents directly to IPFS/Arweave for immutable, tamper-proof storage.
-Smart Contract Permissions: Granular read/write controls—grant temporary access to hospitals without surrendering control.
-Cross-Hospital Compatibility: Standardized data formats (e.g., FHIR on blockchain) ensure records are readable globally, from New York to Tokyo.
-Animations & UX: Pulsing heart icons and EKG visuals symbolize vitality, powered by Framer Motion for an engaging experience.
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## TECH STACK
-Frontend: React.js with Tailwind CSS for dark-mode styling and electric blue accents.
-Animations: Framer Motion for interactive elements like heartbeat pulses.
-Web3 Integration: ethers.js or wagmi for blockchain interactions (not included in this template; extend as needed).
-Storage: Simulated IPFS/Arweave uploads; integrate with web3.storage or similar in production.
-Theme: Professional yet cutting-edge dark mode, emphasizing trust and innovation.
+## Learn More
 
-## GETTING STARTED
-Clone the repo: git clone https://github.com/yourusername/health-chain.git  
-Install dependencies: npm install  
-Run the app: npm start  
-Customize: Add your smart contracts, backend APIs, or full Web3 hooks.
+To learn more about Next.js, take a look at the following resources:
 
-## ROADMAP
-v1.0: Core frontend template for the web version (current).  
-v1.1: Integrate real blockchain (Ethereum/Solana) for data persistence.  
-v2.0: Mobile app companion and AI-driven health insights.  
-Future: Partnerships for global hospital adoption and tokenomics for data sharing incentives.
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-## CONTRIBUTING
-We welcome contributions! Fork the repo, create a feature branch, and submit a PR. Focus on security, usability, and decentralization.
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## LICENSE
-MIT License—free to use, modify, and distribute.
+## Deploy on Vercel
 
-Join the revolution in decentralized healthcare. Your data, your control, worldwide. 🚀
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
