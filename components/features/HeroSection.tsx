@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { WalletConnect } from "@/components/features/WalletConnect";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Pill, Syringe, Dna, Microscope, Activity, Stethoscope } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 
 export function HeroSection() {
@@ -91,18 +91,59 @@ export function HeroSection() {
                 </motion.div>
             </div>
 
-            {/* Floating Elements decoration */}
-            <div className="absolute bottom-10 left-10 hidden md:block opacity-30 animate-bounce delay-700">
-                <div className="bg-card border border-border p-4 rounded-xl">
-                    <div className="h-2 w-24 bg-primary/50 rounded mb-2"></div>
-                    <div className="h-2 w-16 bg-muted rounded"></div>
-                </div>
-            </div>
-            <div className="absolute top-20 right-10 hidden md:block opacity-30 animate-bounce delay-1000">
-                <div className="bg-destructive/20 border border-destructive/50 p-4 rounded-xl">
-                    <div className="h-8 w-8 rounded-full bg-destructive/50 flex items-center justify-center font-bold text-xs">SOS</div>
+            {/* Floating Medical Elements */}
+            <FloatingElement className="top-20 left-[10%] text-blue-500/40" delay={0}>
+                <Pill className="h-12 w-12 rotate-45" />
+            </FloatingElement>
+
+            <FloatingElement className="bottom-32 right-[15%] text-red-500/40" delay={1.5}>
+                <Activity className="h-16 w-16" />
+            </FloatingElement>
+
+            <FloatingElement className="top-40 right-[10%] text-green-500/30" delay={0.5}>
+                <Syringe className="h-10 w-10 -rotate-12" />
+            </FloatingElement>
+
+            <FloatingElement className="bottom-20 left-[20%] text-purple-500/30" delay={2}>
+                <Dna className="h-14 w-14 rotate-90" />
+            </FloatingElement>
+
+            <FloatingElement className="top-1/4 left-[5%] text-cyan-500/20 hidden md:block" delay={3}>
+                <Microscope className="h-20 w-20" />
+            </FloatingElement>
+
+            <FloatingElement className="bottom-1/3 right-[5%] text-orange-500/20 hidden md:block" delay={1}>
+                <Stethoscope className="h-24 w-24 rotate-12" />
+            </FloatingElement>
+
+            {/* SOS Blinker */}
+            <div className="absolute top-24 right-24 hidden lg:block opacity-60 animate-bounce delay-1000">
+                <div className="bg-destructive/10 border border-destructive/30 p-3 rounded-xl backdrop-blur-sm">
+                    <div className="h-8 w-8 rounded-full bg-destructive/60 flex items-center justify-center font-bold text-xs text-white shadow-[0_0_15px_rgba(239,68,68,0.6)] animate-pulse">SOS</div>
                 </div>
             </div>
         </section>
+    );
+}
+
+function FloatingElement({ children, className, delay }: { children: React.ReactNode, className?: string, delay: number }) {
+    return (
+        <motion.div
+            className={`absolute z-0 ${className}`}
+            initial={{ y: 0, opacity: 0 }}
+            animate={{
+                y: [0, -20, 0],
+                opacity: [0.2, 0.5, 0.2],
+                rotate: [0, 5, -5, 0]
+            }}
+            transition={{
+                duration: 6,
+                repeat: Infinity,
+                delay: delay,
+                ease: "easeInOut"
+            }}
+        >
+            {children}
+        </motion.div>
     );
 }
