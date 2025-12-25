@@ -6,24 +6,18 @@ import { RecordCard } from "@/components/features/RecordCard";
 import { CriticalSummary } from "@/components/features/CriticalSummary";
 import { UploadZone } from "@/components/features/UploadZone";
 import { EmergencyQR } from "@/components/features/EmergencyQR";
-import { WalletConnect } from "@/components/features/WalletConnect";
+
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
     Building2,
     Trash2,
-    Activity,
-    Search,
-    Bell,
-    LogOut,
     User,
     FileClock,
     Shield,
-    LayoutDashboard
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { Input } from "@/components/ui/input";
-import Link from "next/link";
+
 
 export default function Dashboard() {
     const { records } = useAppStore();
@@ -32,52 +26,7 @@ export default function Dashboard() {
         <div className="min-h-screen bg-background text-foreground flex flex-col">
 
             {/* Sticky Header */}
-            <header className="sticky top-0 z-40 w-full border-b border-white/5 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
-                <div className="container flex h-16 items-center justify-between px-4">
-                    <div className="flex items-center gap-2">
-                        <Activity className="h-6 w-6 text-primary animate-pulse" />
-                        <h1 className="text-lg font-bold tracking-tight bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
-                            HealthChain
-                        </h1>
-                        <div className="hidden md:flex ml-6 h-6 w-[1px] bg-white/10"></div>
-                        <nav className="hidden md:flex items-center gap-4 ml-2">
-                            <Link href="/dashboard" className="text-sm font-medium text-primary cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary/10">
-                                <LayoutDashboard className="h-4 w-4" /> Dashboard
-                            </Link>
-                            <Link href="/emergency" className="text-sm font-medium text-muted-foreground hover:text-white transition-colors flex items-center gap-2 px-3 py-1.5">
-                                <Shield className="h-4 w-4" /> Emergency
-                            </Link>
-                        </nav>
-                    </div>
 
-                    {/* Center Heartbeat Line (Desktop) */}
-                    <div className="hidden lg:block w-32 h-8 opacity-50">
-                        <svg viewBox="0 0 100 20" className="w-full h-full">
-                            <motion.path
-                                d="M0 10 H30 L35 2 L45 18 L50 10 H100"
-                                fill="none"
-                                stroke="#00BFFF"
-                                strokeWidth="2"
-                                initial={{ pathLength: 0 }}
-                                animate={{ pathLength: [0, 1, 0] }}
-                                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                            />
-                        </svg>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <div className="relative hidden sm:block">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input type="search" placeholder="Search records..." className="w-64 pl-9 bg-secondary/50 border-white/10 focus:border-primary/50" />
-                        </div>
-                        <Button size="icon" variant="ghost" className="relative text-muted-foreground hover:text-white">
-                            <Bell className="h-5 w-5" />
-                            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-                        </Button>
-                        <WalletConnect />
-                    </div>
-                </div>
-            </header>
 
             {/* Main Dashboard Content */}
             <main className="flex-1 container py-8 space-y-8 px-4">

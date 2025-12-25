@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { WalletConnect } from "@/components/features/WalletConnect";
-import { Activity } from "lucide-react";
+import { Activity, Search, Bell } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -41,7 +43,18 @@ export function Navbar() {
                             </Link>
                         ))}
                     </div>
-                    <WalletConnect />
+
+                    <div className="flex items-center gap-4">
+                        <div className="relative hidden sm:block">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input type="search" placeholder="Search records..." className="w-64 pl-9 bg-secondary/50 border-white/10 focus:border-primary/50" />
+                        </div>
+                        <Button size="icon" variant="ghost" className="relative text-muted-foreground hover:text-white">
+                            <Bell className="h-5 w-5" />
+                            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+                        </Button>
+                        <WalletConnect />
+                    </div>
                 </div>
             </div>
         </nav>
