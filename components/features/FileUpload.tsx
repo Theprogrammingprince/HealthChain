@@ -4,14 +4,12 @@ import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { CloudUpload, File, Lock, CheckCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress"; // Need to ensure Progress is installed or simple div
-import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/store";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function FileUpload() {
     const { addRecord } = useAppStore();
-    const [uploading, setUploading] = useState(false);
     const [progress, setProgress] = useState(0);
     const [step, setStep] = useState<"idle" | "encrypting" | "uploading" | "done">("idle");
 
@@ -19,7 +17,6 @@ export function FileUpload() {
         const file = acceptedFiles[0];
         if (!file) return;
 
-        setUploading(true);
         setStep("encrypting");
         setProgress(0);
 
@@ -33,7 +30,6 @@ export function FileUpload() {
             }
             if (p >= 100) {
                 clearInterval(interval);
-                setUploading(false);
                 setStep("done");
 
                 // Add mock record

@@ -16,18 +16,8 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export function AuthDialog() {
     const { isConnected, isAuthenticated, authenticateUser } = useAppStore();
-    const [open, setOpen] = useState(false);
+    const open = isConnected && !isAuthenticated;
     const [step, setStep] = useState<"biometric" | "seed" | "done">("biometric");
-    const [revealed, setRevealed] = useState(false);
-    const [copied, setCopied] = useState(false);
-
-    useEffect(() => {
-        if (isConnected && !isAuthenticated) {
-            setOpen(true);
-        } else {
-            setOpen(false);
-        }
-    }, [isConnected, isAuthenticated]);
 
     const handleBiometric = () => {
         toast.info("Scanning Face ID...", { duration: 1000 });
@@ -46,7 +36,6 @@ export function AuthDialog() {
 
     const handleFinish = () => {
         authenticateUser();
-        setOpen(false);
         toast.success("Authentication Complete", { description: "You now have full access." });
     };
 
