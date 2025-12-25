@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Plane, AlertTriangle, HeartPulse, ArrowRight, Activity, Hospital } from "lucide-react";
+import { Plane, AlertTriangle, ArrowRight, Activity, Hospital } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,9 +33,9 @@ export function ImpactSection() {
                         transition={{ delay: 0.2, duration: 0.8 }}
                         className="text-lg md:text-xl text-muted-foreground max-w-3xl leading-relaxed"
                     >
-                        "He was traveling in London when he collapsed. The paramedics arrived within minutes,
-                        but they didn't know about his severe Penicillin allergy. They administered the standard protocol.
-                        <span className="text-white font-medium"> He never woke up.</span> This happens to Nigerians abroad every single week."
+                        &quot;He was traveling in London when he collapsed. The paramedics arrived within minutes,
+                        but they didn&apos;t know about his severe Penicillin allergy. They administered the standard protocol.
+                        <span className="text-white font-medium"> He never woke up.</span> This happens to Nigerians abroad every single week.&quot;
                     </motion.p>
                 </div>
 

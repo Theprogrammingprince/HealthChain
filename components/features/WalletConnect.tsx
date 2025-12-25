@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Wallet, LogOut, Loader2, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
+
 
 export function WalletConnect() {
     const { walletAddress, isConnected, connectWallet, disconnectWallet } = useAppStore();
@@ -80,7 +80,7 @@ export function WalletConnect() {
                 <DropdownMenuLabel>Choose Wallet</DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-border" />
                 <DropdownMenuItem onClick={() => handleConnect("MetaMask")} className="cursor-pointer hover:bg-muted focus:bg-muted focus:text-white">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" className="mr-2 h-5 w-5" />
+                    <div className="mr-2 h-5 w-5 bg-orange-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold">M</div>
                     MetaMask
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleConnect("Coinbase Wallet")} className="cursor-pointer hover:bg-muted focus:bg-muted focus:text-white">

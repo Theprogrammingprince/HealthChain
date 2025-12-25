@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Twitter, Linkedin, Facebook, Github, HeartPulse } from 'lucide-react';
-import { Button } from "@/components/ui/button";
+import { Twitter, Linkedin, Github } from 'lucide-react';
 
 export function Footer() {
     const fadeInUp = {
@@ -14,6 +14,10 @@ export function Footer() {
             transition: { duration: 0.6 }
         }
     };
+
+    const pathname = usePathname();
+
+    if (pathname?.startsWith("/dashboard")) return null;
 
     return (
         <footer className="bg-black/95 border-t border-white/10 overflow-hidden relative">

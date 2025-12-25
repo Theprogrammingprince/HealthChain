@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { WalletConnect } from "@/components/features/WalletConnect";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowRight, Pill, Syringe, Dna, Microscope, Activity, Stethoscope } from "lucide-react";
+import { ArrowRight, Pill, Activity } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 
 export function HeroSection() {

@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { QRCodeSVG } from "qrcode.react";
-import { TriangleAlert, QrCode, Printer, Share2, Eye, EyeOff } from "lucide-react";
+import { TriangleAlert, QrCode, Printer, Share2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function EmergencyQR() {

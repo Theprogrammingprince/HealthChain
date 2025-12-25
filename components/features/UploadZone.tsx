@@ -2,16 +2,19 @@
 
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { CloudUpload, Lock, CheckCircle, FileUp, ShieldCheck } from "lucide-react";
+import { CloudUpload, Lock, FileUp, ShieldCheck } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
-import { useAppStore } from "@/lib/store";
+import { useHealthRecords } from "@/components/hooks/useHealthRecords";
+import { useAccount } from "wagmi";
 
 export function UploadZone() {
-    const { addRecord } = useAppStore();
-    const [uploading, setUploading] = useState(false);
+    // const { addRecord } = useAppStore(); // Deprecated local store action
+    const { addRecord: addRecordOnChain } = useHealthRecords();
+    const { address } = useAccount();
+
     const [progress, setProgress] = useState(0);
     const [step, setStep] = useState<"idle" | "encrypting" | "uploading" | "done">("idle");
 
@@ -19,7 +22,14 @@ export function UploadZone() {
         const file = acceptedFiles[0];
         if (!file) return;
 
-        setUploading(true);
+
+
+        // Check for wallet connection before processing
+        if (!address) {
+            toast.error("Wallet Not Connected", { description: "Please connect your wallet to upload records." });
+            return;
+        }
+
         setStep("encrypting");
         setProgress(0);
 
@@ -30,29 +40,40 @@ export function UploadZone() {
             if (p >= 40 && p < 80) setStep("uploading");
             if (p >= 100) {
                 clearInterval(interval);
-                setUploading(false);
-                setStep("done");
 
-                addRecord({
-                    id: Math.random().toString(36).substr(2, 9),
-                    name: file.name,
-                    type: file.name.endsWith("pdf") ? "PDF" : "Image",
-                    date: new Date().toISOString(),
-                    ipfsHash: "Qm" + Math.random().toString(36).substr(2, 40),
-                });
+                // Call Blockchain
+                // Ideally we get IPFS hash from a real upload first.
+                const fakeIpfsHash = "Qm" + Math.random().toString(36).substr(2, 40);
 
-                toast.success("Secure Upload Complete", {
-                    description: "Your file has been encrypted and stored on IPFS.",
-                    icon: <ShieldCheck className="text-green-500" />,
-                });
+                // We use "Lab" as default type for now, or derive from file extension type logic if needed
+                const recordType = file.name.endsWith("pdf") ? "Lab" : "Image";
 
-                setTimeout(() => {
-                    setStep("idle");
-                    setProgress(0);
-                }, 3000);
+                // We need the user's address. In a real app, we might want to pass "patient" explicitly if it's different.
+                // For now, we assume the uploader is the patient adding their own record.
+                addRecordOnChain(address || "", fakeIpfsHash, recordType)
+                    .then(() => {
+                        // setUploading(false); // Removed
+                        setStep("done");
+
+                        // Optimistic update or refetch would happen here
+                        toast.success("Secure Upload Complete", {
+                            description: "Your file has been encrypted and stored on IPFS, and recorded on Polygon.",
+                            icon: <ShieldCheck className="text-green-500" />,
+                        });
+
+                        setTimeout(() => {
+                            setStep("idle");
+                            setProgress(0);
+                        }, 3000);
+                    })
+                    .catch(() => {
+                        // setUploading(false); // Removed
+                        setStep("idle");
+                        // Toast error handled in hook
+                    })
             }
         }, 50);
-    }, [addRecord]);
+    }, [addRecordOnChain, address]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 

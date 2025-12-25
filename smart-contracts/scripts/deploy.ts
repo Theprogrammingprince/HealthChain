@@ -1,8 +1,7 @@
 import { ethers } from "hardhat";
 
 async function main() {
-    const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-    const unlockTime = currentTimestampInSeconds + 60;
+
 
     console.log("Deploying contracts with the account:", (await ethers.getSigners())[0].address);
 
