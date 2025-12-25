@@ -1,13 +1,182 @@
+'use client';
+
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { Twitter, Linkedin, Facebook, Github, HeartPulse } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+
 export function Footer() {
+    const fadeInUp = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.6 }
+        }
+    };
+
     return (
-        <footer className="border-t border-border/40 py-6 md:px-8 md:py-0">
-            <div className="container flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row">
-                <p className="text-balance text-center text-sm leading-loose text-muted-foreground md:text-left">
-                    Built on <span className="text-primary font-bold">Polygon</span>. Patient-owned. Encrypted.
-                </p>
-                <p className="text-xs text-muted-foreground">
-                    &copy; 2025 HealthChain. All rights reserved.
-                </p>
+        <footer className="bg-black/95 border-t border-white/10 overflow-hidden relative">
+            {/* Background decorations */}
+            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent opacity-50" />
+            <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
+                {/* Top Section - Tagline and Links */}
+                <motion.div
+                    className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-16"
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true }}
+                    variants={fadeInUp}
+                >
+                    {/* Tagline */}
+                    <div className="max-w-md">
+                        <p className="text-gray-400 text-base leading-relaxed">
+                            HealthChain secures your medical history on-chain. {' '}
+                            <span className="italic font-medium text-blue-400">Save lives. Own your data.</span>
+                        </p>
+                    </div>
+
+                    {/* Quick Links */}
+                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 text-sm">
+                        <Link href="/dashboard" className="text-gray-400 hover:text-white transition-colors">
+                            Dashboard
+                        </Link>
+                        <Link href="/emergency" className="text-gray-400 hover:text-white transition-colors">
+                            Emergency Access
+                        </Link>
+                        <Link href="/about" className="text-gray-400 hover:text-white transition-colors">
+                            About Us
+                        </Link>
+                        <Link href="/faq" className="text-gray-400 hover:text-white transition-colors">
+                            FAQ
+                        </Link>
+                    </div>
+                </motion.div>
+
+                {/* Join Button */}
+                <motion.div
+                    className="mb-16"
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true }}
+                    variants={fadeInUp}
+                >
+                    <Link href="/signup">
+                        <motion.button
+                            className="px-8 py-3 border border-blue-500/30 bg-blue-500/10 text-blue-400 rounded-full text-sm font-medium hover:bg-blue-500 hover:text-white transition-all shadow-[0_0_20px_rgba(59,130,246,0.1)] hover:shadow-[0_0_30px_rgba(59,130,246,0.4)]"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            Get Started Now →
+                        </motion.button>
+                    </Link>
+                </motion.div>
+
+                {/* Middle Section - Large Brand Name */}
+                <motion.div
+                    className="mb-16 select-none"
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true }}
+                    variants={fadeInUp}
+                >
+                    <h2 className="text-6xl sm:text-8xl md:text-9xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white/10 to-transparent">
+                        HealthChain<span className="italic font-light text-blue-500/20">.</span>
+                    </h2>
+                </motion.div>
+
+                {/* Bottom Section - Social Links */}
+                <motion.div
+                    className="flex justify-end"
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true }}
+                    variants={fadeInUp}
+                >
+                    <div className="flex flex-col gap-3 text-sm">
+                        <Link
+                            href="https://twitter.com"
+                            target="_blank"
+                            className="flex items-center justify-between gap-8 text-gray-500 hover:text-blue-400 transition-colors group"
+                        >
+                            <span>Twitter</span>
+                            <Twitter className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                        <Link
+                            href="https://github.com"
+                            target="_blank"
+                            className="flex items-center justify-between gap-8 text-gray-500 hover:text-white transition-colors group"
+                        >
+                            <span>GitHub</span>
+                            <Github className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                        <Link
+                            href="https://linkedin.com"
+                            target="_blank"
+                            className="flex items-center justify-between gap-8 text-gray-500 hover:text-blue-600 transition-colors group"
+                        >
+                            <span>LinkedIn</span>
+                            <Linkedin className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                    </div>
+                </motion.div>
+
+                {/* Additional Footer Links */}
+                <motion.div
+                    className="mt-12 pt-8 border-t border-white/5"
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true }}
+                    variants={fadeInUp}
+                >
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+                        <div>
+                            <h3 className="font-semibold text-white mb-4">Platform</h3>
+                            <ul className="space-y-2 text-sm">
+                                <li><Link href="/dashboard" className="text-gray-500 hover:text-blue-400 transition-colors">Medical Records</Link></li>
+                                <li><Link href="/emergency" className="text-gray-500 hover:text-blue-400 transition-colors">Emergency Access</Link></li>
+                                <li><Link href="/providers" className="text-gray-500 hover:text-blue-400 transition-colors">For Providers</Link></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-white mb-4">Support</h3>
+                            <ul className="space-y-2 text-sm">
+                                <li><Link href="/contact" className="text-gray-500 hover:text-blue-400 transition-colors">Contact Us</Link></li>
+                                <li><Link href="/faq" className="text-gray-500 hover:text-blue-400 transition-colors">FAQ</Link></li>
+                                <li><Link href="/documentation" className="text-gray-500 hover:text-blue-400 transition-colors">Documentation</Link></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-white mb-4">Company</h3>
+                            <ul className="space-y-2 text-sm">
+                                <li><Link href="/about" className="text-gray-500 hover:text-blue-400 transition-colors">About Us</Link></li>
+                                <li><Link href="/careers" className="text-gray-500 hover:text-blue-400 transition-colors">Careers</Link></li>
+                                <li><Link href="/privacy" className="text-gray-500 hover:text-blue-400 transition-colors">Privacy Policy</Link></li>
+                                <li><Link href="/terms" className="text-gray-500 hover:text-blue-400 transition-colors">Terms of Service</Link></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-white mb-4">Connect</h3>
+                            <ul className="space-y-2 text-sm">
+                                <li><Link href="/signin" className="text-gray-500 hover:text-blue-400 transition-colors">Sign In</Link></li>
+                                <li><Link href="/signup" className="text-gray-500 hover:text-blue-400 transition-colors">Sign Up</Link></li>
+                                <li><Link href="/blog" className="text-gray-500 hover:text-blue-400 transition-colors">Blog</Link></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row items-center justify-between text-xs text-gray-600 border-t border-white/5 pt-8">
+                        <p>
+                            © 2025 HealthChain. Built on Polygon. Encrypted & Patient-Owned.
+                        </p>
+                        <div className="flex items-center gap-2 mt-4 md:mt-0">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            <span>All Systems Operational</span>
+                        </div>
+                    </div>
+                </motion.div>
             </div>
         </footer>
     );
