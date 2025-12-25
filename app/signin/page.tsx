@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function SignInPage() {
-    const { isConnected, connectWallet } = useAppStore();
+    const { isConnected } = useAppStore();
     const router = useRouter();
 
     useEffect(() => {

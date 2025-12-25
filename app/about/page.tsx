@@ -32,7 +32,7 @@ export default function AboutPage() {
                     </h1>
 
                     <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
-                        We are building the world's first truly decentralized, patient-owned medical record system.
+                        We are building the world&apos;s first truly decentralized, patient-owned medical record system.
                         Secure, instant, and borderless.
                     </p>
                 </motion.div>

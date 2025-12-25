@@ -40,7 +40,7 @@ export default function TermsPage() {
                     <section className="mb-8">
                         <h2 className="text-2xl font-semibold mb-4 text-white">3. Beta Software</h2>
                         <p className="text-gray-400">
-                            HealthChain is currently in Beta (Testnet). Do not store critical, life-altering data without a backup. The "Amoy" network is for testing purposes only.
+                            HealthChain is currently in Beta (Testnet). Do not store critical, life-altering data without a backup. The &quot;Amoy&quot; network is for testing purposes only.
                         </p>
                     </section>
                 </div>

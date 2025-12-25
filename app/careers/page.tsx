@@ -45,7 +45,7 @@ export default function CareersPage() {
                 transition={{ delay: 0.8 }}
                 className="text-center mt-12"
             >
-                <p className="text-gray-500">Don't see a role for you?</p>
+                <p className="text-gray-500">Don&apos;t see a role for you?</p>
                 <a href="#" className="text-blue-400 hover:underline">Email us your resume</a>
             </motion.div>
         </div>

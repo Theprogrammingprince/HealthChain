@@ -1,6 +1,6 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // import { useAppStore } from "@/lib/store";
 import { useHealthRecords } from "@/components/hooks/useHealthRecords";
 import { RecordCard } from "@/components/features/RecordCard";
@@ -8,7 +8,7 @@ import { CriticalSummary } from "@/components/features/CriticalSummary";
 import { UploadZone } from "@/components/features/UploadZone";
 import { EmergencyQR } from "@/components/features/EmergencyQR";
 
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
     Building2,

@@ -1,5 +1,5 @@
 'use client';
-import { ShieldAlert, Lock } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function PrivacyPage() {
@@ -20,20 +20,20 @@ export default function PrivacyPage() {
 
                 <div className="prose prose-invert prose-lg max-w-none">
                     <p className="text-xl text-gray-400 mb-8">
-                        At HealthChain, privacy is not an option; it's the foundation of our architecture.
+                        At HealthChain, privacy is not an option; it&apos;s the foundation of our architecture.
                     </p>
 
                     <section className="mb-8">
                         <h2 className="text-2xl font-semibold mb-4 text-white">1. Data Ownership</h2>
                         <p className="text-gray-400">
-                            All data uploaded to HealthChain is encrypted client-side. The encrypted blobs are stored on IPFS. The decryption keys are held solely by you (the patient). HealthChain developers possess no "master key".
+                            All data uploaded to HealthChain is encrypted client-side. The encrypted blobs are stored on IPFS. The decryption keys are held solely by you (the patient). HealthChain developers possess no &quot;master key&quot;.
                         </p>
                     </section>
 
                     <section className="mb-8">
                         <h2 className="text-2xl font-semibold mb-4 text-white">2. Blockchain Transparency</h2>
                         <p className="text-gray-400">
-                            While your actual medical data is encrypted and hidden, the <em>transactions</em> (e.g., "User A granted access to Doctor B") are public on the Polygon blockchain. This ensures an immutable audit trail of who accessed your records and when.
+                            While your actual medical data is encrypted and hidden, the <em>transactions</em> (e.g., &quot;User A granted access to Doctor B&quot;) are public on the Polygon blockchain. This ensures an immutable audit trail of who accessed your records and when.
                         </p>
                     </section>
 
