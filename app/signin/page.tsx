@@ -1,15 +1,15 @@
 'use client';
 
 // Helper to redirect users to the AuthDialog via UI trigger or explicit page content
-import { Button } from "@/components/ui/button";
 import { Wallet } from "lucide-react";
 import { motion } from "framer-motion";
-import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useAccount } from "wagmi";
+import { WalletConnect } from "@/components/features/WalletConnect";
 
 export default function SignInPage() {
-    const { isConnected } = useAppStore();
+    const { isConnected } = useAccount();
     const router = useRouter();
 
     useEffect(() => {
@@ -30,9 +30,14 @@ export default function SignInPage() {
                     <Wallet className="w-8 h-8 text-blue-500" />
                 </div>
 
-                <Button className="w-full" variant="secondary">
-                    Connect Wallet
-                </Button>
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold mb-3">Welcome Back</h1>
+                    <p className="text-gray-400">Connect your wallet to access your health dashboard.</p>
+                </div>
+
+                <div className="flex justify-center">
+                    <WalletConnect />
+                </div>
             </motion.div>
         </div>
     );
