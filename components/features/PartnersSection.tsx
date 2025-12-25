@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 // --- Types ---
 type Partner = {
@@ -183,12 +184,14 @@ export function PartnersSection() {
                     viewport={{ once: true }}
                     className="flex flex-col items-center mt-12"
                 >
-                    <Button
-                        size="lg"
-                        className="h-14 px-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] transition-all font-semibold text-lg"
-                    >
-                        Become a Partner <ArrowRight className="ml-2 w-5 h-5" />
-                    </Button>
+                    <Link href="/partners">
+                        <Button
+                            size="lg"
+                            className="h-14 px-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] transition-all font-semibold text-lg"
+                        >
+                            Become a Partner <ArrowRight className="ml-2 w-5 h-5" />
+                        </Button>
+                    </Link>
                 </motion.div>
             </div>
         </section>
