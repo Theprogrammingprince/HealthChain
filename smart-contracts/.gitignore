@@ -1,1 +1,23 @@
-/node_modules
+# Hardhat Build Files
+artifacts/
+cache/
+typechain-types/
+coverage/
+coverage.json
+.open-zeppelin/
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Misc
+.DS_Store
+Thumbs.db
