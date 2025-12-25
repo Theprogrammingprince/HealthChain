@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { CloudUpload, File, Lock, CheckCircle } from "lucide-react";
-import { Progress } from "@/components/ui/progress"; // Need to ensure Progress is installed or simple div
+
 import { useAppStore } from "@/lib/store";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";

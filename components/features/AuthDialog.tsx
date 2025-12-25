@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAppStore } from "@/lib/store";
 import {
     Dialog,
@@ -10,7 +10,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Fingerprint, Eye, EyeOff, Copy, Check } from "lucide-react";
+import { Fingerprint, Eye, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -18,6 +18,8 @@ export function AuthDialog() {
     const { isConnected, isAuthenticated, authenticateUser } = useAppStore();
     const open = isConnected && !isAuthenticated;
     const [step, setStep] = useState<"biometric" | "seed" | "done">("biometric");
+    const [revealed, setRevealed] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     const handleBiometric = () => {
         toast.info("Scanning Face ID...", { duration: 1000 });
