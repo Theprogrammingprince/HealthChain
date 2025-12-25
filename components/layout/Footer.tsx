@@ -2,8 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Twitter, Linkedin, Facebook, Github, HeartPulse } from 'lucide-react';
-import { Button } from "@/components/ui/button";
+import { Twitter, Linkedin, Github } from 'lucide-react';
 
 export function Footer() {
     const fadeInUp = {

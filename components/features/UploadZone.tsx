@@ -2,12 +2,11 @@
 
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { CloudUpload, Lock, CheckCircle, FileUp, ShieldCheck } from "lucide-react";
+import { CloudUpload, Lock, FileUp, ShieldCheck } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
-import { useAppStore } from "@/lib/store";
 import { useHealthRecords } from "@/components/hooks/useHealthRecords";
 import { useAccount } from "wagmi";
 
@@ -16,7 +15,6 @@ export function UploadZone() {
     const { addRecord: addRecordOnChain } = useHealthRecords();
     const { address } = useAccount();
 
-    const [uploading, setUploading] = useState(false);
     const [progress, setProgress] = useState(0);
     const [step, setStep] = useState<"idle" | "encrypting" | "uploading" | "done">("idle");
 
@@ -24,7 +22,7 @@ export function UploadZone() {
         const file = acceptedFiles[0];
         if (!file) return;
 
-        setUploading(true);
+
         setStep("encrypting");
         setProgress(0);
 

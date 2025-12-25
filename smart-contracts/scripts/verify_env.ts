@@ -23,10 +23,11 @@ async function main() {
             console.error("   Error:", netError.message);
         }
 
-    } catch (error: any) {
+    } catch (error) {
         console.error("❌ Error loading environment:");
-        console.error(error.message);
-        if (error.message.includes("invalid hex string")) {
+        const err = error as Error;
+        console.error(err.message);
+        if (err.message.includes("invalid hex string")) {
             console.error("\n👉 TRICK: Your PRIVATE_KEY in .env might be wrong. It should be 64 characters long (hex), optionally starting with '0x'.");
             console.error("   It should NOT be a URL.");
         }

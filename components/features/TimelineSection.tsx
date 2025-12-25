@@ -27,6 +27,12 @@ const steps = [
     },
 ];
 
+type Step = {
+    title: string;
+    description: string;
+    icon: React.ReactNode;
+};
+
 export function TimelineSection() {
     const containerRef = useRef<HTMLDivElement>(null);
     const { scrollYProgress } = useScroll({
@@ -72,7 +78,7 @@ export function TimelineSection() {
     );
 }
 
-function TimelineItem({ step, index }: { step: any, index: number }) {
+function TimelineItem({ step, index }: { step: Step, index: number }) {
     const isEven = index % 2 === 0;
 
     return (

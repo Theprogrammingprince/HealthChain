@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import AutoScroll from "embla-carousel-auto-scroll";
 import { motion, AnimatePresence } from "framer-motion";
@@ -99,7 +99,7 @@ const partners: Partner[] = [
 ];
 
 export function PartnersSection() {
-    const [emblaRef, emblaApi] = useEmblaCarousel({
+    const [emblaRef] = useEmblaCarousel({
         loop: true,
         align: "start",
         skipSnaps: false,
