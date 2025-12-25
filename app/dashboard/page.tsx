@@ -1,7 +1,8 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAppStore } from "@/lib/store";
+// import { useAppStore } from "@/lib/store";
+import { useHealthRecords } from "@/components/hooks/useHealthRecords";
 import { RecordCard } from "@/components/features/RecordCard";
 import { CriticalSummary } from "@/components/features/CriticalSummary";
 import { UploadZone } from "@/components/features/UploadZone";
@@ -65,9 +66,13 @@ export default function Dashboard() {
                             </div>
 
                             {/* Records Grid */}
-                            {records.length === 0 ? (
+                            {isLoadingRecords ? (
+                                <div className="text-center py-12">
+                                    <p className="text-muted-foreground animate-pulse">Loading records from blockchain...</p>
+                                </div>
+                            ) : records.length === 0 ? (
                                 <div className="text-center py-12 border border-dashed border-white/10 rounded-xl bg-white/5">
-                                    <p className="text-muted-foreground">No records found.</p>
+                                    <p className="text-muted-foreground">No records found on-chain.</p>
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
