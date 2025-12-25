@@ -1,5 +1,7 @@
+'use client';
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { motion } from "framer-motion";
 
 const posts = [
     {
@@ -26,11 +28,24 @@ export default function BlogPage() {
     return (
         <div className="min-h-screen bg-black text-white pt-32 pb-20 px-6">
             <div className="max-w-7xl mx-auto">
-                <h1 className="text-5xl font-bold mb-12 text-center">Latest Updates</h1>
+                <motion.h1
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    className="text-5xl font-bold mb-12 text-center"
+                >
+                    Latest Updates
+                </motion.h1>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {posts.map((post, i) => (
-                        <div key={i} className="group cursor-pointer">
+                        <motion.div
+                            key={i}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: i * 0.1 }}
+                            className="group cursor-pointer"
+                        >
                             <div className="aspect-video bg-gray-900 rounded-2xl mb-6 overflow-hidden border border-white/10">
                                 {/* Placeholder for blog image */}
                                 <div className="w-full h-full bg-gradient-to-br from-blue-900/20 to-purple-900/20 group-hover:scale-105 transition-transform duration-500" />
@@ -43,7 +58,7 @@ export default function BlogPage() {
                             <h3 className="text-2xl font-bold mb-3 group-hover:text-blue-400 transition-colors">{post.title}</h3>
                             <p className="text-gray-400 leading-relaxed mb-4">{post.excerpt}</p>
                             <span className="text-sm font-medium underline decoration-blue-500/50 underline-offset-4 group-hover:decoration-blue-500 transition-all">Read more</span>
-                        </div>
+                        </motion.div>
                     ))}
                 </div>
             </div>
