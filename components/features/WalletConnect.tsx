@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Wallet, LogOut, Loader2, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
-import { toast } from "sonner";
+
 
 export function WalletConnect() {
     const { walletAddress, isConnected, connectWallet, disconnectWallet } = useAppStore();

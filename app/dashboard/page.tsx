@@ -21,7 +21,7 @@ import { motion } from "framer-motion";
 
 
 export default function Dashboard() {
-    const { records } = useAppStore();
+    const { records } = useHealthRecords();
 
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
