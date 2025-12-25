@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -27,25 +27,25 @@ export function ProfileDialog() {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Initial State
-    const [profile, setProfile] = useState<UserProfile>({
-        firstName: "",
-        lastName: "",
-        email: "",
-        emergencyContact: ""
-    });
-
-    // Load from local storage on mount
-    useEffect(() => {
-        const saved = localStorage.getItem("healthchain_user_profile");
-        if (saved) {
-            try {
-                setProfile(JSON.parse(saved));
-            } catch (e) {
-                console.error("Failed to load profile", e);
+    // Initial State with lazy load
+    const [profile, setProfile] = useState<UserProfile>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem("healthchain_user_profile");
+            if (saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch (e) {
+                    console.error("Failed to load profile", e);
+                }
             }
         }
-    }, []);
+        return {
+            firstName: "",
+            lastName: "",
+            email: "",
+            emergencyContact: ""
+        };
+    });
 
     const handleChange = (field: keyof UserProfile, value: string) => {
         setProfile(prev => ({ ...prev, [field]: value }));
