@@ -23,6 +23,13 @@ export function UploadZone() {
         if (!file) return;
 
 
+
+        // Check for wallet connection before processing
+        if (!address) {
+            toast.error("Wallet Not Connected", { description: "Please connect your wallet to upload records." });
+            return;
+        }
+
         setStep("encrypting");
         setProgress(0);
 
@@ -43,29 +50,27 @@ export function UploadZone() {
 
                 // We need the user's address. In a real app, we might want to pass "patient" explicitly if it's different.
                 // For now, we assume the uploader is the patient adding their own record.
-                if (addRecordOnChain) {
-                    addRecordOnChain(address || "", fakeIpfsHash, recordType)
-                        .then(() => {
-                            setUploading(false);
-                            setStep("done");
+                addRecordOnChain(address || "", fakeIpfsHash, recordType)
+                    .then(() => {
+                        // setUploading(false); // Removed
+                        setStep("done");
 
-                            // Optimistic update or refetch would happen here
-                            toast.success("Secure Upload Complete", {
-                                description: "Your file has been encrypted and stored on IPFS, and recorded on Polygon.",
-                                icon: <ShieldCheck className="text-green-500" />,
-                            });
+                        // Optimistic update or refetch would happen here
+                        toast.success("Secure Upload Complete", {
+                            description: "Your file has been encrypted and stored on IPFS, and recorded on Polygon.",
+                            icon: <ShieldCheck className="text-green-500" />,
+                        });
 
-                            setTimeout(() => {
-                                setStep("idle");
-                                setProgress(0);
-                            }, 3000);
-                        })
-                        .catch(() => {
-                            setUploading(false);
+                        setTimeout(() => {
                             setStep("idle");
-                            // Toast error handled in hook
-                        })
-                }
+                            setProgress(0);
+                        }, 3000);
+                    })
+                    .catch(() => {
+                        // setUploading(false); // Removed
+                        setStep("idle");
+                        // Toast error handled in hook
+                    })
             }
         }, 50);
     }, [addRecordOnChain, address]);
