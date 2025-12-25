@@ -1,5 +1,7 @@
+'use client';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { HelpCircle } from "lucide-react";
+import { motion } from "framer-motion";
 
 const faqs = [
     {
@@ -28,15 +30,25 @@ export default function FAQPage() {
     return (
         <div className="min-h-screen bg-black text-white pt-32 pb-20 px-4">
             <div className="max-w-3xl mx-auto">
-                <div className="text-center mb-16">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="text-center mb-16"
+                >
                     <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-500/10 mb-6">
                         <HelpCircle className="w-6 h-6 text-blue-400" />
                     </div>
                     <h1 className="text-4xl md:text-5xl font-bold mb-4">Frequently Asked Questions</h1>
                     <p className="text-gray-400 text-lg">Everything you need to know about HealthChain.</p>
-                </div>
+                </motion.div>
 
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-8"
+                >
                     <Accordion type="single" collapsible className="w-full">
                         {faqs.map((faq, index) => (
                             <AccordionItem key={index} value={`item-${index}`} className="border-white/10">
@@ -49,7 +61,7 @@ export default function FAQPage() {
                             </AccordionItem>
                         ))}
                     </Accordion>
-                </div>
+                </motion.div>
             </div>
         </div>
     );

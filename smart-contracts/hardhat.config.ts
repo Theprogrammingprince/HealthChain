@@ -20,7 +20,8 @@ const config: HardhatUserConfig = {
         amoy: {
             url: POLYGON_RPC,
             accounts: [PRIVATE_KEY],
-            chainId: 80002
+            chainId: 80002,
+            gasPrice: 25000000000 // 25 Gwei to be safe (minimum is usually 25-30 on Amoy)
         },
         hardhat: {
             chainId: 31337
