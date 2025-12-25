@@ -21,7 +21,7 @@ import { motion } from "framer-motion";
 
 
 export default function Dashboard() {
-    const { records } = useHealthRecords();
+    const { records, isLoadingRecords } = useHealthRecords();
 
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -70,7 +70,7 @@ export default function Dashboard() {
                                 <div className="text-center py-12">
                                     <p className="text-muted-foreground animate-pulse">Loading records from blockchain...</p>
                                 </div>
-                            ) : records.length === 0 ? (
+                            ) : (!records || records.length === 0) ? (
                                 <div className="text-center py-12 border border-dashed border-white/10 rounded-xl bg-white/5">
                                     <p className="text-muted-foreground">No records found on-chain.</p>
                                 </div>
