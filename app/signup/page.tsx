@@ -1,143 +1,81 @@
 'use client';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ShieldCheck } from "lucide-react";
-import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useAccount } from "wagmi";
-import { WalletConnect } from "@/components/features/WalletConnect";
-import { toast } from "sonner";
 
+import { ShieldCheck, Lock, Activity } from "lucide-react";
+import { motion } from "framer-motion";
+import { GoogleLoginButton } from "@/components/features/GoogleLoginButton";
+import { WalletConnectButton } from "@/components/features/WalletConnectButton";
+import { Button } from "@/components/ui/button";
 
 export default function SignUpPage() {
-    const { isConnected, address } = useAccount();
-    const router = useRouter();
-    const [step, setStep] = useState<"connect" | "register">("connect");
-    const [isLoading, setIsLoading] = useState(false);
-
-    // Form State
-    const [formData, setFormData] = useState({
-        firstName: "",
-        lastName: "",
-        email: "",
-    });
-
-    useEffect(() => {
-        if (isConnected) {
-            // Check if already registered (in local storage for now)
-            // Use setTimeout to avoid set-state-in-effect warning
-            setTimeout(() => {
-                const savedProfile = localStorage.getItem("healthchain_user_profile");
-                if (savedProfile) {
-                    router.push("/dashboard");
-                } else {
-                    setStep("register");
-                }
-            }, 0);
-        }
-    }, [isConnected, router]);
-
-    const handleRegister = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-
-        // Simulate saving profile
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
-        const profile = {
-            ...formData,
-            walletAddress: address,
-            emergencyContact: ""
-        };
-
-        localStorage.setItem("healthchain_user_profile", JSON.stringify(profile));
-
-        toast.success("Identity Created", {
-            description: "Welcome to HealthChain. Your secure dashboard is ready."
-        });
-
-        router.push("/dashboard");
-    };
-
     return (
-        <div className="min-h-screen bg-black text-white flex items-center justify-center p-4 relative overflow-hidden">
-            {/* Background Effects */}
-            <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(circle_at_50%_100%,rgba(168,85,247,0.15),transparent_50%)]" />
+        <div className="min-h-screen bg-[#0A0A0A] text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+            {/* Background Ambience */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/10 rounded-full blur-[100px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/10 rounded-full blur-[100px]" />
+            </div>
 
             <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="max-w-md w-full bg-white/5 border border-white/10 p-8 rounded-3xl relative z-10"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="w-full max-w-md relative z-10"
             >
-                <div className="text-center mb-8">
-                    <div className="w-16 h-16 bg-purple-600/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                        <ShieldCheck className="w-8 h-8 text-purple-500" />
+                {/* Header / Logo Area */}
+                <div className="text-center mb-10">
+                    <div className="flex justify-center mb-6">
+                        <div className="w-20 h-20 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center border border-white/5 shadow-2xl shadow-indigo-500/10 backdrop-blur-xl">
+                            <Activity className="w-10 h-10 text-indigo-400" />
+                        </div>
                     </div>
-                    <h1 className="text-3xl font-bold mb-3">
-                        {step === "connect" ? "Create Account" : "Complete Profile"}
+                    <h1 className="text-4xl font-bold mb-2 tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                        Join HealthChain
                     </h1>
-                    <p className="text-gray-400">
-                        {step === "connect"
-                            ? "Your wallet is your identity. Connect to start."
-                            : "Tell us a bit about yourself to secure your records."}
+                    <p className="text-gray-400 text-lg">
+                        Own Your Medical Data
                     </p>
                 </div>
 
-                {step === "connect" ? (
-                    <div className="space-y-4">
-                        <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-xl text-sm text-purple-200 mb-6">
-                            <p><strong>Note:</strong> HealthChain uses your wallet address to encrypt and store your medical data securely on Polygon.</p>
-                        </div>
-                        <div className="flex justify-center">
-                            <WalletConnect />
-                        </div>
-                        <p className="text-xs text-gray-500 mt-6 text-center">
-                            Already have an account? <a href="/signin" className="text-purple-400 hover:underline">Sign In</a>
-                        </p>
-                    </div>
-                ) : (
-                    <form onSubmit={handleRegister} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>First Name</Label>
-                                <Input
-                                    required
-                                    className="bg-white/5 border-white/10"
-                                    value={formData.firstName}
-                                    onChange={e => setFormData({ ...formData, firstName: e.target.value })}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Last Name</Label>
-                                <Input
-                                    required
-                                    className="bg-white/5 border-white/10"
-                                    value={formData.lastName}
-                                    onChange={e => setFormData({ ...formData, lastName: e.target.value })}
-                                />
-                            </div>
-                        </div>
+                {/* Main Card */}
+                <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-3xl p-8 shadow-xl">
+                    <div className="space-y-6">
+
+                        {/* Option 1: Google (Web3Auth) */}
                         <div className="space-y-2">
-                            <Label>Email (Optional)</Label>
-                            <Input
-                                type="email"
-                                className="bg-white/5 border-white/10"
-                                value={formData.email}
-                                onChange={e => setFormData({ ...formData, email: e.target.value })}
-                            />
+                            <GoogleLoginButton />
+                            <p className="text-[10px] text-gray-500 text-center">
+                                Powered by Web3Auth (MPC) • Non-custodial wallet created instantly
+                            </p>
                         </div>
 
-                        <Button
-                            type="submit"
-                            className="w-full bg-purple-600 hover:bg-purple-500 h-12 text-lg mt-6"
-                            disabled={isLoading}
-                        >
-                            {isLoading ? "Creating Identity..." : "Finalize Registration"}
-                        </Button>
-                    </form>
-                )}
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <span className="w-full border-t border-white/10" />
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-[#0A0A0A] px-2 text-gray-500">Or connect existing</span>
+                            </div>
+                        </div>
+
+                        {/* Option 2: Wallet Connect */}
+                        <div className="space-y-2">
+                            <WalletConnectButton />
+                        </div>
+
+                    </div>
+
+                    {/* Privacy Badge */}
+                    <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-center gap-2 text-xs text-emerald-500/80 bg-emerald-500/5 py-2 rounded-lg border border-emerald-500/10">
+                        <Lock className="w-3 h-3" />
+                        <span className="font-semibold">End-to-End Encrypted</span>
+                        <span className="text-gray-500">• Zero-Knowledge Privacy</span>
+                    </div>
+                </div>
+
+                {/* Footer Terms */}
+                <p className="text-center text-xs text-gray-600 mt-8">
+                    By connecting, you agree to our <span className="text-gray-400 cursor-pointer hover:underline">Terms of Service</span> and <span className="text-gray-400 cursor-pointer hover:underline">Privacy Protocol</span>.
+                </p>
             </motion.div>
         </div>
     );

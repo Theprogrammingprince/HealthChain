@@ -4,9 +4,14 @@ import { useReadContract, useWriteContract, useAccount } from 'wagmi';
 import { HealthChainABI } from '@/lib/abi';
 import { HEALTH_CHAIN_CONTRACT_ADDRESS } from '@/lib/contracts';
 import { toast } from 'sonner';
+import { useAppStore } from '@/lib/store';
 
 export function useHealthRecords() {
-    const { address } = useAccount();
+    const { address: wagmiAddress } = useAccount();
+    const { walletAddress } = useAppStore(); // Store address (e.g. from Web3Auth)
+
+    // Prioritize Wagmi address if connected, otherwise use store address
+    const address = wagmiAddress || walletAddress;
     const { writeContractAsync } = useWriteContract();
 
     // 1. Get Records
