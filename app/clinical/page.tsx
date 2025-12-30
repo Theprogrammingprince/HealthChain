@@ -3,23 +3,15 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-    Activity,
     ShieldCheck,
-    Search,
-    ChevronRight,
     Stethoscope,
-    Users,
-    History,
     AlertTriangle,
-    FileText,
     User,
     LogOut,
     Bell,
     Settings,
-    ShieldAlert,
     ArrowRight,
     Lock,
-    ExternalLink,
     Plus
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
@@ -245,7 +237,7 @@ export default function ClinicalDashboardPage() {
                                             </div>
                                             <div className="p-4 rounded-xl bg-white/5 border-l-4 border-orange-500">
                                                 <p className="text-xs font-bold text-white uppercase">Abnormal Glucose History</p>
-                                                <p className="text-[10px] text-gray-500 mt-1 uppercase font-bold tracking-widest">Mean value {'>'} 115 mg/dL over last 30 days</p>
+                                                <p className="text-[10px] text-gray-500 mt-1 uppercase font-bold tracking-widest">Mean value &gt; 115 mg/dL over last 30 days</p>
                                             </div>
                                         </div>
                                     </motion.section>
