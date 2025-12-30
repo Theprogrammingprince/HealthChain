@@ -1,8 +1,10 @@
+import dynamic from "next/dynamic";
 import { HeroSection } from "@/components/features/HeroSection";
-import { ImpactSection } from "@/components/features/ImpactSection";
-import { PartnersSection } from "@/components/features/PartnersSection";
-import { TimelineSection } from "@/components/features/TimelineSection";
 import { ParticlesBackground } from "@/components/ui/ParticlesBackground";
+
+const ImpactSection = dynamic(() => import("@/components/features/ImpactSection").then(mod => mod.ImpactSection));
+const PartnersSection = dynamic(() => import("@/components/features/PartnersSection").then(mod => mod.PartnersSection));
+const TimelineSection = dynamic(() => import("@/components/features/TimelineSection").then(mod => mod.TimelineSection));
 
 export default function Home() {
   return (

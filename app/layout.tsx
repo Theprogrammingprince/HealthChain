@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import { AuthDialog } from "@/components/features/AuthDialog";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
@@ -44,7 +43,6 @@ export default function RootLayout({
         <Providers>
           <Navbar />
           <main className="flex-1 flex flex-col">{children}</main>
-          <AuthDialog />
           <Footer />
           <Toaster />
         </Providers>

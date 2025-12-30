@@ -1,10 +1,9 @@
 'use client';
 
-import { ShieldCheck, Lock, Activity } from "lucide-react";
+import { Lock, Activity } from "lucide-react";
 import { motion } from "framer-motion";
 import { GoogleLoginButton } from "@/components/features/GoogleLoginButton";
 import { WalletConnectButton } from "@/components/features/WalletConnectButton";
-import { Button } from "@/components/ui/button";
 
 export default function SignUpPage() {
     return (

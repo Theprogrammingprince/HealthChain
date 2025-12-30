@@ -20,7 +20,6 @@ import { Button } from "@/components/ui/button";
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -48,6 +47,9 @@ const formSchema = z.object({
     testDate: z.string().min(1, "Date is required"),
     notes: z.string().optional(),
 });
+
+// Helper for ID generation to avoid hydration mismatch
+const generateId = () => Math.random().toString(36).substring(2, 11);
 
 export function AddLabResultForm() {
     const [files, setFiles] = useState<File[]>([]);
@@ -98,14 +100,14 @@ export function AddLabResultForm() {
         }
 
         const newRecord = {
-            id: Math.random().toString(36).substring(2, 11),
+            id: generateId(),
             name: values.testName,
             type: values.testType as RecordType,
             date: values.testDate,
             facility: values.facilityName,
             doctor: values.doctorName,
             notes: values.notes,
-            ipfsHash: "Qm" + Math.random().toString(36).substring(2, 15),
+            ipfsHash: "Qm" + generateId(),
         };
 
         addRecord(newRecord);

@@ -27,6 +27,7 @@
     "@reown/appkit-adapter-wagmi": "^1.8.15",
     "@tanstack/react-query": "^5.90.13",
     "@tsparticles/react": "^3.0.0",
+    "@tsparticles/slim": "^3.9.1",
     "@wagmi/core": "^3.0.1",
     "@web3auth/base": "^9.7.0",
     "@web3auth/ethereum-provider": "^9.7.0",

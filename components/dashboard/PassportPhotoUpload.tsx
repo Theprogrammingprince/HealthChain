@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import Image from "next/image";
+
+import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, Upload, X, User, CheckCircle2 } from "lucide-react";
@@ -10,7 +12,6 @@ import { Button } from "@/components/ui/button";
 
 export function PassportPhotoUpload() {
     const { profileImage, setProfileImage } = useAppStore();
-    const [isHovered, setIsHovered] = useState(false);
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
         const file = acceptedFiles[0];
@@ -39,8 +40,6 @@ export function PassportPhotoUpload() {
     return (
         <div className="relative group">
             <motion.div
-                onHoverStart={() => setIsHovered(true)}
-                onHoverEnd={() => setIsHovered(false)}
                 className="relative w-48 h-64 rounded-2xl overflow-hidden border-2 border-dashed border-white/10 bg-white/5 transition-all hover:border-indigo-500/50"
                 {...getRootProps()}
             >
@@ -55,10 +54,12 @@ export function PassportPhotoUpload() {
                             exit={{ opacity: 0 }}
                             className="absolute inset-0"
                         >
-                            <img
+                            <Image
                                 src={profileImage}
                                 alt="Passport"
-                                className="w-full h-full object-cover"
+                                fill
+                                className="object-cover"
+                                unoptimized
                             />
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
                                 <Camera className="text-white w-8 h-8" />

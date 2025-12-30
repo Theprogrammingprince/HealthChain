@@ -1,15 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
     HeartPulse,
-    Settings,
     LogOut,
     Activity,
     Droplet,
     Dna,
-    Thermometer,
     Scale,
     Clock,
     LayoutDashboard,
@@ -29,7 +27,6 @@ import { RecordCard } from "@/components/dashboard/RecordCard";
 import { AddLabResultForm } from "@/components/dashboard/AddLabResultForm";
 import { EmergencyQRDialog } from "@/components/dashboard/EmergencyQRDialog";
 import { PassportPhotoUpload } from "@/components/dashboard/PassportPhotoUpload";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -66,11 +63,6 @@ export default function DashboardPage() {
                 staggerChildren: 0.1
             }
         }
-    };
-
-    const itemVariants = {
-        hidden: { y: 20, opacity: 0 },
-        visible: { y: 0, opacity: 1 }
     };
 
     // Truncate address for UI

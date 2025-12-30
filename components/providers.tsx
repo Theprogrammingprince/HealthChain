@@ -6,6 +6,11 @@ import { polygonAmoy } from '@reown/appkit/networks'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiProvider } from 'wagmi'
 import { ReactNode, useState } from 'react'
+import dynamic from 'next/dynamic'
+
+const AuthDialog = dynamic(() => import('@/components/features/AuthDialog').then(mod => mod.AuthDialog), {
+  ssr: false,
+})
 
 // 1. Get projectId from https://cloud.reown.com
 // This is a public demo project ID
@@ -43,6 +48,7 @@ export function Providers({ children }: { children: ReactNode }) {
     <WagmiProvider config={wagmiAdapter.wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         {children}
+        <AuthDialog />
       </QueryClientProvider>
     </WagmiProvider>
   )
