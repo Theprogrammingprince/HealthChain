@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { WalletConnect } from "@/components/features/WalletConnect";
-import { Activity, Search, Bell, Menu, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Activity, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
