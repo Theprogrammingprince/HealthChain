@@ -23,9 +23,9 @@ export default function AdminPage() {
                             <Globe2 size={12} className="text-emerald-500 animate-pulse" />
                             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Mainnet Alpha</span>
                         </div>
-                        <button className="p-2 hover:bg-white/5 rounded-full transition-colors">
+                        <Link href="/admin/settings" className="p-2 hover:bg-white/5 rounded-full transition-colors">
                             <Settings size={18} className="text-gray-400" />
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </header>
