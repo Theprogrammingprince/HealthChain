@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 // Add missing import for X
 import { MapPin, Navigation, Building2, Zap, Radio, X } from "lucide-react";
@@ -26,7 +26,6 @@ const MOCK_LOCATIONS: Location[] = [
 ];
 
 export function TacticalMap({ isActive }: { isActive: boolean }) {
-    const [scanLine, setScanLine] = useState(0);
     const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
 
     return (
