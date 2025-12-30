@@ -3,8 +3,9 @@
 import { motion } from "framer-motion";
 import { HospitalVerificationTable } from "@/components/admin/HospitalVerificationTable";
 import { PaymasterMonitor } from "@/components/admin/PaymasterMonitor";
-import { ComplianceTerminal } from "@/components/admin/ComplianceTerminal";
+import { CompliaceTerminal } from "@/components/admin/ComplianceTerminal";
 import { Settings, Shield, Globe2 } from "lucide-react";
+import Link from "next/link";
 
 export default function AdminPage() {
     return (
