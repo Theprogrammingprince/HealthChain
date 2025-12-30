@@ -16,6 +16,8 @@ export function Navbar() {
     const links = [
         { href: "/", label: "Home" },
         { href: "/dashboard", label: "Dashboard" },
+        { href: "/guardian", label: "Guardian" },
+        { href: "/admin", label: "Admin", className: "text-blue-400 hover:text-blue-300" },
         { href: "/emergency", label: "Emergency", className: "text-red-500 hover:text-red-400" },
     ];
 

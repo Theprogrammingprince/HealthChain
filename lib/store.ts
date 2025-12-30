@@ -102,6 +102,23 @@ interface AppState {
   revokeStaff: (id: string) => void;
   activateEmergency: (patientId: string) => void;
   clearEmergency: () => void;
+
+  // Admin Side (Registry)
+  verificationRequests: {
+    id: string;
+    name: string;
+    address: string;
+    license: string;
+    status: 'Pending' | 'Verified' | 'Rejected';
+    timestamp: string;
+  }[];
+  paymasterBalance: number;
+  complianceScore: number;
+
+  // Admin Actions
+  verifyHospital: (id: string) => void;
+  rejectHospital: (id: string) => void;
+  topUpPaymaster: (amount: number) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -111,6 +128,7 @@ export const useAppStore = create<AppState>()(
       isConnected: false,
       isAuthenticated: false,
       profileImage: null,
+      // ... existing initial state ...
       userVitals: {
         bloodType: 'O+',
         genotype: 'AA',
@@ -171,6 +189,15 @@ export const useAppStore = create<AppState>()(
         patientId: null
       },
 
+      // Admin Initial State
+      verificationRequests: [
+        { id: 'v1', name: 'Cleveland Clinic', address: '0x442...991a', license: 'MED-2024-991', status: 'Pending', timestamp: '2024-12-29 09:15' },
+        { id: 'v2', name: 'Berlin Charité', address: '0x881...b22c', license: 'EU-DE-8821', status: 'Verified', timestamp: '2024-12-28 14:20' },
+        { id: 'v3', name: 'Tokyo General', address: '0x112...f44d', license: 'JP-TK-1192', status: 'Pending', timestamp: '2024-12-30 08:45' },
+      ],
+      paymasterBalance: 2450.50,
+      complianceScore: 98,
+
       connectWallet: (address) => set({ walletAddress: address, isConnected: true }),
       disconnectWallet: () => set({ walletAddress: null, isConnected: false, isAuthenticated: false, currentStaff: null }),
       authenticateUser: (role) => {
@@ -224,7 +251,20 @@ export const useAppStore = create<AppState>()(
           patientId
         }
       }),
-      clearEmergency: () => set({ emergencyAccess: { isActive: false, expiresAt: null, patientId: null } })
+      clearEmergency: () => set({ emergencyAccess: { isActive: false, expiresAt: null, patientId: null } }),
+
+      // Admin Implementations
+      verifyHospital: (id) => set((state) => ({
+        verificationRequests: state.verificationRequests.map(req =>
+          req.id === id ? { ...req, status: 'Verified' } : req
+        )
+      })),
+      rejectHospital: (id) => set((state) => ({
+        verificationRequests: state.verificationRequests.map(req =>
+          req.id === id ? { ...req, status: 'Rejected' } : req
+        )
+      })),
+      topUpPaymaster: (amount) => set((state) => ({ paymasterBalance: state.paymasterBalance + amount })),
     }),
     {
       name: 'healthchain-storage',
