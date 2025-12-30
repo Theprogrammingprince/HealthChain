@@ -3,23 +3,15 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-    Activity,
     ShieldCheck,
-    Search,
-    ChevronRight,
     Stethoscope,
-    Users,
-    History,
     AlertTriangle,
-    FileText,
     User,
     LogOut,
     Bell,
     Settings,
-    ShieldAlert,
     ArrowRight,
     Lock,
-    ExternalLink,
     Plus
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
