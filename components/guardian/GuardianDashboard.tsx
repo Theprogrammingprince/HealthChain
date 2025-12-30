@@ -199,8 +199,9 @@ export function GuardianDashboard() {
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => {
-                                            toast.success("Access Explicitly Granted", { description: "You have verified this medical team." });
-                                            // In a real app, this would sign a transaction to whitelist the provider
+                                            toast.success("Access Granted", { description: "Identity Verified. Emergency Protocol Deactivated." });
+                                            clearEmergency();
+                                            // Optional: Add logic here to whitelist the provider permanently if needed
                                         }}
                                         className="w-full group relative overflow-hidden rounded-[1.5rem] bg-emerald-600 p-6 text-center shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all hover:bg-emerald-500 hover:shadow-[0_0_50px_rgba(16,185,129,0.5)] cursor-pointer border-2 border-emerald-400/50 flex flex-col items-center justify-center gap-2"
                                     >
