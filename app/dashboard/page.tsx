@@ -120,9 +120,9 @@ export default function DashboardPage() {
                             <code className="text-[11px] text-gray-400 font-mono">{displayAddress}</code>
                         </div>
 
-                        <button className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 hover:bg-white/10 transition-colors">
+                        <Link href="/dashboard/notifications" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 hover:bg-white/10 transition-colors">
                             <Bell className="w-4 h-4 text-gray-400" />
-                        </button>
+                        </Link>
 
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
