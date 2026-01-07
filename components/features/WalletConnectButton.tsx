@@ -16,9 +16,8 @@ export function WalletConnectButton() {
     useEffect(() => {
         if (isConnected && address) {
             connectWallet(address);
-            router.push("/dashboard");
         }
-    }, [isConnected, address, connectWallet, router]);
+    }, [isConnected, address, connectWallet]);
 
     return (
         <Button

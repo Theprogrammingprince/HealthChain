@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useAppStore } from "@/lib/store";
 import { useState } from "react";
 import { motion } from "framer-motion";
 
 export function Navbar() {
     const pathname = usePathname();
+    const { isAuthenticated } = useAppStore();
 
     const links = [
         { href: "/", label: "Home" },
@@ -25,7 +27,10 @@ export function Navbar() {
         <nav className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
             <div className="container flex h-16 items-center justify-between px-4">
                 <Link href="/" className="flex items-center gap-2 font-bold text-xl tracking-tighter">
-                    <Activity className="h-6 w-6 text-primary animate-pulse" />
+                    <Activity className={cn(
+                        "h-6 w-6 text-primary animate-pulse",
+                        isAuthenticated ? "duration-[600ms]" : "duration-[2000ms]"
+                    )} />
                     <span className="bg-gradient-to-r from-blue-400 to-primary bg-clip-text text-transparent">
                         HealthChain
                     </span>

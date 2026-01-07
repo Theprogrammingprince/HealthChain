@@ -27,6 +27,7 @@ import { AccessControlList } from "@/components/dashboard/AccessControlList";
 import { ActivityLogTable } from "@/components/dashboard/ActivityLogTable";
 import { RecordCard } from "@/components/dashboard/RecordCard";
 import { PassportPhotoUpload } from "@/components/dashboard/PassportPhotoUpload";
+import { ProfileSetupDialog } from "@/components/dashboard/ProfileSetupDialog";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -42,16 +43,36 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 
+import { RequireAuth } from "@/components/features/RequireAuth";
+
 export default function DashboardPage() {
     const [isLoading, setIsLoading] = useState(true);
+    const [showProfileSetup, setShowProfileSetup] = useState(false);
     const router = useRouter();
-    const { walletAddress, records, disconnectWallet } = useAppStore();
+    const {
+        walletAddress,
+        records,
+        userVitals,
+        disconnectWallet,
+        fetchUserProfile,
+        supabaseUser
+    } = useAppStore();
+    const [activeTab, setActiveTab] = useState("overview");
 
     useEffect(() => {
-        // Smooth loading sequence
-        const timer = setTimeout(() => setIsLoading(false), 800);
-        return () => clearTimeout(timer);
-    }, []);
+        const initData = async () => {
+            await fetchUserProfile();
+            setIsLoading(false);
+        };
+        initData();
+    }, [fetchUserProfile]);
+
+    useEffect(() => {
+        // Check if profile setup is needed
+        if (!isLoading && supabaseUser && (!userVitals.fullName || !userVitals.dob)) {
+            setShowProfileSetup(true);
+        }
+    }, [isLoading, supabaseUser, userVitals.fullName, userVitals.dob]);
 
     const handleLogout = () => {
         disconnectWallet();
@@ -240,8 +261,22 @@ export default function DashboardPage() {
 
                                 <div className="text-center space-y-4">
                                     <div>
-                                        <p className="text-sm font-bold text-white uppercase tracking-[0.2em]">Clinical Rescue ID</p>
-                                        <p className="text-[10px] text-gray-600 font-mono break-all mt-1">{walletAddress}</p>
+                                        <p className="text-sm font-bold text-white uppercase tracking-[0.2em]">
+                                            {userVitals.fullName || "IDENTIFYING..."}
+                                        </p>
+                                        <p className="text-[10px] text-gray-600 font-mono break-all mt-1">
+                                            {walletAddress || "0x..."}
+                                        </p>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 text-[10px] font-bold uppercase tracking-widest">
+                                        <div className="bg-white/5 p-2 rounded-xl border border-white/5">
+                                            <span className="text-gray-500 block mb-1">Genotype</span>
+                                            <span className="text-primary">{userVitals.genotype}</span>
+                                        </div>
+                                        <div className="bg-white/5 p-2 rounded-xl border border-white/5">
+                                            <span className="text-gray-500 block mb-1">Blood</span>
+                                            <span className="text-red-400">{userVitals.bloodType}</span>
+                                        </div>
                                     </div>
                                     <div className="flex items-center justify-center gap-2 text-[#10B981] bg-[#10B981]/10 py-2 rounded-full border border-[#10B981]/20">
                                         <ShieldCheck size={12} />
@@ -294,6 +329,7 @@ export default function DashboardPage() {
 
                     </div>
                 </motion.div>
+                <ProfileSetupDialog isOpen={showProfileSetup} onClose={() => setShowProfileSetup(false)} />
             </main>
 
             <footer className="border-t border-white/5 py-12 mt-20">

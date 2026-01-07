@@ -6,16 +6,27 @@ import { GoogleLoginButton } from "@/components/features/GoogleLoginButton";
 import { WalletConnectButton } from "@/components/features/WalletConnectButton";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useEffect } from "react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState, useEffect } from "react";
+import { useAppStore } from "@/lib/store";
 import { useAccount } from "wagmi";
 
 export default function SignInPage() {
     const { isConnected } = useAccount();
     const router = useRouter();
+    const [role, setRole] = useState<'Patient' | 'Hospital'>('Patient');
+    const { setUserRole } = useAppStore();
 
     useEffect(() => {
-        if (isConnected) router.push("/dashboard");
-    }, [isConnected, router]);
+        if (isConnected) {
+            setUserRole(role);
+            if (role === 'Hospital') {
+                router.push('/clinical');
+            } else {
+                router.push('/dashboard');
+            }
+        }
+    }, [isConnected, router, role, setUserRole]);
 
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
@@ -41,9 +52,20 @@ export default function SignInPage() {
                     <h1 className="text-4xl font-bold mb-2 tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
                         Welcome Back
                     </h1>
-                    <p className="text-gray-400 text-lg">
+                    <p className="text-gray-400 text-lg mb-6">
                         Securely Access Your Data
                     </p>
+
+                    <Tabs defaultValue="Patient" onValueChange={(v) => setRole(v as any)} className="w-full">
+                        <TabsList className="grid w-full grid-cols-2 bg-white/5 p-1 rounded-xl border border-white/10">
+                            <TabsTrigger value="Patient" className="rounded-lg data-[state=active]:bg-[#00BFFF] data-[state=active]:text-black text-gray-400 font-bold uppercase text-[10px] tracking-widest transition-all">
+                                Individual
+                            </TabsTrigger>
+                            <TabsTrigger value="Hospital" className="rounded-lg data-[state=active]:bg-indigo-500 data-[state=active]:text-white text-gray-400 font-bold uppercase text-[10px] tracking-widest transition-all">
+                                Hospital
+                            </TabsTrigger>
+                        </TabsList>
+                    </Tabs>
                 </div>
 
                 {/* Main Card */}
@@ -52,9 +74,9 @@ export default function SignInPage() {
 
                         {/* Option 1: Google (Web3Auth) */}
                         <div className="space-y-2">
-                            <GoogleLoginButton />
+                            <GoogleLoginButton role={role} />
                             <p className="text-[10px] text-gray-500 text-center">
-                                Powered by Web3Auth (MPC) • Non-custodial access
+                                Powered by Supabase Auth • Secure OAuth2
                             </p>
                         </div>
 

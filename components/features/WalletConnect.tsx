@@ -11,31 +11,59 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Wallet, LogOut, Loader2, ChevronDown } from "lucide-react";
+import { Wallet, LogOut, Loader2, ChevronDown, Chrome } from "lucide-react";
 import { toast } from "sonner";
+import { useAccount, useDisconnect } from 'wagmi';
+import { useAppKit } from '@reown/appkit/react';
+import { useEffect } from "react";
 
 
 export function WalletConnect() {
+    const { address, isConnected: isWagmiConnected, isConnecting: isWagmiConnecting } = useAccount();
+    const { disconnect } = useDisconnect();
+    const { open } = useAppKit();
     const { walletAddress, isConnected, connectWallet, disconnectWallet } = useAppStore();
-    const [isConnecting, setIsConnecting] = useState(false);
 
-    const handleConnect = (walletApp: string) => {
-        setIsConnecting(true);
-        // Simulate connection delay
-        setTimeout(() => {
-            const mockAddress = "0x71C...9B3"; // Simulated address
-            connectWallet(mockAddress);
-            setIsConnecting(false);
-            toast.success("Wallet Connected", {
-                description: `Connected to ${walletApp} as ${mockAddress}`,
+    // Sync wagmi state with AppStore
+    useEffect(() => {
+        if (isWagmiConnected && address) {
+            if (!isConnected || walletAddress !== address) {
+                // Shorten address for UI if needed, but the store expects the full address usually
+                // The existing store uses "0x71C...9B3" for mock, let's pass the real one
+                connectWallet(address);
+                toast.success("Wallet Connected", {
+                    description: `Connected as ${address.slice(0, 6)}...${address.slice(-4)}`,
+                });
+            }
+        } else if (!isWagmiConnected && isConnected) {
+            disconnectWallet();
+        }
+    }, [isWagmiConnected, address, isConnected, walletAddress, connectWallet, disconnectWallet]);
+
+    const handleConnect = async () => {
+        try {
+            await open();
+        } catch (error) {
+            console.error("Failed to open AppKit modal:", error);
+            toast.error("Cloud Connection Error", {
+                description: "Could not open the wallet modal. Please check your internet connection or Project ID."
             });
-        }, 1500);
+        }
+    };
+
+    const handleSocialConnect = async () => {
+        try {
+            await open({ view: 'Connect' }); // This allows email/google login
+        } catch (error) {
+            console.error("Failed to open Social Login:", error);
+        }
     };
 
     const handleDisconnect = () => {
-        disconnectWallet();
-        toast.info("Wallet Disconnected", {
-            description: "You have securely logged out."
+        disconnect();
+        // Zustand store is synced in useEffect
+        toast.info("Logged Out", {
+            description: "You have securely disconnected."
         });
     };
 
@@ -68,29 +96,24 @@ export function WalletConnect() {
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_15px_rgba(0,191,255,0.5)] transition-all duration-300 hover:scale-105">
-                    {isConnecting ? (
+                    {isWagmiConnecting ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
                         <Wallet className="mr-2 h-4 w-4" />
                     )}
-                    {isConnecting ? "Connecting..." : "Connect Wallet"}
+                    {isWagmiConnecting ? "Connecting..." : "Connect Wallet"}
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-card border-border text-white">
-                <DropdownMenuLabel>Choose Wallet</DropdownMenuLabel>
+                <DropdownMenuLabel>Sign In Methods</DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-border" />
-                <DropdownMenuItem onClick={() => handleConnect("MetaMask")} className="cursor-pointer hover:bg-muted focus:bg-muted focus:text-white">
-                    <div className="mr-2 h-5 w-5 bg-orange-500 rounded-full flex items-center justify-center text-[10px] text-white font-bold">M</div>
-                    MetaMask
+                <DropdownMenuItem onClick={() => handleConnect()} className="cursor-pointer hover:bg-muted focus:bg-muted focus:text-white">
+                    <Wallet className="mr-2 h-4 w-4" />
+                    Browser Wallets
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleConnect("Coinbase Wallet")} className="cursor-pointer hover:bg-muted focus:bg-muted focus:text-white">
-                    {/* Simple circle for Coinbase if no icon, or logic to add icon */}
-                    <div className="mr-2 h-5 w-5 rounded-full bg-blue-600 flex items-center justify-center text-[10px] text-white font-bold">C</div>
-                    Coinbase Wallet
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleConnect("WalletConnect")} className="cursor-pointer hover:bg-muted focus:bg-muted focus:text-white">
-                    <div className="mr-2 h-5 w-5 rounded-full bg-blue-400 flex items-center justify-center text-[10px] text-white font-bold">W</div>
-                    WalletConnect
+                <DropdownMenuItem onClick={() => handleSocialConnect()} className="cursor-pointer hover:bg-muted focus:bg-muted focus:text-white">
+                    <Chrome className="mr-2 h-4 w-4 text-primary" />
+                    Google / Email
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
