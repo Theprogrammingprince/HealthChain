@@ -179,7 +179,7 @@ export default function DashboardPage() {
                         {isLoading ? (
                             <Skeleton className="w-full h-[320px] rounded-3xl bg-white/5" />
                         ) : (
-                            <HealthSummaryCard />
+                            <HealthSummaryCard onEdit={() => setShowProfileSetup(true)} />
                         )}
                     </motion.section>
 
@@ -264,23 +264,49 @@ export default function DashboardPage() {
                                         <p className="text-sm font-bold text-white uppercase tracking-[0.2em]">
                                             {userVitals.fullName || "IDENTIFYING..."}
                                         </p>
-                                        <p className="text-[10px] text-gray-600 font-mono break-all mt-1">
-                                            {walletAddress || "0x..."}
-                                        </p>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-2 text-[10px] font-bold uppercase tracking-widest">
-                                        <div className="bg-white/5 p-2 rounded-xl border border-white/5">
-                                            <span className="text-gray-500 block mb-1">Genotype</span>
-                                            <span className="text-primary">{userVitals.genotype}</span>
-                                        </div>
-                                        <div className="bg-white/5 p-2 rounded-xl border border-white/5">
-                                            <span className="text-gray-500 block mb-1">Blood</span>
-                                            <span className="text-red-400">{userVitals.bloodType}</span>
+                                        <div className="flex items-center justify-center gap-2 mt-1">
+                                            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                                            <code className="text-[9px] text-gray-500 font-mono break-all">
+                                                {walletAddress ? `${walletAddress.slice(0, 12)}...${walletAddress.slice(-8)}` : "0x..."}
+                                            </code>
                                         </div>
                                     </div>
-                                    <div className="flex items-center justify-center gap-2 text-[#10B981] bg-[#10B981]/10 py-2 rounded-full border border-[#10B981]/20">
-                                        <ShieldCheck size={12} />
-                                        <span className="text-[10px] font-black uppercase tracking-widest">Verification Status: ACTIVE</span>
+
+                                    <div className="grid grid-cols-2 gap-3 pt-2">
+                                        <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-left">
+                                            <span className="text-[10px] text-gray-500 block mb-1 uppercase font-black">Genotype</span>
+                                            <span className="text-sm font-bold text-primary">{userVitals.genotype}</span>
+                                        </div>
+                                        <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-left">
+                                            <span className="text-[10px] text-gray-500 block mb-1 uppercase font-black">Blood Group</span>
+                                            <span className="text-sm font-bold text-red-400">{userVitals.bloodType}</span>
+                                        </div>
+                                        <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-left">
+                                            <span className="text-[10px] text-gray-500 block mb-1 uppercase font-black">Weight</span>
+                                            <span className="text-sm font-bold text-white">{userVitals.weight} <span className="text-[10px] text-gray-500">kg</span></span>
+                                        </div>
+                                        <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-left">
+                                            <span className="text-[10px] text-gray-500 block mb-1 uppercase font-black">Height</span>
+                                            <span className="text-sm font-bold text-white">{userVitals.height} <span className="text-[10px] text-gray-500">cm</span></span>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3 pt-2">
+                                        <div className="flex items-center justify-between px-4 py-3 bg-white/2 rounded-2xl border border-white/5">
+                                            <span className="text-[10px] text-gray-500 uppercase font-black">Age</span>
+                                            <span className="text-xs font-bold text-white">
+                                                {userVitals.dob ? `${Math.floor((new Date().getTime() - new Date(userVitals.dob).getTime()) / 31557600000)} Yrs` : "N/A"}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between px-4 py-3 bg-white/2 rounded-2xl border border-white/5">
+                                            <span className="text-[10px] text-gray-500 uppercase font-black">Religion</span>
+                                            <span className="text-xs font-bold text-white">{userVitals.religion || "N/A"}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-center gap-2 text-[#10B981] bg-[#10B981]/10 py-3 rounded-2xl border border-[#10B981]/20 mt-4">
+                                        <ShieldCheck size={14} className="animate-pulse" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Protocol Verified</span>
                                     </div>
                                 </div>
                             </motion.section>

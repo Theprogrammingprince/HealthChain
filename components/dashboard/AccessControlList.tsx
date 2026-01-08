@@ -30,10 +30,12 @@ import {
     DialogTitle
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { GrantAccessDialog } from "./GrantAccessDialog";
 
 export function AccessControlList() {
     const { accessPermissions, revokeAccess } = useAppStore();
     const [revokingId, setRevokingId] = useState<string | null>(null);
+    const [isGrantDialogOpen, setIsGrantDialogOpen] = useState(false);
 
     const handleRevoke = () => {
         if (revokingId) {
@@ -58,7 +60,11 @@ export function AccessControlList() {
                         MANAGE WHICH HOSPITALS & DOCTORS CAN DECRYPT YOUR RECORDS
                     </p>
                 </div>
-                <Button variant="outline" className="border-white/10 hover:bg-white/5 text-gray-400">
+                <Button
+                    variant="outline"
+                    className="border-white/10 hover:bg-white/5 text-gray-400"
+                    onClick={() => setIsGrantDialogOpen(true)}
+                >
                     <UserPlus className="mr-2 h-4 w-4" /> Grant New Access
                 </Button>
             </div>
@@ -170,6 +176,11 @@ export function AccessControlList() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <GrantAccessDialog
+                isOpen={isGrantDialogOpen}
+                onClose={() => setIsGrantDialogOpen(false)}
+            />
         </div>
     );
 }

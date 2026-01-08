@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { Session, User } from '@supabase/supabase-js';
+import { supabase } from './supabaseClient';
 
 export type RecordType = 'Lab Result' | 'Prescription' | 'Imaging' | 'General' | 'Clinical Note';
 
@@ -105,11 +106,11 @@ interface AppState {
   disconnectWallet: () => void;
   authenticateUser: (role?: StaffRole) => void;
   setProfileImage: (image: string) => void;
-  addRecord: (record: PatientRecord) => void;
-  updateVitals: (vitals: Partial<Vitals>) => void;
-  grantAccess: (permission: AccessPermission) => void;
-  revokeAccess: (id: string) => void;
-  addActivityLog: (log: ActivityLog) => void;
+  addRecord: (record: PatientRecord) => Promise<void>;
+  updateVitals: (vitals: Partial<Vitals>) => Promise<void>;
+  grantAccess: (permission: AccessPermission) => Promise<void>;
+  revokeAccess: (id: string) => Promise<void>;
+  addActivityLog: (log: Omit<ActivityLog, 'id' | 'date'>) => Promise<void>;
 
   // Clinical Actions
   addStaff: (staff: StaffMember) => void;
@@ -119,7 +120,7 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>()(
-  (set) => ({
+  (set, get) => ({
     walletAddress: null,
     isConnected: false,
     isAuthenticated: false,
@@ -136,16 +137,23 @@ export const useAppStore = create<AppState>()(
     }),
     setUserProfile: (profile) => set({ userProfile: profile }),
     fetchUserProfile: async () => {
-      const { data: { session } } = await (await import('./supabaseClient')).supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
 
-      const { data, error } = await (await import('./supabaseClient')).supabase
+      const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', session.user.id)
         .single();
 
       if (data && !error) {
+        // Fetch supplemental data in parallel
+        const [recordsRes, permissionsRes, logsRes] = await Promise.all([
+          supabase.from('medical_records').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false }),
+          supabase.from('access_permissions').select('*').eq('user_id', session.user.id).order('granted_at', { ascending: false }),
+          supabase.from('activity_logs').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false })
+        ]);
+
         set((state) => ({
           userProfile: data,
           userVitals: {
@@ -157,55 +165,83 @@ export const useAppStore = create<AppState>()(
             religion: data.religion,
             weight: data.weight || state.userVitals.weight,
             height: data.height || state.userVitals.height,
-          }
+            allergies: data.allergies || [],
+            conditions: data.chronic_conditions || [],
+            medications: data.medications || [],
+            bloodPressure: data.blood_pressure || "N/A",
+            glucose: data.glucose || "N/A",
+            lastCheckup: data.last_checkup || "N/A",
+          },
+          records: recordsRes.data?.map(r => ({
+            id: r.id,
+            name: r.name,
+            type: r.type,
+            date: new Date(r.created_at).toISOString().split('T')[0],
+            facility: r.facility,
+            doctor: r.doctor,
+            notes: r.notes,
+            ipfsHash: r.ipfs_hash,
+            category: r.category
+          })) || [],
+          accessPermissions: permissionsRes.data?.map(p => ({
+            id: p.id,
+            entityName: p.entity_name,
+            entityAddress: p.entity_address,
+            grantedDate: new Date(p.granted_at).toISOString().split('T')[0],
+            level: p.level
+          })) || [],
+          activityLogs: logsRes.data?.map(l => ({
+            id: l.id,
+            date: new Date(l.created_at).toLocaleString(),
+            actor: l.actor,
+            action: l.action,
+            txHash: l.tx_hash
+          })) || []
+        }));
+      } else {
+        // No profile found or error - reset to defaults but keep user info
+        set((state) => ({
+          userProfile: null,
+          userVitals: {
+            ...state.userVitals,
+            fullName: "",
+            dob: "",
+            bloodType: "N/A",
+            genotype: "N/A",
+            religion: "",
+            weight: 0,
+            height: 0,
+            allergies: [],
+            conditions: [],
+            medications: [],
+            bloodPressure: "N/A",
+            glucose: "N/A",
+            lastCheckup: "N/A",
+          },
+          records: [],
+          accessPermissions: [],
+          activityLogs: []
         }));
       }
     },
     setUserRole: (role) => set({ userRole: role }),
     profileImage: null,
     userVitals: {
-      bloodType: 'O+',
-      genotype: 'AA',
-      allergies: ['Penicillin', 'Peanuts'],
-      conditions: ['Mild Asthma'],
-      medications: ['Albuterol (As needed)'],
-      bloodPressure: '118/72',
-      glucose: '92 mg/dL',
-      bmi: 21.8,
-      weight: 68,
-      height: 175,
-      lastCheckup: '2024-12-10',
+      bloodType: 'N/A',
+      genotype: 'N/A',
+      allergies: [],
+      conditions: [],
+      medications: [],
+      bloodPressure: 'N/A',
+      glucose: 'N/A',
+      bmi: 0,
+      weight: 0,
+      height: 0,
+      lastCheckup: 'N/A',
     },
-    records: [
-      {
-        id: '1',
-        name: 'Annual Blood Panel',
-        type: 'Lab Result',
-        date: '2024-12-10',
-        facility: 'Mayo Clinic',
-        doctor: 'Dr. Sarah Chen',
-        ipfsHash: 'QmXoyp...891',
-        category: 'Laboratory',
-      }
-    ],
-    accessPermissions: [
-      {
-        id: 'p1',
-        entityName: 'Johns Hopkins Medical',
-        entityAddress: '0x71C...345a',
-        grantedDate: '2024-10-15',
-        level: 'Full',
-      }
-    ],
-    activityLogs: [
-      {
-        id: 'l1',
-        date: '2024-12-28 14:30',
-        actor: 'Johns Hopkins Medical',
-        action: 'Viewed',
-        txHash: '0xab12...ef34',
-      }
-    ],
+    records: [],
+    accessPermissions: [],
+    activityLogs: [],
 
     staffMembers: [
       { id: 's1', name: 'Dr. Gregory House', role: 'Doctor', walletAddress: '0x123...abc', status: 'Active' },
@@ -234,38 +270,133 @@ export const useAppStore = create<AppState>()(
       }
     },
     setProfileImage: (image) => set({ profileImage: image }),
-    addRecord: (record) => set((state) => ({
-      records: [record, ...state.records],
-      activityLogs: [{
-        id: Math.random().toString(36).substring(2, 9),
-        date: new Date().toLocaleString(),
-        actor: 'You',
-        action: 'Uploaded',
-        txHash: '0x' + Math.random().toString(16).substring(2, 12),
-      }, ...state.activityLogs]
-    })),
-    updateVitals: (vitals) => set((state) => ({ userVitals: { ...state.userVitals, ...vitals } })),
-    grantAccess: (permission) => set((state) => ({
-      accessPermissions: [permission, ...state.accessPermissions],
-      activityLogs: [{
-        id: Math.random().toString(36).substring(2, 9),
-        date: new Date().toLocaleString(),
-        actor: 'You',
-        action: 'Access Granted',
-        txHash: '0x' + Math.random().toString(16).substring(2, 12),
-      }, ...state.activityLogs]
-    })),
-    revokeAccess: (id) => set((state) => ({
-      accessPermissions: state.accessPermissions.filter(p => p.id !== id),
-      activityLogs: [{
-        id: Math.random().toString(36).substring(2, 9),
-        date: new Date().toLocaleString(),
-        actor: 'You',
-        action: 'Access Revoked',
-        txHash: '0x' + Math.random().toString(16).substring(2, 12),
-      }, ...state.activityLogs]
-    })),
-    addActivityLog: (log) => set((state) => ({ activityLogs: [log, ...state.activityLogs] })),
+    addRecord: async (record) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      const { data, error } = await supabase
+        .from('medical_records')
+        .insert({
+          user_id: session.user.id,
+          name: record.name,
+          type: record.type,
+          category: record.category,
+          doctor: record.doctor,
+          facility: record.facility,
+          notes: record.notes,
+          ipfs_hash: record.ipfsHash
+        })
+        .select()
+        .single();
+
+      if (data && !error) {
+        set((state) => ({
+          records: [record, ...state.records]
+        }));
+        await get().addActivityLog({
+          actor: 'You',
+          action: 'Uploaded',
+          txHash: record.ipfsHash.slice(0, 10) + '...'
+        });
+      }
+    },
+    updateVitals: async (vitals) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      const { error } = await supabase
+        .from('users')
+        .update({
+          full_name: vitals.fullName,
+          dob: vitals.dob,
+          blood_group: vitals.bloodType,
+          genotype: vitals.genotype,
+          religion: vitals.religion,
+          weight: vitals.weight,
+          height: vitals.height,
+          blood_pressure: vitals.bloodPressure,
+          glucose: vitals.glucose,
+          allergies: vitals.allergies,
+          medications: vitals.medications,
+          chronic_conditions: vitals.conditions,
+        })
+        .eq('id', session.user.id);
+
+      if (!error) {
+        set((state) => ({
+          userVitals: { ...state.userVitals, ...vitals }
+        }));
+      }
+    },
+    grantAccess: async (permission) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      const { data, error } = await supabase
+        .from('access_permissions')
+        .insert({
+          user_id: session.user.id,
+          entity_name: permission.entityName,
+          entity_address: permission.entityAddress,
+          level: permission.level
+        })
+        .select()
+        .single();
+
+      if (data && !error) {
+        set((state) => ({
+          accessPermissions: [permission, ...state.accessPermissions]
+        }));
+        await get().addActivityLog({
+          actor: 'You',
+          action: 'Access Granted',
+          txHash: '0x' + Math.random().toString(16).substring(2, 12)
+        });
+      }
+    },
+    revokeAccess: async (id) => {
+      const { error } = await supabase
+        .from('access_permissions')
+        .delete()
+        .eq('id', id);
+
+      if (!error) {
+        set((state) => ({
+          accessPermissions: state.accessPermissions.filter(p => p.id !== id)
+        }));
+        await get().addActivityLog({
+          actor: 'You',
+          action: 'Access Revoked',
+          txHash: '0x' + Math.random().toString(16).substring(2, 12)
+        });
+      }
+    },
+    addActivityLog: async (log) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      const { data, error } = await supabase
+        .from('activity_logs')
+        .insert({
+          user_id: session.user.id,
+          actor: log.actor,
+          action: log.action,
+          tx_hash: log.txHash
+        })
+        .select()
+        .single();
+
+      if (data && !error) {
+        const newLog: ActivityLog = {
+          id: data.id,
+          date: new Date(data.created_at).toLocaleString(),
+          actor: data.actor,
+          action: data.action,
+          txHash: data.tx_hash
+        };
+        set((state) => ({ activityLogs: [newLog, ...state.activityLogs] }));
+      }
+    },
 
     addStaff: (staff) => set((state) => ({ staffMembers: [staff, ...state.staffMembers] })),
     revokeStaff: (id) => set((state) => ({ staffMembers: state.staffMembers.filter(s => s.id !== id) })),

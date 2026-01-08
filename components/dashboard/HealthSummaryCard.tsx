@@ -17,7 +17,7 @@ import {
 import { useAppStore } from "@/lib/store";
 import { motion } from "framer-motion";
 
-export function HealthSummaryCard() {
+export function HealthSummaryCard({ onEdit }: { onEdit?: () => void }) {
     const { userVitals } = useAppStore();
 
     return (
@@ -78,7 +78,11 @@ export function HealthSummaryCard() {
                                 <p className="text-[10px] uppercase tracking-widest font-bold text-gray-500">BMI</p>
                                 <div className="flex items-center gap-2">
                                     <Scale className="text-indigo-400 w-4 h-4" />
-                                    <span className="text-xl font-bold text-white">{userVitals.bmi}</span>
+                                    <span className="text-xl font-bold text-white">
+                                        {userVitals.weight && userVitals.height
+                                            ? (userVitals.weight / ((userVitals.height / 100) ** 2)).toFixed(1)
+                                            : "N/A"}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -92,11 +96,15 @@ export function HealthSummaryCard() {
                             <div>
                                 <p className="text-[10px] font-bold text-red-500/80 uppercase tracking-wider mb-2">Severe Allergies</p>
                                 <div className="flex flex-wrap gap-2">
-                                    {userVitals.allergies.map(a => (
-                                        <Badge key={a} variant="outline" className="bg-red-500/10 border-red-500/20 text-red-100 text-[10px]">
-                                            {a}
-                                        </Badge>
-                                    ))}
+                                    {userVitals.allergies.length > 0 ? (
+                                        userVitals.allergies.map(a => (
+                                            <Badge key={a} variant="outline" className="bg-red-500/10 border-red-500/20 text-red-100 text-[10px]">
+                                                {a}
+                                            </Badge>
+                                        ))
+                                    ) : (
+                                        <span className="text-[10px] text-gray-600 font-bold uppercase tracking-widest italic">None Recorded</span>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -109,9 +117,13 @@ export function HealthSummaryCard() {
                                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Chronic</span>
                                 </div>
                                 <div className="space-y-1">
-                                    {userVitals.conditions.map(c => (
-                                        <p key={c} className="text-xs text-white font-medium">{c}</p>
-                                    ))}
+                                    {userVitals.conditions.length > 0 ? (
+                                        userVitals.conditions.map(c => (
+                                            <p key={c} className="text-xs text-white font-medium">{c}</p>
+                                        ))
+                                    ) : (
+                                        <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest italic mt-2">None</p>
+                                    )}
                                 </div>
                             </div>
                             <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-3">
@@ -120,9 +132,13 @@ export function HealthSummaryCard() {
                                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Active Meds</span>
                                 </div>
                                 <div className="space-y-1">
-                                    {userVitals.medications.map(m => (
-                                        <p key={m} className="text-xs text-white font-medium truncate" title={m}>{m}</p>
-                                    ))}
+                                    {userVitals.medications.length > 0 ? (
+                                        userVitals.medications.map(m => (
+                                            <p key={m} className="text-xs text-white font-medium truncate" title={m}>{m}</p>
+                                        ))
+                                    ) : (
+                                        <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest italic mt-2">None</p>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -143,7 +159,10 @@ export function HealthSummaryCard() {
                             </Badge>
                         </div>
                     </div>
-                    <button className="flex items-center gap-2 text-xs text-gray-400 hover:text-white transition-colors group/btn">
+                    <button
+                        onClick={onEdit}
+                        className="flex items-center gap-2 text-xs text-gray-400 hover:text-white transition-colors group/btn"
+                    >
                         <Edit3 size={14} className="group-hover/btn:text-[#00BFFF]" />
                         Edit Profile
                     </button>

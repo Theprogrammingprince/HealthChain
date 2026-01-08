@@ -115,17 +115,25 @@ export function DocumentUploadDialog() {
             category: (values.type === 'Lab Result' ? 'Laboratory' : values.type === 'Imaging' ? 'Radiology' : values.type === 'Prescription' ? 'Pharmacy' : 'General') as 'Laboratory' | 'Pharmacy' | 'Radiology' | 'General'
         };
 
-        addRecord(newRecord);
+        try {
+            await addRecord(newRecord);
 
-        toast.success("Document Encrypted & Secured", {
-            description: `Hash: ${newRecord.ipfsHash} registered on Polygon.`,
-        });
+            toast.success("Document Encrypted & Secured", {
+                description: `Hash: ${newRecord.ipfsHash} registered on Polygon.`,
+            });
 
-        setIsUploading(false);
-        setUploadProgress(0);
-        setFiles([]);
-        form.reset();
-        setOpen(false);
+            setIsUploading(false);
+            setUploadProgress(0);
+            setFiles([]);
+            form.reset();
+            setOpen(false);
+        } catch (error: any) {
+            console.error("Upload failed:", error);
+            toast.error("Process Failed", {
+                description: "Failed to secure document in vault. Please try again.",
+            });
+            setIsUploading(false);
+        }
     }
 
     return (
