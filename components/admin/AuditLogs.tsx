@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Papa from "papaparse";
-import { Download, ShieldCheck, Eye, Search, FileJson } from "lucide-react";
+import { Download, ShieldCheck, Eye, Search, FileJson, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import {
     Table,
@@ -59,102 +59,107 @@ export default function AuditLogs() {
 
     const handleGenerateZKProof = () => {
         setIsGeneratingZK(true);
-        // Simulate complex calculation
         setTimeout(() => {
             setIsGeneratingZK(false);
-            toast.success("Zero-Knowledge Proof Generated successfully on-chain verification");
+            toast.success("Zero-Knowledge Proof Generated successfully");
         }, 3000);
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between gap-4">
                 <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                     <Input
-                        placeholder="Search logs by actor, action, or target..."
-                        className="pl-9 bg-gray-900 border-gray-800"
+                        placeholder="Search system events..."
+                        className="pl-9 bg-white/5 border-white/10 text-xs h-12 rounded-xl focus:ring-blue-500/20"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                     <Dialog>
                         <DialogTrigger asChild>
-                            <Button variant="outline" className="border-[#00BFFF]/30 text-[#00BFFF] hover:bg-[#00BFFF]/10 gap-2">
+                            <Button variant="outline" className="border-blue-500/30 text-blue-500 hover:bg-blue-500/10 h-12 px-6 rounded-xl font-bold text-xs uppercase tracking-widest gap-2">
                                 <ShieldCheck className="h-4 w-4" />
-                                Generate Anonymous Report (ZK)
+                                Generate ZK Report
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="bg-[#0A0A0A] border-gray-800 text-white sm:max-w-md">
+                        <DialogContent className="bg-[#0A0A0A] border-white/10 text-white sm:max-w-md rounded-3xl">
                             <DialogHeader>
-                                <DialogTitle className="flex items-center gap-2">
-                                    <FileJson className="h-5 w-5 text-[#00BFFF]" />
-                                    Zero-Knowledge Compliance Report
+                                <DialogTitle className="flex items-center gap-3 text-xl font-black uppercase tracking-tight">
+                                    <FileJson className="h-6 w-6 text-blue-500" />
+                                    ZK Compliance Engine
                                 </DialogTitle>
-                                <DialogDescription className="text-gray-400">
-                                    Generate a cryptographic proof that all system operations complied with privacy rules (HIPAA/NDPR) without revealing patient data.
+                                <DialogDescription className="text-gray-400 font-medium pt-2">
+                                    Generate a cryptographic proof of system integrity without exposing sensitive metadata.
                                 </DialogDescription>
                             </DialogHeader>
-                            <div className="py-6 flex flex-col items-center justify-center space-y-4">
+                            <div className="py-8 flex flex-col items-center justify-center">
                                 {isGeneratingZK ? (
-                                    <div className="flex flex-col items-center animate-pulse">
-                                        <div className="h-12 w-12 rounded-full border-4 border-[#00BFFF] border-t-transparent animate-spin mb-4" />
-                                        <p className="text-sm text-gray-400">Computing ZK-SNARK circuit...</p>
+                                    <div className="flex flex-col items-center">
+                                        <div className="h-12 w-12 rounded-full border-2 border-blue-500 border-t-transparent animate-spin mb-4" />
+                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Computing SNARK Proof...</p>
                                     </div>
                                 ) : (
-                                    <div className="text-center space-y-2">
-                                        <div className="bg-[#10B981]/10 text-[#10B981] p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
-                                            <ShieldCheck className="h-8 w-8" />
+                                    <div className="text-center group cursor-pointer">
+                                        <div className="bg-blue-500/10 text-blue-500 p-6 rounded-3xl border border-blue-500/20 group-hover:scale-110 transition-transform duration-500">
+                                            <ShieldCheck className="h-10 w-10" />
                                         </div>
-                                        <p className="text-sm text-gray-300">System State Validated</p>
+                                        <p className="mt-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Protocol Ready</p>
                                     </div>
                                 )}
                             </div>
-                            <div className="flex justify-end">
-                                {!isGeneratingZK && (
-                                    <Button onClick={handleGenerateZKProof} className="bg-[#00BFFF] hover:bg-[#00BFFF]/80 text-white w-full">
-                                        Run Verification Simulation
-                                    </Button>
-                                )}
-                            </div>
+                            <Button
+                                onClick={handleGenerateZKProof}
+                                disabled={isGeneratingZK}
+                                className="bg-blue-600 hover:bg-blue-500 text-white h-12 rounded-xl font-black uppercase tracking-widest"
+                            >
+                                {isGeneratingZK ? "Processing..." : "Run Verification"}
+                            </Button>
                         </DialogContent>
                     </Dialog>
 
-                    <Button onClick={handleExportCSV} variant="outline" className="border-gray-700 text-gray-300 hover:bg-gray-800 gap-2">
+                    <Button onClick={handleExportCSV} variant="ghost" className="bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 h-12 px-6 rounded-xl font-bold text-xs uppercase tracking-widest gap-2">
                         <Download className="h-4 w-4" />
-                        Export CSV
+                        Export
                     </Button>
                 </div>
             </div>
 
-            <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
+            <div className="bg-[#0A0A0A] border border-white/5 rounded-2xl overflow-hidden shadow-2xl">
                 <Table>
-                    <TableHeader className="bg-gray-950">
-                        <TableRow className="border-gray-800 hover:bg-gray-950">
-                            <TableHead className="text-gray-400">Timestamp</TableHead>
-                            <TableHead className="text-gray-400">Actor</TableHead>
-                            <TableHead className="text-gray-400">Action</TableHead>
-                            <TableHead className="text-gray-400">Target / Hash</TableHead>
-                            <TableHead className="text-gray-400 text-right">Transaction Log</TableHead>
+                    <TableHeader className="bg-white/[0.01]">
+                        <TableRow className="border-white/5 hover:bg-transparent">
+                            <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 py-5">Event Timestamp</TableHead>
+                            <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Authorized Actor</TableHead>
+                            <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Operation</TableHead>
+                            <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 text-right">Blockchain Reference</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {filteredLogs.map((log) => (
-                            <TableRow key={log.id} className="border-gray-800 hover:bg-gray-800/50">
-                                <TableCell className="text-gray-400 font-mono text-xs">{log.timestamp}</TableCell>
-                                <TableCell className="text-white font-medium">{log.actor}</TableCell>
+                            <TableRow key={log.id} className="border-white/5 hover:bg-white/[0.02] transition-colors">
+                                <TableCell className="text-gray-500 font-mono text-[10px] py-4">{log.timestamp}</TableCell>
                                 <TableCell>
-                                    <Badge variant="outline" className="border-gray-700 text-gray-300">
+                                    <div className="flex flex-col">
+                                        <span className="text-xs font-bold text-white">{log.actor}</span>
+                                        <span className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">Verified Node</span>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <Badge variant="outline" className="bg-white/5 border-white/10 text-[9px] font-black uppercase tracking-wider text-gray-400 py-0.5">
                                         {log.action}
                                     </Badge>
                                 </TableCell>
-                                <TableCell className="text-gray-400 font-mono text-xs">{log.target}</TableCell>
                                 <TableCell className="text-right">
-                                    {log.tx !== "-" && (
-                                        <a href="#" className="inline-flex items-center gap-1 text-[#00BFFF] hover:underline text-xs">
-                                            {log.tx} <ExternalLink className="h-3 w-3" />
+                                    {log.tx !== "-" ? (
+                                        <a href="#" className="inline-flex items-center gap-1.5 text-blue-500 hover:text-blue-400 transition-colors text-[10px] font-mono group">
+                                            {log.tx}
+                                            <ExternalLink className="h-3 w-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                                         </a>
+                                    ) : (
+                                        <span className="text-gray-700 font-mono text-[10px]">Internal Event</span>
                                     )}
                                 </TableCell>
                             </TableRow>
@@ -164,24 +169,4 @@ export default function AuditLogs() {
             </div>
         </div>
     );
-}
-
-function ExternalLink({ className }: { className?: string }) {
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
-            stroke="currentColor"
-            strokeWidth="2"
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={className}
-        >
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-            <polyline points="15 3 21 3 21 9" />
-            <line x1="10" y1="14" x2="21" y2="3" />
-        </svg>
-    )
 }

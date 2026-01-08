@@ -36,6 +36,16 @@ export interface AccessPermission {
 
 export type StaffRole = 'Doctor' | 'Nurse' | 'Admin';
 
+export type HospitalStatus = 'Pending' | 'Verified' | 'Rejected';
+
+export interface VerificationRequest {
+  id: string;
+  name: string;
+  address: string;
+  license: string;
+  status: HospitalStatus;
+}
+
 export interface StaffMember {
   id: string;
   name: string;
@@ -101,6 +111,11 @@ interface AppState {
     patientId: string | null;
   };
 
+  // Admin State
+  verificationRequests: VerificationRequest[];
+  paymasterBalance: number;
+  complianceScore: number;
+
   // Actions
   connectWallet: (address: string) => void;
   disconnectWallet: () => void;
@@ -117,6 +132,11 @@ interface AppState {
   revokeStaff: (id: string) => void;
   activateEmergency: (patientId: string) => void;
   clearEmergency: () => void;
+
+  // Admin Actions
+  verifyHospital: (id: string) => void;
+  rejectHospital: (id: string) => void;
+  topUpPaymaster: (amount: number) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -258,6 +278,28 @@ export const useAppStore = create<AppState>()(
       expiresAt: null,
       patientId: null
     },
+
+    // Admin Initial State
+    verificationRequests: [
+      {
+        id: 'v1',
+        name: 'City General Hospital',
+        address: '0x123...abc',
+        license: 'MED-99281',
+        status: 'Pending',
+        timestamp: new Date().toISOString()
+      },
+      {
+        id: 'v2',
+        name: 'Mercy Medical Center',
+        address: '0x456...def',
+        license: 'MED-10234',
+        status: 'Verified',
+        timestamp: new Date().toISOString()
+      }
+    ],
+    paymasterBalance: 1250.50,
+    complianceScore: 98,
 
     connectWallet: (address) => set({ walletAddress: address, isConnected: true, isAuthenticated: true }),
     disconnectWallet: () => set({ walletAddress: null, isConnected: false, isAuthenticated: false, currentStaff: null }),
@@ -408,6 +450,21 @@ export const useAppStore = create<AppState>()(
       }
     }),
     clearEmergency: () => set({ emergencyAccess: { isActive: false, expiresAt: null, patientId: null } }),
-    checkAuthorization: (status) => set({ isAuthorized: status })
+    checkAuthorization: (status) => set({ isAuthorized: status }),
+
+    // Admin Actions Implementation
+    verifyHospital: (id) => set((state) => ({
+      verificationRequests: state.verificationRequests.map(h =>
+        h.id === id ? { ...h, status: 'Verified' } : h
+      )
+    })),
+    rejectHospital: (id) => set((state) => ({
+      verificationRequests: state.verificationRequests.map(req =>
+        req.id === id ? { ...req, status: 'Rejected' } : req
+      )
+    })),
+    topUpPaymaster: (amount) => set((state) => ({
+      paymasterBalance: state.paymasterBalance + amount
+    }))
   })
 );
