@@ -4,8 +4,31 @@ import { Lock, Activity } from "lucide-react";
 import { motion } from "framer-motion";
 import { GoogleLoginButton } from "@/components/features/GoogleLoginButton";
 import { WalletConnectButton } from "@/components/features/WalletConnectButton";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
+import { useAppStore } from "@/lib/store";
+import { useRouter } from "next/navigation";
+import { useAccount } from "wagmi";
+import { useEffect } from "react";
 
 export default function SignUpPage() {
+    const [role, setRole] = useState<'Patient' | 'Hospital'>('Patient');
+    const { setUserRole, userRole } = useAppStore();
+    const router = useRouter();
+    const { isConnected } = useAccount();
+
+    useEffect(() => {
+        if (isConnected) {
+            setUserRole(role);
+            if (role === 'Hospital') {
+                router.push('/clinical');
+            } else {
+                router.push('/dashboard');
+            }
+        }
+    }, [isConnected, role, setUserRole, router]);
+
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
             {/* Background Ambience */}
@@ -30,9 +53,20 @@ export default function SignUpPage() {
                     <h1 className="text-4xl font-bold mb-2 tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
                         Join HealthChain
                     </h1>
-                    <p className="text-gray-400 text-lg">
-                        Own Your Medical Data
+                    <p className="text-gray-400 text-lg mb-6">
+                        {role === 'Patient' ? 'Own Your Medical Data' : 'Clinical Provider Access'}
                     </p>
+
+                    <Tabs defaultValue="Patient" onValueChange={(v) => setRole(v as any)} className="w-full">
+                        <TabsList className="grid w-full grid-cols-2 bg-white/5 p-1 rounded-xl border border-white/10">
+                            <TabsTrigger value="Patient" className="rounded-lg data-[state=active]:bg-[#00BFFF] data-[state=active]:text-black text-gray-400 font-bold uppercase text-[10px] tracking-widest transition-all">
+                                Individual
+                            </TabsTrigger>
+                            <TabsTrigger value="Hospital" className="rounded-lg data-[state=active]:bg-indigo-500 data-[state=active]:text-white text-gray-400 font-bold uppercase text-[10px] tracking-widest transition-all">
+                                Hospital
+                            </TabsTrigger>
+                        </TabsList>
+                    </Tabs>
                 </div>
 
                 {/* Main Card */}

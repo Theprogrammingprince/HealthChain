@@ -1,15 +1,32 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
+import {
+    Shield,
+    ShieldCheck,
+    Globe2,
+    Settings,
+    Activity,
+    Lock,
+    Users,
+    ChevronRight,
+    Search,
+    Bell
+} from "lucide-react";
+import Link from "next/link";
 import { HospitalVerificationTable } from "@/components/admin/HospitalVerificationTable";
 import { PaymasterMonitor } from "@/components/admin/PaymasterMonitor";
 import { ComplianceTerminal } from "@/components/admin/ComplianceTerminal";
-import { Settings, Shield, Globe2 } from "lucide-react";
-import Link from "next/link";
+import AuditLogs from "@/components/admin/AuditLogs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AdminPage() {
+    const [activeTab, setActiveTab] = useState("verification");
+
     return (
-        <div className="min-h-screen bg-[#050505] pb-20">
+        <div className="min-h-screen bg-[#050505] pb-20 font-sans text-white">
             {/* Admin Header */}
             <header className="bg-[#0A0A0A] border-b border-white/5 sticky top-0 z-50">
                 <div className="max-w-[1600px] mx-auto px-6 h-16 flex items-center justify-between">
@@ -17,53 +34,153 @@ export default function AdminPage() {
                         <div className="w-8 h-8 bg-blue-600/20 rounded-lg flex items-center justify-center border border-blue-600/30">
                             <Shield className="text-blue-500" size={16} />
                         </div>
-                        <span className="text-lg font-black text-white uppercase tracking-tighter">HealthChain <span className="text-blue-500">Registry</span></span>
+                        <div className="flex flex-col">
+                            <span className="text-sm font-black text-white uppercase tracking-tighter leading-none">
+                                HealthChain <span className="text-blue-500">Registry</span>
+                            </span>
+                            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Governance Node</span>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/10">
+
+                    <div className="flex items-center gap-6">
+                        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/10">
                             <Globe2 size={12} className="text-emerald-500 animate-pulse" />
                             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Mainnet Alpha</span>
                         </div>
-                        <Link href="/admin/settings" className="p-2 hover:bg-white/5 rounded-full transition-colors">
-                            <Settings size={18} className="text-gray-400" />
-                        </Link>
+
+                        <div className="flex items-center gap-2 border-l border-white/10 pl-6">
+                            <button className="p-2 text-gray-400 hover:text-white transition-colors relative">
+                                <Bell size={18} />
+                                <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                            </button>
+                            <Link href="/admin/settings" className="p-2 hover:bg-white/5 rounded-full transition-colors">
+                                <Settings size={18} className="text-gray-400 hover:text-white" />
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </header>
 
             <main className="max-w-[1600px] mx-auto px-6 py-8 space-y-8">
-
-                {/* Top Section: Economy & Compliance */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-auto lg:h-[350px]">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="h-full"
-                    >
-                        <PaymasterMonitor />
-                    </motion.div>
-
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="h-full"
-                    >
-                        <ComplianceTerminal />
-                    </motion.div>
-                </div>
-
-                {/* Bottom Section: Verification Table */}
+                {/* Dashboard Banner */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
+                    className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600/10 via-transparent to-transparent border border-white/5 p-8"
                 >
-                    <HospitalVerificationTable />
+                    <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                        <div>
+                            <h1 className="text-3xl font-black text-white mb-2 tracking-tight">System Oversight</h1>
+                            <p className="text-gray-400 max-w-xl text-sm leading-relaxed">
+                                Managing the authoritative ledger of healthcare providers and secure network operations.
+                                Ensuring transparency and compliance across the HealthChain ecosystem.
+                            </p>
+                        </div>
+                        <div className="bg-[#10B981]/10 text-[#10B981] px-4 py-2 rounded-xl text-xs font-bold border border-[#10B981]/20 flex items-center gap-3">
+                            <div className="w-2 h-2 bg-[#10B981] rounded-full animate-pulse" />
+                            NETWORK HEALTH: 100.0% OPERATIONAL
+                        </div>
+                    </div>
+                    {/* Decorative background element */}
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4" />
                 </motion.div>
 
+                {/* Stat Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <StatCard icon={<Users className="text-blue-500" />} label="Validated Entities" value="48" subtext="Hospitals & Clinics" />
+                    <StatCard icon={<Activity className="text-emerald-500" />} label="Paymaster Reserves" value="$12,450" subtext="Gas Subsidies Active" />
+                    <StatCard icon={<Lock className="text-amber-500" />} label="Security Score" value="99.8%" subtext="Last Scan: 5m ago" />
+                    <StatCard icon={<ShieldCheck className="text-indigo-500" />} label="Compliance" value="SOC2/HIPAA" subtext="On-chain Verified" />
+                </div>
+
+                {/* Main Content Tabs */}
+                <div className="space-y-6">
+                    <Tabs defaultValue="verification" className="w-full" onValueChange={setActiveTab}>
+                        <div className="flex items-center justify-between mb-2">
+                            <TabsList className="bg-[#0A0A0A] border border-white/5 p-1 h-12 rounded-xl">
+                                <TabsTrigger
+                                    value="verification"
+                                    className="px-6 rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs font-bold uppercase tracking-wider"
+                                >
+                                    Registry Queue
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="status"
+                                    className="px-6 rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs font-bold uppercase tracking-wider"
+                                >
+                                    Network Health
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="logs"
+                                    className="px-6 rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white text-xs font-bold uppercase tracking-wider"
+                                >
+                                    Security Audit
+                                </TabsTrigger>
+                            </TabsList>
+
+                            <div className="hidden lg:flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                                <Search size={14} className="text-gray-600" />
+                                Updated in Real-Time
+                            </div>
+                        </div>
+
+                        <div className="mt-4 min-h-[500px]">
+                            <TabsContent value="verification" className="space-y-4 outline-none border-none">
+                                <motion.div
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                >
+                                    <HospitalVerificationTable />
+                                </motion.div>
+                            </TabsContent>
+
+                            <TabsContent value="status" className="space-y-8 outline-none border-none">
+                                <motion.div
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+                                >
+                                    <PaymasterMonitor />
+                                    <ComplianceTerminal />
+                                </motion.div>
+                            </TabsContent>
+
+                            <TabsContent value="logs" className="space-y-4 outline-none border-none">
+                                <motion.div
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                >
+                                    <AuditLogs />
+                                </motion.div>
+                            </TabsContent>
+                        </div>
+                    </Tabs>
+                </div>
             </main>
         </div>
+    );
+}
+
+function StatCard({ icon, label, value, subtext }: { icon: any, label: string, value: string, subtext: string }) {
+    return (
+        <Card className="bg-[#0A0A0A] border-white/5 hover:border-blue-600/30 transition-all duration-300 group overflow-hidden relative">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] group-hover:text-blue-400 transition-colors">
+                    {label}
+                </CardTitle>
+                <div className="p-2 bg-white/5 rounded-lg group-hover:bg-blue-600/10 transition-colors">
+                    {icon}
+                </div>
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-black text-white group-hover:scale-105 origin-left transition-transform duration-300">{value}</div>
+                <div className="flex items-center gap-1.5 mt-1">
+                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">{subtext}</span>
+                    <ChevronRight size={10} className="text-blue-500 group-hover:translate-x-1 transition-transform" />
+                </div>
+            </CardContent>
+            {/* Hover subtle glow */}
+            <div className="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/5 transition-colors pointer-events-none" />
+        </Card>
     );
 }

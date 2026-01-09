@@ -2,18 +2,40 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useAppKit } from "@reown/appkit/react";
+import { supabase } from "@/lib/supabaseClient";
 
-export function GoogleLoginButton() {
-    const { open } = useAppKit();
+import { toast } from "sonner";
+
+export function GoogleLoginButton({ role = 'Patient' }: { role?: 'Patient' | 'Hospital' }) {
     const [isConnecting, setIsConnecting] = useState(false);
 
     const handleLogin = async () => {
         setIsConnecting(true);
         try {
-            // AppKit handles the social login internally.
-            // Opening the 'Socials' view or default 'Connect' view.
-            await open({ view: 'Connect' });
+            // Save role to localStorage so we can retrieve it after redirect
+            localStorage.setItem('healthchain_intended_role', role);
+
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    queryParams: {
+                        access_type: 'offline',
+                        prompt: 'select_account',
+                    },
+                    redirectTo: `${window.location.origin}/auth/callback`
+                }
+            });
+
+            if (error) {
+                if (error.message.includes("provider is not enabled")) {
+                    toast.error("Google Auth Disabled", {
+                        description: "Please enable Google in your Supabase Dashboard -> Auth -> Providers."
+                    });
+                } else {
+                    toast.error("Login Failed", { description: error.message });
+                }
+                throw error;
+            }
         } catch (error) {
             console.error("Connection failed", error);
         } finally {

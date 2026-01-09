@@ -34,6 +34,7 @@ import { AccessControlList } from "@/components/dashboard/AccessControlList";
 import { ActivityLogTable } from "@/components/dashboard/ActivityLogTable";
 import { RecordCard } from "@/components/dashboard/RecordCard";
 import { PassportPhotoUpload } from "@/components/dashboard/PassportPhotoUpload";
+import { ProfileSetupDialog } from "@/components/dashboard/ProfileSetupDialog";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -49,16 +50,36 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 
+import { RequireAuth } from "@/components/features/RequireAuth";
+
 export default function DashboardPage() {
     const [isLoading, setIsLoading] = useState(true);
+    const [showProfileSetup, setShowProfileSetup] = useState(false);
     const router = useRouter();
-    const { walletAddress, records, disconnectWallet } = useAppStore();
+    const {
+        walletAddress,
+        records,
+        userVitals,
+        disconnectWallet,
+        fetchUserProfile,
+        supabaseUser
+    } = useAppStore();
+    const [activeTab, setActiveTab] = useState("overview");
 
     useEffect(() => {
-        // Smooth loading sequence
-        const timer = setTimeout(() => setIsLoading(false), 800);
-        return () => clearTimeout(timer);
-    }, []);
+        const initData = async () => {
+            await fetchUserProfile();
+            setIsLoading(false);
+        };
+        initData();
+    }, [fetchUserProfile]);
+
+    useEffect(() => {
+        // Check if profile setup is needed
+        if (!isLoading && supabaseUser && (!userVitals.fullName || !userVitals.dob)) {
+            setShowProfileSetup(true);
+        }
+    }, [isLoading, supabaseUser, userVitals.fullName, userVitals.dob]);
 
     const handleLogout = () => {
         disconnectWallet();
@@ -166,7 +187,7 @@ export default function DashboardPage() {
                         {isLoading ? (
                             <Skeleton className="w-full h-[320px] rounded-3xl bg-white/5" />
                         ) : (
-                            <HealthSummaryCard />
+                            <HealthSummaryCard onEdit={() => setShowProfileSetup(true)} />
                         )}
                     </motion.section>
 
@@ -248,12 +269,52 @@ export default function DashboardPage() {
 
                                 <div className="text-center space-y-4">
                                     <div>
-                                        <p className="text-sm font-bold text-white uppercase tracking-[0.2em]">Clinical Rescue ID</p>
-                                        <p className="text-[10px] text-gray-600 font-mono break-all mt-1">{walletAddress}</p>
+                                        <p className="text-sm font-bold text-white uppercase tracking-[0.2em]">
+                                            {userVitals.fullName || "IDENTIFYING..."}
+                                        </p>
+                                        <div className="flex items-center justify-center gap-2 mt-1">
+                                            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                                            <code className="text-[9px] text-gray-500 font-mono break-all">
+                                                {walletAddress ? `${walletAddress.slice(0, 12)}...${walletAddress.slice(-8)}` : "0x..."}
+                                            </code>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center justify-center gap-2 text-[#10B981] bg-[#10B981]/10 py-2 rounded-full border border-[#10B981]/20">
-                                        <ShieldCheck size={12} />
-                                        <span className="text-[10px] font-black uppercase tracking-widest">Verification Status: ACTIVE</span>
+
+                                    <div className="grid grid-cols-2 gap-3 pt-2">
+                                        <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-left">
+                                            <span className="text-[10px] text-gray-500 block mb-1 uppercase font-black">Genotype</span>
+                                            <span className="text-sm font-bold text-primary">{userVitals.genotype}</span>
+                                        </div>
+                                        <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-left">
+                                            <span className="text-[10px] text-gray-500 block mb-1 uppercase font-black">Blood Group</span>
+                                            <span className="text-sm font-bold text-red-400">{userVitals.bloodType}</span>
+                                        </div>
+                                        <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-left">
+                                            <span className="text-[10px] text-gray-500 block mb-1 uppercase font-black">Weight</span>
+                                            <span className="text-sm font-bold text-white">{userVitals.weight} <span className="text-[10px] text-gray-500">kg</span></span>
+                                        </div>
+                                        <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-left">
+                                            <span className="text-[10px] text-gray-500 block mb-1 uppercase font-black">Height</span>
+                                            <span className="text-sm font-bold text-white">{userVitals.height} <span className="text-[10px] text-gray-500">cm</span></span>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3 pt-2">
+                                        <div className="flex items-center justify-between px-4 py-3 bg-white/2 rounded-2xl border border-white/5">
+                                            <span className="text-[10px] text-gray-500 uppercase font-black">Age</span>
+                                            <span className="text-xs font-bold text-white">
+                                                {userVitals.dob ? `${Math.floor((new Date().getTime() - new Date(userVitals.dob).getTime()) / 31557600000)} Yrs` : "N/A"}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between px-4 py-3 bg-white/2 rounded-2xl border border-white/5">
+                                            <span className="text-[10px] text-gray-500 uppercase font-black">Religion</span>
+                                            <span className="text-xs font-bold text-white">{userVitals.religion || "N/A"}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-center gap-2 text-[#10B981] bg-[#10B981]/10 py-3 rounded-2xl border border-[#10B981]/20 mt-4">
+                                        <ShieldCheck size={14} className="animate-pulse" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Protocol Verified</span>
                                     </div>
                                 </div>
                             </motion.section>
@@ -302,6 +363,7 @@ export default function DashboardPage() {
 
                     </div>
                 </motion.div>
+                <ProfileSetupDialog isOpen={showProfileSetup} onClose={() => setShowProfileSetup(false)} />
             </main>
 
             <footer className="border-t border-white/5 py-12 mt-20">
