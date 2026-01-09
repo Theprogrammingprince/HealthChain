@@ -79,21 +79,38 @@ export const hospitalProfileSchema = z.object({
 });
 
 /**
- * Complete registration validation
+ * Complete registration validation - FLEXIBLE for initial registration
  */
-export const registrationSchema = userProfileSchema.merge(
-    z.object({
-        patient: patientProfileSchema.optional(),
-        hospital: hospitalProfileSchema.optional()
-    })
-).refine(
-    data => {
-        if (data.role === 'hospital') {
-            return data.hospital && data.hospital.hospitalName;
-        }
-        return true;
-    },
-    { message: 'Hospital name is required for hospital role' }
+export const registrationSchema = z.object({
+    userId: z.string().min(1),
+    email: z.string().email().optional().nullable(),
+    walletAddress: z.string().optional().nullable(),
+    role: roleSchema,
+    authProvider: authProviderSchema,
+    fullName: z.string().optional().nullable(),
+    avatarUrl: z.string().optional().nullable(),
+    // Patient fields - all optional
+    dateOfBirth: z.string().optional().nullable(),
+    gender: z.string().optional().nullable(),
+    bloodType: z.string().optional().nullable(),
+    phoneNumber: z.string().optional().nullable(),
+    emergencyContact: z.string().optional().nullable(),
+    emergencyPhone: z.string().optional().nullable(),
+    address: z.string().optional().nullable(),
+    city: z.string().optional().nullable(),
+    state: z.string().optional().nullable(),
+    country: z.string().optional().nullable(),
+    postalCode: z.string().optional().nullable(),
+    // Hospital fields - all optional except hospitalName for hospital role
+    hospitalName: z.string().optional().nullable(),
+    licenseNumber: z.string().optional().nullable(),
+    registrationNumber: z.string().optional().nullable(),
+    specialization: z.array(z.string()).optional().nullable(),
+    website: z.string().optional().nullable(),
+    description: z.string().optional().nullable()
+}).refine(
+    data => data.email || data.walletAddress,
+    { message: 'Either email or walletAddress must be provided' }
 );
 
 /**

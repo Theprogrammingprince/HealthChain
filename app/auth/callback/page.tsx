@@ -84,15 +84,24 @@ export default function AuthCallbackPage() {
                         body: JSON.stringify(registrationData)
                     })
 
-                    const registerData = await registerResponse.json()
+                    const registerData = await registerResponse.json();
 
                     if (!registerResponse.ok && registerResponse.status !== 409) {
-                        throw new Error(registerData.error || 'Failed to create profile')
+                        // Check if it's a database setup error
+                        if (registerResponse.status === 503 || registerData.error?.includes('Database tables')) {
+                            toast.error('Database Not Set Up', {
+                                description: 'Please create the database tables in Supabase. See SETUP_CHECKLIST.md',
+                                duration: 10000
+                            });
+                            throw new Error('Database tables not created. Please set up Supabase tables first.');
+                        }
+
+                        throw new Error(registerData.message || registerData.error || 'Failed to create profile');
                     }
 
                     toast.success('Welcome to HealthChain!', {
                         description: 'Your account has been created successfully'
-                    })
+                    });
                 } else {
                     toast.success('Welcome back!', {
                         description: 'Successfully signed in'

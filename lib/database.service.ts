@@ -37,22 +37,27 @@ export async function createUserProfile(data: UserProfileInsert) {
  * Get user profile by ID
  */
 export async function getUserProfile(userId: string) {
-    const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single();
+    try {
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', userId)
+            .single();
 
-    if (error) {
-        if (error.code === 'PGRST116') {
-            // No rows returned
-            return null;
+        if (error) {
+            if (error.code === 'PGRST116') {
+                // No rows returned
+                return null;
+            }
+            console.error('Error fetching user profile:', error);
+            throw error;
         }
-        console.error('Error fetching user profile:', error);
-        throw error;
-    }
 
-    return data as UserProfile;
+        return data as UserProfile;
+    } catch (error) {
+        console.error('Critical error fetching user profile:', error);
+        return null; // Return null instead of throwing
+    }
 }
 
 /**

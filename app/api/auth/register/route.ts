@@ -145,15 +145,45 @@ export async function POST(request: NextRequest) {
 
     } catch (error: any) {
         console.error('Registration error:', error);
+        console.error('Error details:', {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint
+        });
 
-        // SECURITY: Don't expose internal error details to client
+        // Check if it's a database table missing error
+        if (error.code === '42P01' || error.message?.includes('relation') || error.message?.includes('does not exist')) {
+            return NextResponse.json(
+                {
+                    error: 'Database tables not set up',
+                    message: 'Please create the database tables in Supabase first. See database-schema.md for instructions.',
+                    hint: 'Go to Supabase → SQL Editor → Run the schema from database-schema.md'
+                },
+                { status: 503 }
+            );
+        }
+
+        // Check if it's a validation error
+        if (error.name === 'ZodError' || error.errors) {
+            return NextResponse.json(
+                {
+                    error: 'Invalid input data',
+                    details: error.errors || error.message
+                },
+                { status: 400 }
+            );
+        }
+
+        // SECURITY: Don't expose internal error details to client in production
         return NextResponse.json(
             {
-                error: 'Registration failed. Please try again.',
-                // Only include detailed error in development
-                ...(process.env.NODE_ENV === 'development' && {
-                    details: error.message
-                })
+                error: 'Registration failed',
+                message: process.env.NODE_ENV === 'development'
+                    ? error.message
+                    : 'An error occurred during registration. Please try again.',
+                // Provide helpful hints
+                hint: 'Check browser console for details or contact support'
             },
             { status: 500 }
         );
