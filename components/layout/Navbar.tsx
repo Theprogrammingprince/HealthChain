@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { WalletConnect } from "@/components/features/WalletConnect";
+import { AuthButton } from "@/components/features/AuthButton";
 import { Activity, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
@@ -56,13 +56,13 @@ export function Navbar() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <WalletConnect />
+                        <AuthButton />
                     </div>
                 </div>
 
                 {/* Mobile Menu Toggle */}
                 <div className="flex items-center gap-4 md:hidden">
-                    <WalletConnect />
+                    <AuthButton />
                     <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
                         {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                     </Button>
