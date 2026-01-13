@@ -10,6 +10,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { useAppStore } from '@/lib/store'
 import { Session } from '@supabase/supabase-js'
 import { AuthDialog } from '@/components/features/AuthDialog'
+import { RoleSelectionModal } from '@/components/features/RoleSelectionModal'
 
 // 1. Get projectId from https://cloud.reown.com
 const projectId = process.env.NEXT_PUBLIC_PROJECT_ID || '68616142c94380e60802c6109968453b' // Fallback to public demo ID, but highly recommended to use your own!
@@ -42,22 +43,41 @@ createAppKit({
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient())
-  const { setSession, setUserRole } = useAppStore()
+  const { setSession, setUserRole, userRole } = useAppStore()
+  const [showRoleModal, setShowRoleModal] = useState(false)
+  const [session, setLocalSession] = useState<Session | null>(null)
 
   useEffect(() => {
     const syncUserMetadata = async (session: Session | null) => {
-      if (!session?.user) return
+      if (!session?.user) {
+        setLocalSession(null)
+        return
+      }
+      setLocalSession(session)
 
-      const storedRole = localStorage.getItem('healthchain_intended_role')
-      if (storedRole) {
-        console.log("Syncing stored role to user metadata:", storedRole)
-        await supabase.auth.updateUser({
-          data: { role: storedRole.toLowerCase() }
-        })
-        localStorage.removeItem('healthchain_intended_role')
-        setUserRole(storedRole as any)
-      } else if (session.user.user_metadata?.role) {
-        setUserRole(session.user.user_metadata.role === 'hospital' ? 'Hospital' : 'Patient')
+      // Check users table for role if not in metadata
+      let role = session.user.user_metadata?.role
+
+      if (!role) {
+        // Double check database if metadata is empty
+        const { data } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', session.user.id)
+          .single()
+
+        if (data?.role) {
+          role = data.role
+        }
+      }
+
+      if (role) {
+        // Role exists, update store
+        const normalizedRole = role === 'hospital' ? 'Hospital' : 'Patient'
+        setUserRole(normalizedRole)
+      } else {
+        // No role found anywhere, show selection modal
+        setShowRoleModal(true)
       }
     }
 
@@ -72,6 +92,10 @@ export function Providers({ children }: { children: ReactNode }) {
       setSession(session)
       if (event === 'SIGNED_IN') {
         syncUserMetadata(session)
+      } else if (event === 'SIGNED_OUT') {
+        setLocalSession(null)
+        setShowRoleModal(false)
+        setUserRole(null)
       }
     })
 
@@ -83,6 +107,10 @@ export function Providers({ children }: { children: ReactNode }) {
       <QueryClientProvider client={queryClient}>
         {children}
         <AuthDialog />
+        <RoleSelectionModal
+          open={showRoleModal}
+          onClose={() => setShowRoleModal(false)}
+        />
       </QueryClientProvider>
     </WagmiProvider>
   )
