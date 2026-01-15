@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Wallet } from "lucide-react";
 import { useAppKit } from "@reown/appkit/react";
 import { useAccount } from "wagmi";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -11,41 +11,60 @@ import { toast } from "sonner";
 export function WalletConnectButton() {
     const { open } = useAppKit();
     const { address, isConnected } = useAccount();
-    const { connectWallet, userRole } = useAppStore();
+    const { connectWallet, setUserRole } = useAppStore();
     const router = useRouter();
     const [isRegistering, setIsRegistering] = useState(false);
+    const hasRegistered = useRef(false);
 
     useEffect(() => {
         const registerWalletUser = async () => {
-            if (isConnected && address && !isRegistering) {
-                setIsRegistering(true);
+            // Prevent duplicate registration attempts
+            if (!isConnected || !address || isRegistering || hasRegistered.current) {
+                return;
+            }
 
+            setIsRegistering(true);
+            hasRegistered.current = true;
+
+            try {
+                // Connect wallet in app store
+                const shortAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
+                connectWallet(shortAddress);
+
+                // Get stored role from signin page tab selection
+                const storedRole = localStorage.getItem('healthchain_intended_role') || 'patient';
+                const normalizedRole = storedRole.toLowerCase();
+
+                // Set user role in app store
+                setUserRole(normalizedRole === 'hospital' ? 'Hospital' : 'Patient');
+
+                // Check if user exists - handle errors gracefully
+                let userExists = false;
                 try {
-                    // Connect wallet in app store
-                    const shortAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
-                    connectWallet(shortAddress);
-
-                    // Get stored role
-                    const storedRole = localStorage.getItem('healthchain_intended_role') || 'patient';
-
-                    // Check if user exists
                     const checkResponse = await fetch(`/api/auth/profile?userId=${address}`);
+                    userExists = checkResponse.ok;
+                } catch (checkError) {
+                    // Profile check failed - assume user doesn't exist, proceed with registration
+                    console.warn('Profile check failed, attempting registration:', checkError);
+                    userExists = false;
+                }
 
-                    // Register if doesn't exist
-                    if (checkResponse.status === 404) {
-                        const registrationData = {
-                            userId: address,
-                            email: null,
-                            walletAddress: address,
-                            role: storedRole.toLowerCase(),
-                            authProvider: 'wallet',
-                            fullName: null,
-                            avatarUrl: null,
-                            ...(storedRole.toLowerCase() === 'hospital' && {
-                                hospitalName: 'Medical Facility' // Can be updated later
-                            })
-                        };
+                // Register if user doesn't exist
+                if (!userExists) {
+                    const registrationData = {
+                        userId: address,
+                        email: null,
+                        walletAddress: address,
+                        role: normalizedRole,
+                        authProvider: 'wallet',
+                        fullName: null,
+                        avatarUrl: null,
+                        ...(normalizedRole === 'hospital' && {
+                            hospitalName: 'Medical Facility' // Will be updated on verification form
+                        })
+                    };
 
+                    try {
                         const registerResponse = await fetch('/api/auth/register', {
                             method: 'POST',
                             headers: {
@@ -56,29 +75,64 @@ export function WalletConnectButton() {
 
                         if (registerResponse.ok) {
                             toast.success('Wallet Connected!', {
-                                description: 'Your account has been created'
+                                description: normalizedRole === 'hospital'
+                                    ? 'Redirecting to verification...'
+                                    : 'Your account has been created'
                             });
+                        } else {
+                            // Registration failed but wallet is connected
+                            // Still allow navigation so user can complete profile later
+                            const errorData = await registerResponse.json().catch(() => ({}));
+                            console.error('Registration response error:', errorData);
+
+                            // If user already exists (409), that's fine
+                            if (registerResponse.status === 409) {
+                                toast.success('Wallet Connected!', {
+                                    description: 'Welcome back'
+                                });
+                            } else {
+                                toast.warning('Account setup incomplete', {
+                                    description: 'You can complete your profile later'
+                                });
+                            }
                         }
-                    } else {
-                        toast.success('Wallet Connected!', {
-                            description: 'Welcome back'
+                    } catch (registerError) {
+                        console.error('Registration fetch error:', registerError);
+                        toast.warning('Wallet connected', {
+                            description: 'Profile will be set up on next visit'
                         });
                     }
-
-                    localStorage.removeItem('healthchain_intended_role');
-                } catch (error) {
-                    console.error('Wallet registration error:', error);
-                    toast.error('Registration incomplete', {
-                        description: 'Connected but profile setup failed'
+                } else {
+                    toast.success('Wallet Connected!', {
+                        description: 'Welcome back'
                     });
-                } finally {
-                    setIsRegistering(false);
                 }
+
+                // Clean up and redirect based on role
+                localStorage.removeItem('healthchain_intended_role');
+
+                // Redirect based on role
+                if (normalizedRole === 'hospital') {
+                    // Hospitals go to verification page (pending approval flow)
+                    router.push('/clinical/verify');
+                } else {
+                    // Patients go to dashboard
+                    router.push('/dashboard');
+                }
+
+            } catch (error) {
+                console.error('Wallet registration error:', error);
+                toast.error('Connection issue', {
+                    description: 'Please try again'
+                });
+                hasRegistered.current = false; // Allow retry on error
+            } finally {
+                setIsRegistering(false);
             }
         };
 
         registerWalletUser();
-    }, [isConnected, address, connectWallet, isRegistering]);
+    }, [isConnected, address, connectWallet, setUserRole, router, isRegistering]);
 
     return (
         <Button

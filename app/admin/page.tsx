@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
     Shield,
@@ -12,7 +12,8 @@ import {
     Users,
     ChevronRight,
     Search,
-    Bell
+    Bell,
+    Clock
 } from "lucide-react";
 import Link from "next/link";
 import { HospitalVerificationTable } from "@/components/admin/HospitalVerificationTable";
@@ -21,9 +22,70 @@ import { ComplianceTerminal } from "@/components/admin/ComplianceTerminal";
 import AuditLogs from "@/components/admin/AuditLogs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/lib/supabaseClient";
+
+interface Stats {
+    totalHospitals: number;
+    pendingVerifications: number;
+    verifiedHospitals: number;
+    totalPatients: number;
+}
 
 export default function AdminPage() {
     const [activeTab, setActiveTab] = useState("verification");
+    const [stats, setStats] = useState<Stats>({
+        totalHospitals: 0,
+        pendingVerifications: 0,
+        verifiedHospitals: 0,
+        totalPatients: 0,
+    });
+    const [statsLoading, setStatsLoading] = useState(true);
+
+    // Fetch real stats from database
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                // Fetch hospital counts
+                const { data: hospitals, error: hospError } = await supabase
+                    .from("hospital_profiles")
+                    .select("verification_status");
+
+                if (!hospError && hospitals) {
+                    const pending = hospitals.filter(h => h.verification_status === "pending").length;
+                    const verified = hospitals.filter(h => h.verification_status === "verified").length;
+
+                    setStats(prev => ({
+                        ...prev,
+                        totalHospitals: hospitals.length,
+                        pendingVerifications: pending,
+                        verifiedHospitals: verified,
+                    }));
+                }
+
+                // Fetch patient count
+                const { count: patientCount, error: patientError } = await supabase
+                    .from("patient_profiles")
+                    .select("*", { count: "exact", head: true });
+
+                if (!patientError && patientCount !== null) {
+                    setStats(prev => ({
+                        ...prev,
+                        totalPatients: patientCount,
+                    }));
+                }
+            } catch (error) {
+                console.error("Error fetching stats:", error);
+            } finally {
+                setStatsLoading(false);
+            }
+        };
+
+        fetchStats();
+
+        // Refresh stats every 30 seconds
+        const interval = setInterval(fetchStats, 30000);
+        return () => clearInterval(interval);
+    }, []);
 
     return (
         <div className="min-h-screen bg-[#050505] pb-20 font-sans text-white">
@@ -51,7 +113,11 @@ export default function AdminPage() {
                         <div className="flex items-center gap-2 border-l border-white/10 pl-6">
                             <button className="p-2 text-gray-400 hover:text-white transition-colors relative">
                                 <Bell size={18} />
-                                <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                                {stats.pendingVerifications > 0 && (
+                                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center">
+                                        {stats.pendingVerifications}
+                                    </span>
+                                )}
                             </button>
                             <Link href="/admin/settings" className="p-2 hover:bg-white/5 rounded-full transition-colors">
                                 <Settings size={18} className="text-gray-400 hover:text-white" />
@@ -87,10 +153,31 @@ export default function AdminPage() {
 
                 {/* Stat Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <StatCard icon={<Users className="text-blue-500" />} label="Validated Entities" value="48" subtext="Hospitals & Clinics" />
-                    <StatCard icon={<Activity className="text-emerald-500" />} label="Paymaster Reserves" value="$12,450" subtext="Gas Subsidies Active" />
-                    <StatCard icon={<Lock className="text-amber-500" />} label="Security Score" value="99.8%" subtext="Last Scan: 5m ago" />
-                    <StatCard icon={<ShieldCheck className="text-indigo-500" />} label="Compliance" value="SOC2/HIPAA" subtext="On-chain Verified" />
+                    <StatCard
+                        icon={<Users className="text-blue-500" />}
+                        label="Total Hospitals"
+                        value={statsLoading ? "..." : stats.totalHospitals.toString()}
+                        subtext={`${stats.verifiedHospitals} Verified`}
+                    />
+                    <StatCard
+                        icon={<Clock className="text-amber-500" />}
+                        label="Pending Review"
+                        value={statsLoading ? "..." : stats.pendingVerifications.toString()}
+                        subtext="Awaiting Approval"
+                        highlight={stats.pendingVerifications > 0}
+                    />
+                    <StatCard
+                        icon={<ShieldCheck className="text-emerald-500" />}
+                        label="Verified Providers"
+                        value={statsLoading ? "..." : stats.verifiedHospitals.toString()}
+                        subtext="Active on Network"
+                    />
+                    <StatCard
+                        icon={<Activity className="text-indigo-500" />}
+                        label="Registered Patients"
+                        value={statsLoading ? "..." : stats.totalPatients.toString()}
+                        subtext="User Profiles"
+                    />
                 </div>
 
                 {/* Main Content Tabs */}
@@ -161,26 +248,26 @@ export default function AdminPage() {
     );
 }
 
-function StatCard({ icon, label, value, subtext }: { icon: any, label: string, value: string, subtext: string }) {
+function StatCard({ icon, label, value, subtext, highlight }: { icon: any, label: string, value: string, subtext: string, highlight?: boolean }) {
     return (
-        <Card className="bg-[#0A0A0A] border-white/5 hover:border-blue-600/30 transition-all duration-300 group overflow-hidden relative">
+        <Card className={`bg-[#0A0A0A] border-white/5 hover:border-blue-600/30 transition-all duration-300 group overflow-hidden relative ${highlight ? "border-amber-500/30 ring-1 ring-amber-500/20" : ""}`}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] group-hover:text-blue-400 transition-colors">
+                <CardTitle className={`text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${highlight ? "text-amber-400" : "text-gray-500 group-hover:text-blue-400"}`}>
                     {label}
                 </CardTitle>
-                <div className="p-2 bg-white/5 rounded-lg group-hover:bg-blue-600/10 transition-colors">
+                <div className={`p-2 rounded-lg transition-colors ${highlight ? "bg-amber-500/10" : "bg-white/5 group-hover:bg-blue-600/10"}`}>
                     {icon}
                 </div>
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-black text-white group-hover:scale-105 origin-left transition-transform duration-300">{value}</div>
+                <div className={`text-2xl font-black group-hover:scale-105 origin-left transition-transform duration-300 ${highlight ? "text-amber-400" : "text-white"}`}>{value}</div>
                 <div className="flex items-center gap-1.5 mt-1">
                     <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">{subtext}</span>
                     <ChevronRight size={10} className="text-blue-500 group-hover:translate-x-1 transition-transform" />
                 </div>
             </CardContent>
             {/* Hover subtle glow */}
-            <div className="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/5 transition-colors pointer-events-none" />
+            <div className={`absolute inset-0 transition-colors pointer-events-none ${highlight ? "bg-amber-500/5" : "bg-blue-600/0 group-hover:bg-blue-600/5"}`} />
         </Card>
     );
 }
