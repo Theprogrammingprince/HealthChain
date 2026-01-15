@@ -21,7 +21,7 @@ export default function SignInPage() {
         if (isConnected) {
             setUserRole(role);
             if (role === 'Hospital') {
-                router.push('/clinical');
+                router.push('/clinical/verify');
             } else {
                 router.push('/dashboard');
             }
@@ -56,7 +56,11 @@ export default function SignInPage() {
                         Securely Access Your Data
                     </p>
 
-                    <Tabs defaultValue="Patient" onValueChange={(v) => setRole(v as any)} className="w-full">
+                    <Tabs defaultValue="Patient" onValueChange={(v) => {
+                        setRole(v as 'Patient' | 'Hospital');
+                        // Store intended role for WalletConnectButton registration
+                        localStorage.setItem('healthchain_intended_role', v.toLowerCase());
+                    }} className="w-full">
                         <TabsList className="grid w-full grid-cols-2 bg-white/5 p-1 rounded-xl border border-white/10">
                             <TabsTrigger value="Patient" className="rounded-lg data-[state=active]:bg-[#00BFFF] data-[state=active]:text-black text-gray-400 font-bold uppercase text-[10px] tracking-widest transition-all">
                                 Individual

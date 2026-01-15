@@ -91,8 +91,12 @@ export default function HospitalVerifyPage() {
         try {
             setIsLoading(true);
 
-            if (!supabaseSession?.user) {
-                router.push("/");
+            // Support both wallet users and Google OAuth users
+            const userId = supabaseSession?.user?.id || walletAddress;
+
+            if (!userId) {
+                // No session and no wallet - redirect to signin
+                router.push("/signin");
                 return;
             }
 
@@ -100,20 +104,30 @@ export default function HospitalVerifyPage() {
             const { data: userData, error: userError } = await supabase
                 .from("users")
                 .select("role")
-                .eq("id", supabaseSession.user.id)
+                .eq("id", userId)
                 .single();
 
-            if (userError || userData?.role !== "hospital") {
-                toast.error("Access denied. Hospital role required.");
-                router.push("/");
+            // If user doesn't exist in DB yet (new signup), allow them to stay and complete verification
+            if (userError && userError.code === 'PGRST116') {
+                // New user - no profile yet, show the form
+                setIsLoading(false);
                 return;
+            }
+
+            if (userError || (userData?.role && userData?.role !== "hospital")) {
+                // Only redirect if user exists with wrong role
+                if (userData?.role) {
+                    toast.error("Access denied. Hospital role required.");
+                    router.push("/dashboard");
+                    return;
+                }
             }
 
             // Check hospital profile
             const { data: hospitalData, error: hospitalError } = await supabase
                 .from("hospital_profiles")
                 .select("*")
-                .eq("user_id", supabaseSession.user.id)
+                .eq("user_id", userId)
                 .single();
 
             if (hospitalData) {
@@ -142,9 +156,10 @@ export default function HospitalVerifyPage() {
                     setHasSubmitted(false); // Allow resubmission
                 }
             }
+            // If no hospital profile exists, that's fine - user can fill out the form
         } catch (error) {
             console.error("Error checking verification status:", error);
-            toast.error("Failed to load verification status");
+            // Don't block the user - let them fill out the form
         } finally {
             setIsLoading(false);
         }
@@ -218,7 +233,10 @@ export default function HospitalVerifyPage() {
 
     // Form submission handler
     const onSubmit = async (data: HospitalVerificationFormData) => {
-        if (!supabaseSession?.user) {
+        // Support both wallet users and Google OAuth users
+        const userId = supabaseSession?.user?.id || walletAddress;
+
+        if (!userId) {
             toast.error("You must be logged in to submit");
             return;
         }
@@ -232,7 +250,40 @@ export default function HospitalVerifyPage() {
             setIsSubmitting(true);
             setUploadProgress(0);
 
-            // Upload certificate
+            // STEP 1: Ensure user exists in the users table first
+            // This handles the case where wallet registration may have failed earlier
+            const { data: existingUser, error: userCheckError } = await supabase
+                .from("users")
+                .select("id")
+                .eq("id", userId)
+                .single();
+
+            if (userCheckError && userCheckError.code === 'PGRST116') {
+                // User doesn't exist - create them first
+                console.log("Creating user record for:", userId);
+                const { error: createUserError } = await supabase
+                    .from("users")
+                    .insert({
+                        id: userId,
+                        wallet_address: walletAddress || null,
+                        email: supabaseSession?.user?.email || null,
+                        role: "hospital",
+                        auth_provider: walletAddress ? "wallet" : "google",
+                        full_name: supabaseSession?.user?.user_metadata?.full_name || data.hospitalName,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString(),
+                    });
+
+                if (createUserError) {
+                    console.error("Failed to create user:", createUserError);
+                    toast.error("Failed to create user profile. Please try again.");
+                    setIsSubmitting(false);
+                    return;
+                }
+                console.log("User created successfully");
+            }
+
+            // STEP 2: Upload certificate
             const certificateUrl = await uploadCertificate(uploadedFile);
 
             if (!certificateUrl) {
@@ -240,12 +291,12 @@ export default function HospitalVerifyPage() {
                 return;
             }
 
-            // Insert/update hospital profile
+            // STEP 3: Insert/update hospital profile
             const { error: upsertError } = await supabase
                 .from("hospital_profiles")
                 .upsert(
                     {
-                        user_id: supabaseSession.user.id,
+                        user_id: userId,
                         hospital_name: data.hospitalName,
                         registration_number: data.cacNumber,
                         license_number: data.mdcnLicense,
@@ -265,8 +316,10 @@ export default function HospitalVerifyPage() {
                 return;
             }
 
-            // Success
-            toast.success("Verification request submitted. Awaiting superadmin approval.");
+            // Success - show pending review message
+            toast.success("Verification request submitted!", {
+                description: "Your application is under review. You'll be notified within 24-48 hours."
+            });
             setHasSubmitted(true);
             setVerificationStatus("pending");
             setUploadProgress(0);
@@ -313,20 +366,24 @@ export default function HospitalVerifyPage() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="mb-6 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg p-4 flex items-center gap-3"
+                            className="mb-6 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-xl p-5 flex items-start gap-4"
                         >
                             <motion.div
                                 animate={{ scale: [1, 1.2, 1] }}
                                 transition={{ repeat: Infinity, duration: 2 }}
+                                className="flex-shrink-0 mt-0.5"
                             >
-                                <Clock className="w-6 h-6 text-yellow-400" />
+                                <Clock className="w-7 h-7 text-yellow-400" />
                             </motion.div>
                             <div>
-                                <h3 className="font-semibold text-yellow-100">
-                                    Verification Pending
+                                <h3 className="font-bold text-lg text-yellow-100">
+                                    Awaiting Review
                                 </h3>
-                                <p className="text-sm text-yellow-200/80">
-                                    Your request is being reviewed by our superadmin team.
+                                <p className="text-sm text-yellow-200/80 mt-1">
+                                    Your verification request has been submitted successfully. Our super admin team will review your application within <strong>24-48 hours</strong>.
+                                </p>
+                                <p className="text-xs text-yellow-300/60 mt-2">
+                                    You'll receive a notification once your status is updated.
                                 </p>
                             </div>
                         </motion.div>
