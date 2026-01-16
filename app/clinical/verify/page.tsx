@@ -318,11 +318,16 @@ export default function HospitalVerifyPage() {
 
             // Success - show pending review message
             toast.success("Verification request submitted!", {
-                description: "Your application is under review. You'll be notified within 24-48 hours."
+                description: "Your application is under review. Redirecting to dashboard..."
             });
             setHasSubmitted(true);
             setVerificationStatus("pending");
             setUploadProgress(0);
+
+            // Redirect to clinical dashboard after 2 seconds
+            setTimeout(() => {
+                router.push("/clinical");
+            }, 2000);
         } catch (error) {
             console.error("Submission error:", error);
             toast.error("An error occurred. Please try again.");
