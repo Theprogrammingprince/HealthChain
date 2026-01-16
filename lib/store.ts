@@ -86,7 +86,7 @@ interface AppState {
   setUserProfile: (profile: any) => void;
   fetchUserProfile: () => Promise<void>;
   checkAuthorization: (status: boolean) => void;
-  setUserRole: (role: 'Patient' | 'Hospital' | 'Admin') => void;
+  setUserRole: (role: 'Patient' | 'Hospital' | 'Admin' | null) => void;
 
   // Patient Side
   profileImage: string | null;

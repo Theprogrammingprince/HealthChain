@@ -15,128 +15,80 @@ export default function AuthCallbackPage() {
     useEffect(() => {
         const handleCallback = async () => {
             try {
-                // Get the session from Supabase
                 const { data: { session }, error } = await supabase.auth.getSession()
 
-                if (error) {
-                    console.error('Auth callback error:', error.message)
-                    toast.error('Authentication failed', {
-                        description: error.message
-                    })
-                    router.push('/signin?error=' + encodeURIComponent(error.message))
-                    return
-                }
-
+                if (error) throw error
                 if (!session) {
-                    router.push('/signin')
+                    router.push('/auth')
                     return
                 }
 
                 setStatus('Setting up your account...')
 
-                // Retrieve the intended role we saved earlier
+                // Retrieve the intended role
                 const storedRole = localStorage.getItem('healthchain_intended_role')
-                const role = session.user.user_metadata?.role || (storedRole?.toLowerCase()) || 'patient'
+                const role = session.user.user_metadata?.role || storedRole?.toLowerCase() || 'patient'
 
-                // Update user metadata if it's missing (helps future logins)
+                // Update metadata if missing
                 if (!session.user.user_metadata?.role && storedRole) {
                     await supabase.auth.updateUser({
                         data: { role: storedRole.toLowerCase() }
                     })
-                    localStorage.removeItem('healthchain_intended_role')
                 }
 
-                // Check if user exists in our database
-                const checkResponse = await fetch(`/api/auth/profile?userId=${session.user.id}`)
-                const checkData = await checkResponse.json()
+                // Check if profile exists
+                const profileRes = await fetch(`/api/auth/profile?userId=${session.user.id}`)
 
-                // If user doesn't exist, create their profile
-                if (checkResponse.status === 404 || !checkData.data) {
+                if (profileRes.status === 404) {
                     setStatus('Creating your profile...')
-
-                    // Prepare registration data
                     const registrationData = {
                         userId: session.user.id,
-                        email: session.user.email || null,
-                        walletAddress: null, // Will be set if they connect wallet later
+                        email: session.user.email,
                         role: role,
-                        authProvider: 'google', // Assuming Google OAuth for now
-                        fullName: session.user.user_metadata?.full_name ||
-                            session.user.user_metadata?.name ||
-                            null,
-                        avatarUrl: session.user.user_metadata?.avatar_url ||
-                            session.user.user_metadata?.picture ||
-                            null,
-                        // Hospital-specific
-                        ...(role === 'hospital' && {
-                            hospitalName: session.user.user_metadata?.organization ||
-                                session.user.email?.split('@')[1]?.split('.')[0] ||
-                                'Medical Facility'
-                        })
+                        authProvider: 'google',
+                        fullName: session.user.user_metadata?.full_name || session.user.user_metadata?.name,
+                        avatarUrl: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
+                        ...(role === 'hospital' && { hospitalName: 'Medical Facility' })
                     }
 
-                    // Call registration API
-                    const registerResponse = await fetch('/api/auth/register', {
+                    const registerRes = await fetch('/api/auth/register', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(registrationData)
                     })
 
-                    const registerData = await registerResponse.json();
-
-                    if (!registerResponse.ok && registerResponse.status !== 409) {
-                        // Check if it's a database setup error
-                        if (registerResponse.status === 503 || registerData.error?.includes('Database tables')) {
-                            toast.error('Database Not Set Up', {
-                                description: 'Please create the database tables in Supabase. See SETUP_CHECKLIST.md',
-                                duration: 10000
-                            });
-                            throw new Error('Database tables not created. Please set up Supabase tables first.');
-                        }
-
-                        throw new Error(registerData.message || registerData.error || 'Failed to create profile');
+                    if (!registerRes.ok && registerRes.status !== 409) {
+                        throw new Error('Failed to create profile')
                     }
-
-                    toast.success('Welcome to HealthChain!', {
-                        description: 'Your account has been created successfully'
-                    });
+                    toast.success('Account created!');
                 } else {
-                    toast.success('Welcome back!', {
-                        description: 'Successfully signed in'
-                    })
+                    toast.success('Welcome back!');
                 }
 
-                // Update Zustand store
-                if (role === 'hospital') {
-                    setUserRole('Hospital')
-                } else {
-                    setUserRole('Patient')
-                }
+                // Update store
+                const finalRole = role.charAt(0).toUpperCase() + role.slice(1)
+                setUserRole(finalRole as any)
 
-                // If user has email, we can consider them authenticated
                 if (session.user.email) {
-                    connectWallet(session.user.email.slice(0, 10) + '...')
+                    connectWallet(session.user.email.split('@')[0])
                 }
 
+                localStorage.removeItem('healthchain_intended_role')
                 setStatus('Redirecting...')
 
-                // Redirect based on role
-                setTimeout(() => {
-                    if (role === 'hospital') {
-                        router.push('/clinical')
-                    } else {
-                        router.push('/dashboard')
-                    }
-                }, 500)
+                // Redirection Logic
+                if (role === 'admin') {
+                    router.push('/admin')
+                } else if (role === 'hospital') {
+                    router.push('/clinical')
+                } else {
+                    router.push('/dashboard')
+                }
 
             } catch (error: any) {
-                console.error('Callback processing error:', error)
-                toast.error('Setup failed', {
-                    description: error.message
-                })
-                router.push('/signin')
+                console.error('Callback error:', error)
+                toast.error('Auth failed', { description: error.message })
+                router.push('/auth')
             }
         }
 
@@ -146,13 +98,13 @@ export default function AuthCallbackPage() {
     return (
         <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center p-4">
             <div className="flex flex-col items-center gap-6 text-center">
-                <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center border border-indigo-500/20 shadow-2xl shadow-indigo-500/10">
+                <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10">
                     <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
                 </div>
                 <div className="space-y-2">
-                    <h2 className="text-2xl font-bold text-white tracking-tight">{status}</h2>
-                    <p className="text-gray-400 text-sm max-w-xs">
-                        Establishing secure connection to HealthChain Protocol...
+                    <h2 className="text-xl font-bold text-white tracking-tight uppercase tracking-[0.2em]">{status}</h2>
+                    <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest max-w-xs">
+                        Establishing secure connection...
                     </p>
                 </div>
             </div>

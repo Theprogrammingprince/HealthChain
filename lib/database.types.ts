@@ -1,6 +1,6 @@
 // Database types for Supabase tables
-export type UserRole = 'patient' | 'hospital';
-export type AuthProvider = 'google' | 'wallet';
+export type UserRole = 'patient' | 'hospital' | 'admin';
+export type AuthProvider = 'google' | 'wallet' | 'email';
 
 export interface UserProfile {
     id: string; // UUID from Supabase auth.users
