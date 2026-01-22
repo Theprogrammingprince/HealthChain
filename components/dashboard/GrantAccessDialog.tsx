@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/lib/supabaseClient";
 import { useAppStore } from "@/lib/store";
 import { toast } from "sonner";
-import { Loader2, Search, User, ShieldCheck } from "lucide-react";
+import { Loader2, Search, User, ShieldCheck, Plus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function GrantAccessDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {

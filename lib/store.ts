@@ -22,6 +22,7 @@ export interface ActivityLog {
   date: string;
   actor: string;
   action: 'Viewed' | 'Downloaded' | 'Uploaded' | 'Access Granted' | 'Access Revoked' | 'Emergency Access';
+  details?: string;
   txHash: string;
   patientId?: string;
 }
@@ -207,8 +208,8 @@ export const useAppStore = create<AppState>()(
             allergies: patientData?.allergies || [],
             conditions: patientData?.medical_conditions || [],
             medications: patientData?.medications || [],
-            bloodPressure: userData.blood_pressure || "N/A",
-            glucose: userData.glucose || "N/A",
+            bloodPressure: patientData?.blood_pressure || "N/A",
+            glucose: patientData?.glucose || "N/A",
             lastCheckup: userData.last_checkup || "N/A",
             // Contact & Address
             phoneNumber: patientData?.phone_number || '',
@@ -241,9 +242,10 @@ export const useAppStore = create<AppState>()(
           activityLogs: logsRes.data?.map(l => ({
             id: l.id,
             date: new Date(l.created_at).toLocaleString(),
-            actor: l.actor,
+            actor: l.actor_name || l.actor || 'Unknown System',
             action: l.action,
-            txHash: l.tx_hash
+            details: l.details || '',
+            txHash: l.tx_hash || ''
           })) || []
         }));
       } else {

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, UserPlus, TrasSh2, Shield, User, Clock, Trash2, ArrowLeft, Activity } from "lucide-react";
+import { ShieldCheck, UserPlus, Shield, User, Clock, Trash2, ArrowLeft, Activity } from "lucide-react";
 import { GrantAccessDialog } from "@/components/dashboard/GrantAccessDialog";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
