@@ -60,7 +60,6 @@ export interface Vitals {
   dob?: string;
   bloodType: string;
   genotype: string;
-  religion?: string;
   allergies: string[];
   conditions: string[];
   medications: string[];
@@ -161,13 +160,21 @@ export const useAppStore = create<AppState>()(
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
 
-      const { data, error } = await supabase
+      // Fetch user basic info
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
         .eq('id', session.user.id)
         .single();
 
-      if (data && !error) {
+      // Fetch patient profile (medical data)
+      const { data: patientData } = await supabase
+        .from('patient_profiles')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (userData && !userError) {
         // Fetch supplemental data in parallel
         const [recordsRes, permissionsRes, logsRes] = await Promise.all([
           supabase.from('medical_records').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false }),
@@ -176,22 +183,24 @@ export const useAppStore = create<AppState>()(
         ]);
 
         set((state) => ({
-          userProfile: data,
+          userProfile: userData,
           userVitals: {
             ...state.userVitals,
-            fullName: data.full_name,
-            dob: data.dob,
-            bloodType: data.blood_group || state.userVitals.bloodType,
-            genotype: data.genotype || state.userVitals.genotype,
-            religion: data.religion,
-            weight: data.weight || state.userVitals.weight,
-            height: data.height || state.userVitals.height,
-            allergies: data.allergies || [],
-            conditions: data.chronic_conditions || [],
-            medications: data.medications || [],
-            bloodPressure: data.blood_pressure || "N/A",
-            glucose: data.glucose || "N/A",
-            lastCheckup: data.last_checkup || "N/A",
+            // Basic info from users table
+            fullName: userData.full_name || '',
+            dob: userData.dob || patientData?.date_of_birth || '',
+            // Medical data from patient_profiles table (with fallbacks)
+            bloodType: patientData?.blood_type || state.userVitals.bloodType,
+            genotype: state.userVitals.genotype, // Keep existing or default
+            allergies: patientData?.allergies || [],
+            conditions: patientData?.medical_conditions || [],
+            medications: patientData?.medications || [],
+            // These fields might still be in users table for backward compatibility
+            weight: userData.weight || state.userVitals.weight,
+            height: userData.height || state.userVitals.height,
+            bloodPressure: userData.blood_pressure || "N/A",
+            glucose: userData.glucose || "N/A",
+            lastCheckup: userData.last_checkup || "N/A",
           },
           records: recordsRes.data?.map(r => ({
             id: r.id,
@@ -229,7 +238,6 @@ export const useAppStore = create<AppState>()(
             dob: "",
             bloodType: "N/A",
             genotype: "N/A",
-            religion: "",
             weight: 0,
             height: 0,
             allergies: [],
@@ -354,7 +362,6 @@ export const useAppStore = create<AppState>()(
           dob: vitals.dob,
           blood_group: vitals.bloodType,
           genotype: vitals.genotype,
-          religion: vitals.religion,
           weight: vitals.weight,
           height: vitals.height,
           blood_pressure: vitals.bloodPressure,

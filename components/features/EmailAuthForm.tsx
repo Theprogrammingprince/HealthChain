@@ -26,7 +26,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 const authSchema = z.object({
     email: z.string().email("Invalid email address"),
     password: z.string().min(6, "Password must be at least 6 characters"),
-    consent: z.boolean().refine(val => val === true, "You must agree to the privacy policy"),
+    consent: z.boolean().optional().default(false),
 });
 
 type AuthFormData = z.infer<typeof authSchema>;

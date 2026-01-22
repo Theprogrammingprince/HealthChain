@@ -42,7 +42,6 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
         blood_group: userVitals.bloodType !== "N/A" ? userVitals.bloodType : "",
         weight: userVitals.weight ? userVitals.weight.toString() : "",
         height: userVitals.height ? userVitals.height.toString() : "",
-        religion: userVitals.religion || "",
         blood_pressure: userVitals.bloodPressure !== "N/A" ? userVitals.bloodPressure : "",
         glucose: userVitals.glucose !== "N/A" ? userVitals.glucose : "",
         allergies: userVitals.allergies.join(", "),
@@ -60,7 +59,6 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
                 blood_group: userVitals.bloodType !== "N/A" ? userVitals.bloodType : "",
                 weight: userVitals.weight ? userVitals.weight.toString() : "",
                 height: userVitals.height ? userVitals.height.toString() : "",
-                religion: userVitals.religion || "",
                 blood_pressure: userVitals.bloodPressure !== "N/A" ? userVitals.bloodPressure : "",
                 glucose: userVitals.glucose !== "N/A" ? userVitals.glucose : "",
                 allergies: userVitals.allergies.join(", "),
@@ -86,35 +84,81 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
         if (!supabaseUser) return;
 
         setIsLoading(true);
-        const payload = {
-            id: supabaseUser.id,
-            full_name: formData.full_name,
-            dob: formData.dob,
-            genotype: formData.genotype,
-            blood_group: formData.blood_group,
-            weight: parseNumericValue(formData.weight),
-            height: parseNumericValue(formData.height),
-            religion: formData.religion,
-            blood_pressure: formData.blood_pressure,
-            glucose: formData.glucose,
-            allergies: formData.allergies.split(",").map(i => i.trim()).filter(i => i !== ""),
-            medications: formData.medications.split(",").map(i => i.trim()).filter(i => i !== ""),
-            chronic_conditions: formData.chronic_conditions.split(",").map(i => i.trim()).filter(i => i !== ""),
-        };
-
-        console.log("Attempting profile upsert with payload:", payload);
 
         try {
-            const { data, error, status, statusText } = await supabase
+            // 1. First check if user exists in public.users table
+            const { data: existingUser, error: checkError } = await supabase
                 .from("users")
-                .upsert(payload, { onConflict: 'id' });
+                .select("id")
+                .eq("id", supabaseUser.id)
+                .single();
 
-            if (error) {
-                console.error("Supabase upsert error returned:", { error, status, statusText });
-                throw error;
+            if (checkError && checkError.code === 'PGRST116') {
+                // User doesn't exist in users table, create them first
+                console.log("User not found in users table, creating...");
+                const { error: insertError } = await supabase
+                    .from("users")
+                    .insert({
+                        id: supabaseUser.id,
+                        email: supabaseUser.email,
+                        full_name: formData.full_name,
+                        dob: formData.dob || null,
+                        role: 'patient',
+                        auth_provider: 'email',
+                    });
+
+                if (insertError) {
+                    console.error("Error inserting user:", insertError);
+                    throw insertError;
+                }
+                console.log("User created successfully");
+            } else if (existingUser) {
+                // User exists, update their info
+                console.log("User exists, updating...");
+                const { error: userError } = await supabase
+                    .from("users")
+                    .update({
+                        full_name: formData.full_name,
+                        dob: formData.dob,
+                    })
+                    .eq("id", supabaseUser.id);
+
+                if (userError) {
+                    console.error("Error updating users table:", userError);
+                    throw userError;
+                }
             }
 
-            console.log("Profile upsert successful:", data);
+            // 2. Upsert detailed medical data to patient_profiles table
+            const patientPayload = {
+                user_id: supabaseUser.id,
+                date_of_birth: formData.dob || null,
+                blood_type: formData.blood_group || null,
+                gender: null,
+                phone_number: null,
+                emergency_contact: null,
+                emergency_phone: null,
+                address: null,
+                city: null,
+                state: null,
+                country: null,
+                postal_code: null,
+                medical_conditions: formData.chronic_conditions.split(",").map(i => i.trim()).filter(i => i !== ""),
+                allergies: formData.allergies.split(",").map(i => i.trim()).filter(i => i !== ""),
+                medications: formData.medications.split(",").map(i => i.trim()).filter(i => i !== ""),
+            };
+
+            console.log("Upserting patient_profiles with:", patientPayload);
+            const { error: profileError } = await supabase
+                .from("patient_profiles")
+                .upsert(patientPayload, { onConflict: 'user_id' });
+
+            if (profileError) {
+                console.error("Error upserting patient_profiles:", profileError);
+                throw profileError;
+            }
+
+            console.log("Profile setup successful!");
             toast.success("Profile Updated!", {
                 description: "Your medical record has been securely initialized.",
             });
@@ -123,7 +167,6 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
             onClose();
         } catch (error: any) {
             console.error("Profile update caught error:", error);
-            // Fallback for cases where 'error' might not be a standard Supabase error object
             const errorMessage = error?.message || (typeof error === 'string' ? error : "Database connection failed");
             const errorDetails = error?.details || "No additional details provided by server.";
 
@@ -189,28 +232,16 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
                                                 onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                                             />
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="dob" className="text-xs font-bold uppercase tracking-widest text-gray-500">Date of Birth</Label>
-                                                <Input
-                                                    id="dob"
-                                                    type="date"
-                                                    required
-                                                    className="bg-white/5 border-white/10 rounded-xl h-11"
-                                                    value={formData.dob}
-                                                    onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="religion" className="text-xs font-bold uppercase tracking-widest text-gray-500">Religion</Label>
-                                                <Input
-                                                    id="religion"
-                                                    placeholder="e.g. Christianity"
-                                                    className="bg-white/5 border-white/10 rounded-xl h-11"
-                                                    value={formData.religion}
-                                                    onChange={(e) => setFormData({ ...formData, religion: e.target.value })}
-                                                />
-                                            </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="dob" className="text-xs font-bold uppercase tracking-widest text-gray-500">Date of Birth</Label>
+                                            <Input
+                                                id="dob"
+                                                type="date"
+                                                required
+                                                className="bg-white/5 border-white/10 rounded-xl h-11"
+                                                value={formData.dob}
+                                                onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+                                            />
                                         </div>
                                     </div>
                                 </div>

@@ -306,10 +306,6 @@ export default function DashboardPage() {
                                                 {userVitals.dob ? `${Math.floor((new Date().getTime() - new Date(userVitals.dob).getTime()) / 31557600000)} Yrs` : "N/A"}
                                             </span>
                                         </div>
-                                        <div className="flex items-center justify-between px-4 py-3 bg-white/2 rounded-2xl border border-white/5">
-                                            <span className="text-[10px] text-gray-500 uppercase font-black">Religion</span>
-                                            <span className="text-xs font-bold text-white">{userVitals.religion || "N/A"}</span>
-                                        </div>
                                     </div>
 
                                     <div className="flex items-center justify-center gap-2 text-[#10B981] bg-[#10B981]/10 py-3 rounded-2xl border border-[#10B981]/20 mt-4">
