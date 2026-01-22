@@ -16,22 +16,14 @@ import { Button } from "@/components/ui/button";
 export default function AuthPage() {
     const { isConnected } = useAccount();
     const router = useRouter();
-    const [role, setRole] = useState<'Patient' | 'Hospital' | 'Admin'>('Patient');
+    const [role, setRole] = useState<'Patient' | 'Hospital'>('Patient');
     const [mode, setMode] = useState<"login" | "signup">("login");
     const { setUserRole } = useAppStore();
 
     useEffect(() => {
-        if (isConnected) {
-            setUserRole(role);
-            if (role === 'Hospital') {
-                router.push('/clinical');
-            } else if (role === 'Admin') {
-                router.push('/admin');
-            } else {
-                router.push('/dashboard');
-            }
-        }
-    }, [isConnected, router, role, setUserRole]);
+        // Sync role to localStorage so other auth components can access it
+        localStorage.setItem('healthchain_intended_role', role.toLowerCase());
+    }, [role]);
 
     const benefits = {
         Patient: [
@@ -129,15 +121,12 @@ export default function AuthPage() {
                             </div>
 
                             <Tabs defaultValue="Patient" onValueChange={(v) => setRole(v as any)} className="w-full">
-                                <TabsList className="grid w-full grid-cols-3 bg-black/40 p-1 rounded-2xl border border-white/5">
+                                <TabsList className="grid w-full grid-cols-2 bg-black/40 p-1 rounded-2xl border border-white/5">
                                     <TabsTrigger value="Patient" className="rounded-xl data-[state=active]:bg-[#00BFFF] data-[state=active]:text-black text-gray-500 font-bold uppercase text-[9px] tracking-widest transition-all h-9">
                                         Patient
                                     </TabsTrigger>
                                     <TabsTrigger value="Hospital" className="rounded-xl data-[state=active]:bg-indigo-500 data-[state=active]:text-white text-gray-500 font-bold uppercase text-[9px] tracking-widest transition-all h-9">
                                         Clinical
-                                    </TabsTrigger>
-                                    <TabsTrigger value="Admin" className="rounded-xl data-[state=active]:bg-red-500 data-[state=active]:text-white text-gray-500 font-bold uppercase text-[9px] tracking-widest transition-all h-9">
-                                        Admin
                                     </TabsTrigger>
                                 </TabsList>
                             </Tabs>

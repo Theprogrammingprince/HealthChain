@@ -64,16 +64,22 @@ export function WalletConnectButton() {
                     }
                 }
 
-                // Step 3: Redirect based on role
+                // Step 3: Redirect based on role and status
                 localStorage.removeItem('healthchain_intended_role');
 
-                if (normalizedRole === 'admin') {
-                    router.push('/admin');
-                } else if (normalizedRole === 'hospital') {
-                    router.push('/clinical');
-                } else {
-                    router.push('/dashboard');
+                let dbRole = normalizedRole;
+                let verificationStatus = undefined;
+
+                if (profileRes.ok) {
+                    const profileData = await profileRes.json();
+                    dbRole = profileData.data?.user?.role || normalizedRole;
+                    verificationStatus = profileData.data?.profile?.verification_status;
                 }
+
+                import("@/lib/routing").then(({ resolveRoute }) => {
+                    const targetPath = resolveRoute(dbRole, verificationStatus);
+                    router.push(targetPath);
+                });
 
             } catch (error: any) {
                 console.error('Wallet auth error:', error);

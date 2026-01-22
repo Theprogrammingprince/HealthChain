@@ -44,10 +44,10 @@ export function AuthButton() {
 
     const getDashboardPath = () => {
         switch (userRole?.toLowerCase()) {
-            case 'admin': return '/admin';
-            case 'hospital': return '/clinical';
-            case 'patient': return '/dashboard';
-            default: return '/dashboard';
+            case 'admin': return '/admin/dashboard';
+            case 'hospital': return '/clinical/dashboard';
+            case 'patient': return '/patient/dashboard';
+            default: return '/patient/dashboard';
         }
     };
 

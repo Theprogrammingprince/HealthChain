@@ -118,7 +118,7 @@ export default function HospitalVerifyPage() {
                 // Only redirect if user exists with wrong role
                 if (userData?.role) {
                     toast.error("Access denied. Hospital role required.");
-                    router.push("/dashboard");
+                    router.push("/patient/dashboard");
                     return;
                 }
             }
@@ -136,7 +136,7 @@ export default function HospitalVerifyPage() {
                 // If already verified, redirect to clinical dashboard
                 if (hospitalData.verification_status === "verified") {
                     toast.success("You are already verified!");
-                    router.push("/clinical");
+                    router.push("/clinical/dashboard");
                     return;
                 }
 
@@ -326,7 +326,7 @@ export default function HospitalVerifyPage() {
 
             // Redirect to clinical dashboard after 2 seconds
             setTimeout(() => {
-                router.push("/clinical");
+                router.push("/clinical/dashboard");
             }, 2000);
         } catch (error) {
             console.error("Submission error:", error);

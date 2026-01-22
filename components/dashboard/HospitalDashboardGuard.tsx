@@ -56,14 +56,14 @@ export function HospitalDashboardGuard({
             if (userError && userError.code !== 'PGRST116') {
                 console.error("Error fetching user:", userError);
                 toast.error("Failed to verify user role");
-                router.push("/dashboard");
+                router.push("/patient/dashboard");
                 return;
             }
 
             // If user doesn't exist or is not a hospital, redirect
             if (!userData || userData.role !== "hospital") {
                 toast.error("Access denied. Hospital role required.");
-                router.push("/dashboard");
+                router.push("/patient/dashboard");
                 return;
             }
 

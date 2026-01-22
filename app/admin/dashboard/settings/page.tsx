@@ -25,7 +25,7 @@ export default function AdminSettingsPage() {
                     <h1 className="text-3xl font-black uppercase tracking-tighter mb-2">Registry Settings</h1>
                     <p className="text-gray-400">Manage hospital whitelists and verified credentials.</p>
                 </div>
-                <Link href="/admin" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
+                <Link href="/admin/dashboard" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">
                     ← Back to Dashboard
                 </Link>
             </header>
@@ -122,7 +122,7 @@ export default function AdminSettingsPage() {
                                                 <StatusBadge status={req.status} />
                                             </td>
                                             <td className="px-6 py-4 text-right text-xs text-gray-500 font-mono">
-                                                {req.timestamp}
+                                                {/* Removed req.timestamp as per instruction */}
                                             </td>
                                         </tr>
                                     ))}

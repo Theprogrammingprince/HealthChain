@@ -201,7 +201,7 @@ export default function HospitalSettingsPage() {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => router.push("/clinical")}
+                                onClick={() => router.push("/clinical/dashboard")}
                                 className="hover:bg-white/5"
                             >
                                 <ArrowLeft className="w-5 h-5" />

@@ -230,7 +230,7 @@ export default function AdminVerifyPage() {
                     </div>
                     <Button
                         variant="outline"
-                        onClick={() => router.push("/admin")}
+                        onClick={() => router.push("/admin/dashboard")}
                         className="border-[#333333] hover:bg-[#1A1A1A]"
                     >
                         Back to Admin

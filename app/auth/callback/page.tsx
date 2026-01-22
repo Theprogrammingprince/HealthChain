@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { Loader2 } from 'lucide-react'
 import { useAppStore } from '@/lib/store'
 import { toast } from 'sonner'
+import { resolveRoute } from '@/lib/routing'
 
 export default function AuthCallbackPage() {
     const router = useRouter()
@@ -38,6 +39,7 @@ export default function AuthCallbackPage() {
 
                 // Check if profile exists
                 const profileRes = await fetch(`/api/auth/profile?userId=${session.user.id}`)
+                let verificationStatus: string | undefined;
 
                 if (profileRes.status === 404) {
                     setStatus('Creating your profile...')
@@ -61,7 +63,12 @@ export default function AuthCallbackPage() {
                         throw new Error('Failed to create profile')
                     }
                     toast.success('Account created!');
+                    verificationStatus = 'pending'; // New registrations are pending
                 } else {
+                    const profileData = await profileRes.json();
+                    if (profileData.success && profileData.data.profile) {
+                        verificationStatus = profileData.data.profile.verification_status;
+                    }
                     toast.success('Welcome back!');
                 }
 
@@ -76,14 +83,9 @@ export default function AuthCallbackPage() {
                 localStorage.removeItem('healthchain_intended_role')
                 setStatus('Redirecting...')
 
-                // Redirection Logic
-                if (role === 'admin') {
-                    router.push('/admin')
-                } else if (role === 'hospital') {
-                    router.push('/clinical')
-                } else {
-                    router.push('/dashboard')
-                }
+                // Centralized Redirection Logic
+                const targetPath = resolveRoute(role, verificationStatus);
+                router.push(targetPath);
 
             } catch (error: any) {
                 console.error('Callback error:', error)

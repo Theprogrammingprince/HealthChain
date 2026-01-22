@@ -45,7 +45,7 @@ export default function NotificationsPage() {
                     </h1>
                     <p className="text-gray-500">System alerts, updates, and access logs requiring your attention.</p>
                 </div>
-                <Link href="/dashboard" className="text-sm font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-wider flex items-center gap-2">
+                <Link href="/patient/dashboard" className="text-sm font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-wider flex items-center gap-2">
                     <ExternalLink size={14} /> Back to Dashboard
                 </Link>
             </header>
@@ -55,14 +55,14 @@ export default function NotificationsPage() {
                     <div
                         key={notif.id}
                         className={`p-6 rounded-2xl border transition-all hover:bg-white/5 ${notif.read
-                                ? 'bg-transparent border-white/5 opacity-60'
-                                : 'bg-white/5 border-white/10'
+                            ? 'bg-transparent border-white/5 opacity-60'
+                            : 'bg-white/5 border-white/10'
                             }`}
                     >
                         <div className="flex items-start gap-4">
                             <div className={`p-3 rounded-xl shrink-0 ${notif.type === 'alert' ? 'bg-red-500/10 text-red-500' :
-                                    notif.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' :
-                                        'bg-blue-500/10 text-blue-500'
+                                notif.type === 'success' ? 'bg-emerald-500/10 text-emerald-500' :
+                                    'bg-blue-500/10 text-blue-500'
                                 }`}>
                                 {notif.type === 'alert' && <AlertTriangle size={20} />}
                                 {notif.type === 'success' && <CheckCircle2 size={20} />}

@@ -15,10 +15,10 @@ export function Navbar() {
     const { isAuthenticated } = useAppStore();
 
     const links = [
-        { href: "/", label: "Home" },
-        { href: "/dashboard", label: "Dashboard" },
-        { href: "/guardian", label: "Guardian" },
-        { href: "/admin", label: "Admin", className: "text-blue-400 hover:text-blue-300" },
+        { href: "/", label: "Network" },
+        { href: "/patient/dashboard", label: "Dashboard" },
+        { href: "/clinical/dashboard", label: "Hospital", className: "text-indigo-400 hover:text-indigo-300" },
+        { href: "/admin/dashboard", label: "Admin", className: "text-blue-400 hover:text-blue-300" },
         { href: "/emergency", label: "Emergency", className: "text-red-500 hover:text-red-400" },
     ];
 
