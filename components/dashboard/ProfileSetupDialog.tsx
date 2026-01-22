@@ -38,6 +38,7 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
     const [formData, setFormData] = useState({
         full_name: userVitals.fullName || "",
         dob: userVitals.dob || "",
+        gender: userVitals.gender || "",
         genotype: userVitals.genotype !== "N/A" ? userVitals.genotype : "",
         blood_group: userVitals.bloodType !== "N/A" ? userVitals.bloodType : "",
         weight: userVitals.weight ? userVitals.weight.toString() : "",
@@ -47,6 +48,15 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
         allergies: userVitals.allergies.join(", "),
         medications: userVitals.medications.join(", "),
         chronic_conditions: userVitals.conditions.join(", "),
+        // Contact & Address
+        phone_number: userVitals.phoneNumber || "",
+        emergency_contact: userVitals.emergencyContact || "",
+        emergency_phone: userVitals.emergencyPhone || "",
+        address: userVitals.address || "",
+        city: userVitals.city || "",
+        state: userVitals.state || "",
+        country: userVitals.country || "",
+        postal_code: userVitals.postalCode || "",
     });
 
     // Sync form data when userVitals changes (e.g., after initial fetch)
@@ -55,6 +65,7 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
             setFormData({
                 full_name: userVitals.fullName || "",
                 dob: userVitals.dob || "",
+                gender: userVitals.gender || "",
                 genotype: userVitals.genotype !== "N/A" ? userVitals.genotype : "",
                 blood_group: userVitals.bloodType !== "N/A" ? userVitals.bloodType : "",
                 weight: userVitals.weight ? userVitals.weight.toString() : "",
@@ -64,11 +75,19 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
                 allergies: userVitals.allergies.join(", "),
                 medications: userVitals.medications.join(", "),
                 chronic_conditions: userVitals.conditions.join(", "),
+                phone_number: userVitals.phoneNumber || "",
+                emergency_contact: userVitals.emergencyContact || "",
+                emergency_phone: userVitals.emergencyPhone || "",
+                address: userVitals.address || "",
+                city: userVitals.city || "",
+                state: userVitals.state || "",
+                country: userVitals.country || "",
+                postal_code: userVitals.postalCode || "",
             });
         }
     }, [isOpen, userVitals]);
 
-    const totalSteps = 3;
+    const totalSteps = 4;
 
     const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
     const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
@@ -134,15 +153,18 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
                 user_id: supabaseUser.id,
                 date_of_birth: formData.dob || null,
                 blood_type: formData.blood_group || null,
-                gender: null,
-                phone_number: null,
-                emergency_contact: null,
-                emergency_phone: null,
-                address: null,
-                city: null,
-                state: null,
-                country: null,
-                postal_code: null,
+                gender: formData.gender || null,
+                genotype: formData.genotype || null,
+                weight: parseNumericValue(formData.weight),
+                height: parseNumericValue(formData.height),
+                phone_number: formData.phone_number || null,
+                emergency_contact: formData.emergency_contact || null,
+                emergency_phone: formData.emergency_phone || null,
+                address: formData.address || null,
+                city: formData.city || null,
+                state: formData.state || null,
+                country: formData.country || null,
+                postal_code: formData.postal_code || null,
                 medical_conditions: formData.chronic_conditions.split(",").map(i => i.trim()).filter(i => i !== ""),
                 allergies: formData.allergies.split(",").map(i => i.trim()).filter(i => i !== ""),
                 medications: formData.medications.split(",").map(i => i.trim()).filter(i => i !== ""),
@@ -192,7 +214,7 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
                 </DialogHeader>
 
                 <div className="flex items-center justify-between mb-8 px-1">
-                    {[1, 2, 3].map((step) => (
+                    {[1, 2, 3, 4].map((step) => (
                         <div key={step} className="flex items-center">
                             <div className={cn(
                                 "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300",
@@ -204,7 +226,7 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
                             )}>
                                 {currentStep > step ? <Check className="w-4 h-4" /> : step}
                             </div>
-                            {step < 3 && (
+                            {step < 4 && (
                                 <div className={cn(
                                     "w-12 h-[2px] mx-2 rounded-full transition-all duration-500",
                                     currentStep > step ? "bg-primary/40" : "bg-white/5"
@@ -232,16 +254,34 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
                                                 onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                                             />
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="dob" className="text-xs font-bold uppercase tracking-widest text-gray-500">Date of Birth</Label>
-                                            <Input
-                                                id="dob"
-                                                type="date"
-                                                required
-                                                className="bg-white/5 border-white/10 rounded-xl h-11"
-                                                value={formData.dob}
-                                                onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                                            />
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="dob" className="text-xs font-bold uppercase tracking-widest text-gray-500">Date of Birth</Label>
+                                                <Input
+                                                    id="dob"
+                                                    type="date"
+                                                    required
+                                                    className="bg-white/5 border-white/10 rounded-xl h-11"
+                                                    value={formData.dob}
+                                                    onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold uppercase tracking-widest text-gray-500">Gender</Label>
+                                                <Select
+                                                    value={formData.gender}
+                                                    onValueChange={(val) => setFormData({ ...formData, gender: val })}
+                                                >
+                                                    <SelectTrigger className="bg-white/5 border-white/10 rounded-xl h-11">
+                                                        <SelectValue placeholder="Select" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="bg-[#0A0A0A] border-white/10">
+                                                        {["Male", "Female", "Other", "Prefer not to say"].map(g => (
+                                                            <SelectItem key={g} value={g}>{g}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -322,6 +362,105 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
                         )}
 
                         {currentStep === 3 && (
+                            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                                <div className="space-y-4">
+                                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Contact & Address</Label>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="phone_number" className="text-xs font-bold uppercase tracking-widest text-gray-500">Phone Number</Label>
+                                            <Input
+                                                id="phone_number"
+                                                placeholder="+1 555-0123"
+                                                className="bg-white/5 border-white/10 rounded-xl h-11"
+                                                value={formData.phone_number}
+                                                onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="emergency_phone" className="text-xs font-bold uppercase tracking-widest text-gray-500">Emergency Phone</Label>
+                                            <Input
+                                                id="emergency_phone"
+                                                placeholder="+1 555-9999"
+                                                className="bg-white/5 border-white/10 rounded-xl h-11"
+                                                value={formData.emergency_phone}
+                                                onChange={(e) => setFormData({ ...formData, emergency_phone: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="emergency_contact" className="text-xs font-bold uppercase tracking-widest text-gray-500">Emergency Contact Name</Label>
+                                        <Input
+                                            id="emergency_contact"
+                                            placeholder="Jane Doe (Spouse)"
+                                            className="bg-white/5 border-white/10 rounded-xl h-11"
+                                            value={formData.emergency_contact}
+                                            onChange={(e) => setFormData({ ...formData, emergency_contact: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="address" className="text-xs font-bold uppercase tracking-widest text-gray-500">Street Address</Label>
+                                        <Input
+                                            id="address"
+                                            placeholder="123 Medical Way"
+                                            className="bg-white/5 border-white/10 rounded-xl h-11"
+                                            value={formData.address}
+                                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="city" className="text-xs font-bold uppercase tracking-widest text-gray-500">City</Label>
+                                            <Input
+                                                id="city"
+                                                placeholder="New York"
+                                                className="bg-white/5 border-white/10 rounded-xl h-11"
+                                                value={formData.city}
+                                                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="state" className="text-xs font-bold uppercase tracking-widest text-gray-500">State/Province</Label>
+                                            <Input
+                                                id="state"
+                                                placeholder="NY"
+                                                className="bg-white/5 border-white/10 rounded-xl h-11"
+                                                value={formData.state}
+                                                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="country" className="text-xs font-bold uppercase tracking-widest text-gray-500">Country</Label>
+                                            <Input
+                                                id="country"
+                                                placeholder="United States"
+                                                className="bg-white/5 border-white/10 rounded-xl h-11"
+                                                value={formData.country}
+                                                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="postal_code" className="text-xs font-bold uppercase tracking-widest text-gray-500">Postal Code <span className="text-[10px] opacity-50 lowercase">(optional)</span></Label>
+                                            <Input
+                                                id="postal_code"
+                                                placeholder="10001"
+                                                className="bg-white/5 border-white/10 rounded-xl h-11"
+                                                value={formData.postal_code}
+                                                onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {currentStep === 4 && (
                             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                                 <div className="space-y-4">
                                     <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Clinical Baseline</Label>

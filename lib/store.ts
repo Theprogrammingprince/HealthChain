@@ -58,17 +58,26 @@ export interface StaffMember {
 export interface Vitals {
   fullName?: string;
   dob?: string;
+  gender?: string;
   bloodType: string;
   genotype: string;
+  weight: number;
+  height: number;
+  bloodPressure: string;
+  glucose: string;
   allergies: string[];
   conditions: string[];
   medications: string[];
-  bloodPressure: string;
-  glucose: string;
-  bmi: number;
-  weight: number;
-  height: number;
   lastCheckup: string;
+  // Contact & Address
+  phoneNumber?: string;
+  emergencyContact?: string;
+  emergencyPhone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postalCode?: string;
 }
 
 interface AppState {
@@ -191,16 +200,25 @@ export const useAppStore = create<AppState>()(
             dob: userData.dob || patientData?.date_of_birth || '',
             // Medical data from patient_profiles table (with fallbacks)
             bloodType: patientData?.blood_type || state.userVitals.bloodType,
-            genotype: state.userVitals.genotype, // Keep existing or default
+            genotype: patientData?.genotype || state.userVitals.genotype,
+            gender: patientData?.gender || '',
+            weight: patientData?.weight || userData.weight || state.userVitals.weight,
+            height: patientData?.height || userData.height || state.userVitals.height,
             allergies: patientData?.allergies || [],
             conditions: patientData?.medical_conditions || [],
             medications: patientData?.medications || [],
-            // These fields might still be in users table for backward compatibility
-            weight: userData.weight || state.userVitals.weight,
-            height: userData.height || state.userVitals.height,
             bloodPressure: userData.blood_pressure || "N/A",
             glucose: userData.glucose || "N/A",
             lastCheckup: userData.last_checkup || "N/A",
+            // Contact & Address
+            phoneNumber: patientData?.phone_number || '',
+            emergencyContact: patientData?.emergency_contact || '',
+            emergencyPhone: patientData?.emergency_phone || '',
+            address: patientData?.address || '',
+            city: patientData?.city || '',
+            state: patientData?.state || '',
+            country: patientData?.country || '',
+            postalCode: patientData?.postal_code || '',
           },
           records: recordsRes.data?.map(r => ({
             id: r.id,
