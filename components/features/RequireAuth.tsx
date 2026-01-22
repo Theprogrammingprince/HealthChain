@@ -19,8 +19,19 @@ export function RequireAuth({ children, requiredRole }: RequireAuthProps) {
     useEffect(() => {
         const checkAccess = async () => {
             // Check basic auth
-            if (!isConnected || !isAuthenticated || !supabaseSession?.user) {
-                router.push("/signin");
+            // If user is neither connected (wallet) nor authenticated (email), redirect.
+            // But if they are authenticated via email (supabaseSession), that's enough.
+            if (!isAuthenticated && !supabaseSession?.user && !isConnected) {
+                router.push("/auth");
+                return;
+            }
+
+            // If we have a session, we are authenticated
+            if (supabaseSession?.user) {
+                // Good to go
+            } else if (!isConnected) {
+                // If no session and no wallet, then fail
+                router.push("/auth");
                 return;
             }
 
@@ -29,30 +40,33 @@ export function RequireAuth({ children, requiredRole }: RequireAuthProps) {
             let verificationStatus: VerificationStatus | undefined;
 
             try {
-                // Fetch User Role
-                const { data: profile, error: roleError } = await supabase
-                    .from("users")
-                    .select("role")
-                    .eq("id", supabaseSession.user.id)
-                    .single();
-
-                if (profile && !roleError) {
-                    currentRole = profile.role.charAt(0).toUpperCase() + profile.role.slice(1) as any;
-                    if (currentRole !== userRole) {
-                        setUserRole(currentRole);
-                    }
-                }
-
-                // If Hospital, fetch Verification Status
-                if (currentRole === 'Hospital') {
-                    const { data: hospitalData, error: hospError } = await supabase
-                        .from("hospital_profiles")
-                        .select("verification_status")
-                        .eq("user_id", supabaseSession.user.id)
+                // Only check DB role if we have a Supabase user ID (Email/Auth)
+                if (supabaseSession?.user) {
+                    // Fetch User Role
+                    const { data: profile, error: roleError } = await supabase
+                        .from("users")
+                        .select("role")
+                        .eq("id", supabaseSession.user.id)
                         .single();
 
-                    if (hospitalData && !hospError) {
-                        verificationStatus = hospitalData.verification_status as VerificationStatus;
+                    if (profile && !roleError) {
+                        currentRole = profile.role.charAt(0).toUpperCase() + profile.role.slice(1) as any;
+                        if (currentRole !== userRole) {
+                            setUserRole(currentRole);
+                        }
+                    }
+
+                    // If Hospital, fetch Verification Status
+                    if (currentRole === 'Hospital') {
+                        const { data: hospitalData, error: hospError } = await supabase
+                            .from("hospital_profiles")
+                            .select("verification_status")
+                            .eq("user_id", supabaseSession.user.id)
+                            .single();
+
+                        if (hospitalData && !hospError) {
+                            verificationStatus = hospitalData.verification_status as VerificationStatus;
+                        }
                     }
                 }
             } catch (err) {
