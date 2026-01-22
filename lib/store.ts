@@ -22,6 +22,7 @@ export interface ActivityLog {
   date: string;
   actor: string;
   action: 'Viewed' | 'Downloaded' | 'Uploaded' | 'Access Granted' | 'Access Revoked' | 'Emergency Access';
+  details?: string;
   txHash: string;
   patientId?: string;
 }
@@ -241,9 +242,10 @@ export const useAppStore = create<AppState>()(
           activityLogs: logsRes.data?.map(l => ({
             id: l.id,
             date: new Date(l.created_at).toLocaleString(),
-            actor: l.actor,
+            actor: l.actor_name || l.actor || 'Unknown System',
             action: l.action,
-            txHash: l.tx_hash
+            details: l.details || '',
+            txHash: l.tx_hash || ''
           })) || []
         }));
       } else {

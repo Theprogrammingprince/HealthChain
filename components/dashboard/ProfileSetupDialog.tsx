@@ -19,7 +19,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { supabase } from "@/lib/supabaseClient";
 import { useAppStore } from "@/lib/store";
 import { toast } from "sonner";
@@ -202,7 +202,7 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="sm:max-w-[500px] bg-[#0A0A0A]/95 border-white/10 backdrop-blur-2xl text-white rounded-3xl p-8">
+            <DialogContent className="w-[95vw] sm:max-w-[600px] max-h-[90vh] bg-[#0A0A0A]/95 border-white/10 backdrop-blur-2xl text-white rounded-3xl p-6 sm:p-8 overflow-hidden flex flex-col">
                 <DialogHeader className="space-y-4">
                     <div className="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center border border-primary/20">
                         <User className="w-6 h-6 text-primary" />
@@ -236,7 +236,7 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
                     ))}
                 </div>
 
-                <ScrollArea className="max-h-[60vh] pr-4 -mr-4">
+                <div className="flex-1 overflow-y-auto min-h-0 pr-4 -mr-4">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {currentStep === 1 && (
                             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
@@ -254,7 +254,7 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
                                                 onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                                             />
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div className="space-y-2">
                                                 <Label htmlFor="dob" className="text-xs font-bold uppercase tracking-widest text-gray-500">Date of Birth</Label>
                                                 <Input
@@ -292,7 +292,7 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
                             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                                 <div className="space-y-4">
                                     <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Physical Metrics</Label>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label className="text-xs font-bold uppercase tracking-widest text-gray-500">Genotype</Label>
                                             <Select
@@ -327,7 +327,7 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="weight" className="text-xs font-bold uppercase tracking-widest text-gray-500">Weight (kg)</Label>
                                             <div className="relative">
@@ -366,7 +366,7 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
                                 <div className="space-y-4">
                                     <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Contact & Address</Label>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="phone_number" className="text-xs font-bold uppercase tracking-widest text-gray-500">Phone Number</Label>
                                             <Input
@@ -411,7 +411,7 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="city" className="text-xs font-bold uppercase tracking-widest text-gray-500">City</Label>
                                             <Input
@@ -434,7 +434,7 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="country" className="text-xs font-bold uppercase tracking-widest text-gray-500">Country</Label>
                                             <Input
@@ -465,7 +465,7 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
                                 <div className="space-y-4">
                                     <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Clinical Baseline</Label>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="blood_pressure" className="text-xs font-bold uppercase tracking-widest text-gray-500">Blood Pressure</Label>
                                             <Input
@@ -526,9 +526,9 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
 
                         <button type="submit" id="submit-profile-form" className="hidden" />
                     </form>
-                </ScrollArea>
+                </div>
 
-                <DialogFooter className="pt-8 flex flex-row gap-3 sm:justify-between items-center">
+                <DialogFooter className="pt-4 flex flex-row gap-3 sm:justify-between items-center mt-auto">
                     <div className="flex gap-3 w-full">
                         {currentStep > 1 && (
                             <Button
