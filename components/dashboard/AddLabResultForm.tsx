@@ -108,6 +108,7 @@ export function AddLabResultForm() {
             doctor: values.doctorName,
             notes: values.notes,
             ipfsHash: "Qm" + generateId(),
+            category: 'Laboratory' as const,
         };
 
         addRecord(newRecord);

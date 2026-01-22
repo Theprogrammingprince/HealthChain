@@ -18,9 +18,9 @@ async function main() {
                 console.warn("⚠️ Warning: Account has 0 MATIC. You need testnet tokens to deploy.");
                 console.warn("   Get free tokens here: https://faucet.polygon.technology/");
             }
-        } catch (netError) {
+        } catch (netError: unknown) {
             console.error("❌ Could not connect to the network. Check your POLYGON_RPC in .env");
-            console.error("   Error:", netError.message);
+            console.error("   Error:", netError instanceof Error ? netError.message : String(netError));
         }
 
     } catch (error) {

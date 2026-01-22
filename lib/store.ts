@@ -44,6 +44,7 @@ export interface VerificationRequest {
   address: string;
   license: string;
   status: HospitalStatus;
+  timestamp: string;
 }
 
 export interface StaffMember {

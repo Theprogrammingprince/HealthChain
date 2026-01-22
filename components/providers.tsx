@@ -22,7 +22,8 @@ const wagmiAdapter = new WagmiAdapter({
   ssr: true
 })
 
-// 3. Create AppKit instance
+// 3. Create AppKit instance with optimized configuration
+// Disable analytics and problematic connectors to prevent console errors
 createAppKit({
   adapters: [wagmiAdapter],
   networks: [polygonAmoy],
@@ -30,14 +31,26 @@ createAppKit({
   metadata: {
     name: 'HealthChain',
     description: 'Secure Medical Records',
-    url: 'https://healthchain.com', // Ensure this matches your generic domain whitelist if applicable
+    url: typeof window !== 'undefined' ? window.location.origin : 'https://healthchain.com',
     icons: ['https://avatars.githubusercontent.com/u/37784886']
   },
   features: {
-    analytics: true,
+    analytics: false, // Disable analytics to prevent 403 errors from pulse.walletconnect.org
     socials: ['google', 'x', 'github', 'discord'],
-    email: true, // This requires the Embedded Wallet (which was failing to load)
-  }
+    email: true,
+  },
+  // Exclude Coinbase wallet to prevent cca-lite.coinbase.com errors
+  excludeWalletIds: [
+    'fd20dc426fb37566d803205b19bbc1d4096b248ac04548e3cfb6b3a38bd033aa' // Coinbase Wallet
+  ],
+  // Feature specific wallets that work reliably
+  featuredWalletIds: [
+    'c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96', // MetaMask
+    '4622a2b2d6af1c9844944291e5e7351a6aa24cd7b23099efac1b2fd875da31a0', // Trust Wallet
+    'e7c4ff83c2d76cbe25e4d32e8e9adff9a15ed8e87a5e5c9e6e5b9b8a0e6e8f09'  // Rainbow
+  ],
+  // Disable Coinbase OnRamp to prevent additional errors
+  coinbasePreference: 'eoaOnly'
 })
 
 export function Providers({ children }: { children: ReactNode }) {
