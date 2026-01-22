@@ -208,8 +208,8 @@ export const useAppStore = create<AppState>()(
             allergies: patientData?.allergies || [],
             conditions: patientData?.medical_conditions || [],
             medications: patientData?.medications || [],
-            bloodPressure: userData.blood_pressure || "N/A",
-            glucose: userData.glucose || "N/A",
+            bloodPressure: patientData?.blood_pressure || "N/A",
+            glucose: patientData?.glucose || "N/A",
             lastCheckup: userData.last_checkup || "N/A",
             // Contact & Address
             phoneNumber: patientData?.phone_number || '',

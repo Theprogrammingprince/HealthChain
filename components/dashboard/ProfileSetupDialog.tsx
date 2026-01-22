@@ -165,6 +165,8 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
                 state: formData.state || null,
                 country: formData.country || null,
                 postal_code: formData.postal_code || null,
+                blood_pressure: formData.blood_pressure || null,
+                glucose: formData.glucose || null,
                 medical_conditions: formData.chronic_conditions.split(",").map(i => i.trim()).filter(i => i !== ""),
                 allergies: formData.allergies.split(",").map(i => i.trim()).filter(i => i !== ""),
                 medications: formData.medications.split(",").map(i => i.trim()).filter(i => i !== ""),
