@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import { toast } from "sonner";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -101,6 +103,49 @@ export default function DashboardPage() {
         ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
         : "NOT_CONNECTED";
 
+    const handleEmergencySOS = async () => {
+        if (!confirm("⚠️ ACTIVATE EMERGENCY MODE?\n\nThis will instantly notify all your authorized emergency contacts and grant them temporary access to your records.\n\nProceed?")) return;
+
+        try {
+            toast.loading("Broadcasting Emergency Alert...", { id: 'sos' });
+
+            // 1. Get all emergency contacts (or all permissions for now)
+            const { data: guardians, error: fetchError } = await supabase
+                .from('access_permissions')
+                .select('grantee_id, level')
+                .eq('user_id', supabaseUser?.id);
+
+            if (fetchError) throw fetchError;
+
+            if (!guardians || guardians.length === 0) {
+                toast.error("No emergency contacts found!", { id: 'sos', description: "Please grant access to a trusted contact first in the Permissions tab." });
+                return;
+            }
+
+            // 2. Send Notifications
+            const notifications = guardians.map(g => ({
+                user_id: g.grantee_id,
+                sender_id: supabaseUser?.id,
+                type: 'emergency_alert',
+                title: '🚨 EMERGENCY ALERT',
+                message: `${userVitals.fullName || 'Member'} has triggered an SOS! Immediate attention required.`,
+                action_link: `/dashboard/records?patient=${supabaseUser?.id}&mode=emergency`
+            }));
+
+            const { error: notifError } = await supabase.from('notifications').insert(notifications);
+            if (notifError) throw notifError;
+
+            toast.success("SOS BROADCASTED!", {
+                id: 'sos',
+                description: `${guardians.length} guardians have been alerted.`
+            });
+
+        } catch (error: any) {
+            console.error(error);
+            toast.error("Failed to broadcast SOS", { id: 'sos' });
+        }
+    };
+
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-[#00BFFF]/30">
             {/* Dynamic Background */}
@@ -124,15 +169,15 @@ export default function DashboardPage() {
                         </div>
 
                         <nav className="hidden lg:flex items-center gap-8 ml-10">
-                            <button className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b-2 border-[#00BFFF] pb-1">
+                            <Link href="/patient/dashboard" className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b-2 border-[#00BFFF] pb-1">
                                 Overview
-                            </button>
-                            <button className="text-sm font-bold text-gray-500 hover:text-white uppercase tracking-wider transition-colors">
+                            </Link>
+                            <Link href="/patient/dashboard/records" className="text-sm font-bold text-gray-500 hover:text-white uppercase tracking-wider transition-colors">
                                 Records
-                            </button>
-                            <button className="text-sm font-bold text-gray-500 hover:text-white uppercase tracking-wider transition-colors">
+                            </Link>
+                            <Link href="/patient/dashboard/permissions" className="text-sm font-bold text-gray-500 hover:text-white uppercase tracking-wider transition-colors">
                                 Permissions
-                            </button>
+                            </Link>
                         </nav>
                     </div>
 
@@ -328,7 +373,7 @@ export default function DashboardPage() {
                                     <AccessControlList />
 
                                     <div className="pt-8 border-t border-white/5">
-                                        <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/10 flex items-center gap-4 group cursor-pointer hover:bg-red-500/10 transition-colors">
+                                        <div onClick={handleEmergencySOS} className="p-4 rounded-xl bg-red-500/5 border border-red-500/10 flex items-center gap-4 group cursor-pointer hover:bg-red-500/10 transition-colors">
                                             <div className="p-2 rounded-lg bg-red-500/10 text-red-500">
                                                 <ShieldAlert size={18} />
                                             </div>

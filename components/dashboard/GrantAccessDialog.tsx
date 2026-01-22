@@ -1,69 +1,90 @@
 "use client";
 
 import { useState } from "react";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-    DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/lib/supabaseClient";
 import { useAppStore } from "@/lib/store";
 import { toast } from "sonner";
-import { Loader2, ShieldCheck, Building2, Wallet } from "lucide-react";
+import { Loader2, Search, User, ShieldCheck } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-interface GrantAccessDialogProps {
-    isOpen: boolean;
-    onClose: () => void;
-}
-
-export function GrantAccessDialog({ isOpen, onClose }: GrantAccessDialogProps) {
-    const { grantAccess } = useAppStore();
+export function GrantAccessDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+    const { supabaseUser, fetchUserProfile } = useAppStore();
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [permissionLevel, setPermissionLevel] = useState("view_records");
     const [isLoading, setIsLoading] = useState(false);
-    const [formData, setFormData] = useState({
-        entityName: "",
-        entityAddress: "",
-        level: "Full" as "Full" | "Emergency Only",
-    });
+    const [isSearching, setIsSearching] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!formData.entityName || !formData.entityAddress) {
-            return toast.error("Please fill in all fields");
-        }
+    const handleSearch = async () => {
+        if (!searchQuery.trim()) return;
+        setIsSearching(true);
 
-        setIsLoading(true);
         try {
-            await grantAccess({
-                id: Math.random().toString(36).substring(2, 11),
-                entityName: formData.entityName,
-                entityAddress: formData.entityAddress,
-                grantedDate: new Date().toISOString().split('T')[0],
-                level: formData.level,
-            });
+            const { data, error } = await supabase
+                .from('users')
+                .select('id, full_name, email, avatar_url')
+                .ilike('email', `%${searchQuery}%`)
+                .neq('id', supabaseUser?.id || '') // Don't show self
+                .limit(5);
 
-            toast.success("Access Granted Successfully", {
-                description: `${formData.entityName} can now authorized to access your vault.`,
-            });
+            if (error) throw error;
+            setSearchResults(data || []);
+        } catch (error) {
+            console.error(error);
+            toast.error("Search failed");
+        } finally {
+            setIsSearching(false);
+        }
+    };
 
+    const handleGrant = async () => {
+        if (!supabaseUser || !selectedUser) return;
+        setIsLoading(true);
+
+        try {
+            // 1. Grant Permission
+            const { error: grantError } = await supabase
+                .from('access_permissions')
+                .insert({
+                    user_id: supabaseUser.id,           // The Patient
+                    grantee_id: selectedUser.id,        // The Receiver
+                    level: permissionLevel,
+                    entity_name: selectedUser.full_name || selectedUser.email,
+                    entity_address: selectedUser.id, // Using ID as address for internal users
+                    granted_at: new Date().toISOString()
+                });
+
+            if (grantError) throw grantError;
+
+            // 2. Send Notification
+            const { error: notifError } = await supabase
+                .from('notifications')
+                .insert({
+                    user_id: selectedUser.id, // Recipient
+                    sender_id: supabaseUser.id,
+                    type: 'permission_granted',
+                    title: 'Access Granted',
+                    message: `${supabaseUser.email} has granted you ${permissionLevel.replace('_', ' ')} access to their medical records.`,
+                    action_link: `/dashboard/records?patient=${supabaseUser.id}`
+                });
+
+            if (notifError) console.error("Notification failed:", notifError); // specific error log, don't block flow
+
+            toast.success(`Access granted to ${selectedUser.full_name}`);
+            await fetchUserProfile();
             onClose();
-            setFormData({ entityName: "", entityAddress: "", level: "Full" });
+            setSelectedUser(null);
+            setSearchQuery("");
+            setSearchResults([]);
         } catch (error: any) {
-            console.error("Grant access failed:", error);
-            toast.error("Process Failed", {
-                description: error.message,
-            });
+            console.error(error);
+            toast.error("Failed to grant access", { description: error.message });
         } finally {
             setIsLoading(false);
         }
@@ -71,80 +92,101 @@ export function GrantAccessDialog({ isOpen, onClose }: GrantAccessDialogProps) {
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="sm:max-w-[450px] bg-[#0A0A0A]/95 border-white/10 backdrop-blur-2xl text-white rounded-3xl p-8">
-                <DialogHeader className="space-y-4">
-                    <div className="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center border border-emerald-500/20">
-                        <ShieldCheck className="w-6 h-6 text-emerald-500" />
-                    </div>
-                    <DialogTitle className="text-2xl font-bold tracking-tight">Grant Clinical Access</DialogTitle>
-                    <DialogDescription className="text-gray-400">
-                        Authorize a medical institution or doctor to decrypt and view your specific medical records.
-                    </DialogDescription>
+            <DialogContent className="sm:max-w-[500px] bg-[#0A0A0A]/95 border-white/10 backdrop-blur-2xl text-white rounded-3xl p-6">
+                <DialogHeader>
+                    <DialogTitle className="text-xl font-bold">Grant Access</DialogTitle>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit} className="space-y-6 mt-6">
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="entityName" className="text-xs font-bold uppercase tracking-widest text-gray-500">Institution Name</Label>
-                            <div className="relative">
-                                <Input
-                                    id="entityName"
-                                    placeholder="e.g. Mayo Clinic Rochester"
-                                    required
-                                    className="bg-white/5 border-white/10 rounded-xl h-11 pl-10 focus:ring-primary/20"
-                                    value={formData.entityName}
-                                    onChange={(e) => setFormData({ ...formData, entityName: e.target.value })}
-                                />
-                                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="entityAddress" className="text-xs font-bold uppercase tracking-widest text-gray-500">Wallet Address (ENS or 0x...)</Label>
-                            <div className="relative">
-                                <Input
-                                    id="entityAddress"
-                                    placeholder="0x71C...345a"
-                                    required
-                                    className="bg-white/5 border-white/10 rounded-xl h-11 pl-10 font-mono text-xs"
-                                    value={formData.entityAddress}
-                                    onChange={(e) => setFormData({ ...formData, entityAddress: e.target.value })}
-                                />
-                                <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label className="text-xs font-bold uppercase tracking-widest text-gray-500">Access Level</Label>
-                            <Select defaultValue="Full" onValueChange={(val: any) => setFormData({ ...formData, level: val })}>
-                                <SelectTrigger className="bg-white/5 border-white/10 rounded-xl h-11">
-                                    <SelectValue placeholder="Select Level" />
-                                </SelectTrigger>
-                                <SelectContent className="bg-[#0A0A0A] border-white/10">
-                                    <SelectItem value="Full">Full Access (View & History)</SelectItem>
-                                    <SelectItem value="Emergency Only">Emergency (Restricted)</SelectItem>
-                                </SelectContent>
-                            </Select>
+                <div className="space-y-6 py-4">
+                    {/* Search Section */}
+                    <div className="space-y-2">
+                        <Label>Search User</Label>
+                        <div className="flex gap-2">
+                            <Input
+                                placeholder="Search by email..."
+                                className="bg-white/5 border-white/10"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                            />
+                            <Button onClick={handleSearch} disabled={isSearching} className="bg-white/10 hover:bg-white/20">
+                                {isSearching ? <Loader2 className="animate-spin w-4 h-4" /> : <Search className="w-4 h-4" />}
+                            </Button>
                         </div>
                     </div>
 
-                    <DialogFooter className="pt-4">
-                        <Button
-                            type="submit"
-                            disabled={isLoading}
-                            className="w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-black font-black uppercase tracking-widest rounded-xl transition-all"
-                        >
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    PROCESSING ON-CHAIN...
-                                </>
-                            ) : (
-                                "GRANT SECURE ACCESS"
-                            )}
-                        </Button>
-                    </DialogFooter>
-                </form>
+                    {/* Results / Selected User */}
+                    {selectedUser ? (
+                        <div className="p-4 bg-[#00BFFF]/10 border border-[#00BFFF]/20 rounded-xl flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <Avatar className="h-10 w-10 border border-white/10">
+                                    <AvatarImage src={selectedUser.avatar_url} />
+                                    <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <p className="font-bold text-sm">{selectedUser.full_name}</p>
+                                    <p className="text-xs text-gray-400">{selectedUser.email}</p>
+                                </div>
+                            </div>
+                            <Button variant="ghost" size="sm" onClick={() => setSelectedUser(null)} className="text-xs hover:text-red-400">
+                                Change
+                            </Button>
+                        </div>
+                    ) : searchResults.length > 0 ? (
+                        <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                            {searchResults.map((user) => (
+                                <div key={user.id}
+                                    onClick={() => setSelectedUser(user)}
+                                    className="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors"
+                                >
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarImage src={user.avatar_url} />
+                                        <AvatarFallback><User className="w-3 h-3" /></AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1">
+                                        <p className="font-bold text-sm">{user.full_name || 'Unnamed User'}</p>
+                                        <p className="text-xs text-gray-400">{user.email}</p>
+                                    </div>
+                                    <Plus className="w-4 h-4 text-[#00BFFF]" />
+                                </div>
+                            ))}
+                        </div>
+                    ) : searchQuery && !isSearching && (
+                        <p className="text-center text-gray-500 text-sm italic">No users found.</p>
+                    )}
+
+                    {/* Permission Level */}
+                    {selectedUser && (
+                        <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                            <Label>Access Level</Label>
+                            <Select value={permissionLevel} onValueChange={setPermissionLevel}>
+                                <SelectTrigger className="bg-white/5 border-white/10">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#0A0A0A] border-white/10">
+                                    <SelectItem value="view_records">View Records (Read Only)</SelectItem>
+                                    <SelectItem value="emergency_override">Emergency Override (Full Access)</SelectItem>
+                                    <SelectItem value="admin">Full Admin (Edit Capability)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <p className="text-[10px] text-gray-500">
+                                * The user will serve as a Guardian and receive alerts during emergencies.
+                            </p>
+                        </div>
+                    )}
+                </div>
+
+                <DialogFooter>
+                    <Button variant="ghost" onClick={onClose} disabled={isLoading}>Cancel</Button>
+                    <Button
+                        onClick={handleGrant}
+                        disabled={!selectedUser || isLoading}
+                        className="bg-[#00BFFF] hover:bg-[#00BFFF]/90 text-black font-bold"
+                    >
+                        {isLoading ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : <ShieldCheck className="w-4 h-4 mr-2" />}
+                        Grant Access
+                    </Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     );
