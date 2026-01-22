@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { User, Building2, Loader2 } from "lucide-react";
+import { User, Building2, Loader2, Shield } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 
 interface RoleSelectionModalProps {
@@ -26,8 +27,13 @@ export function RoleSelectionModal({ open, onClose }: RoleSelectionModalProps) {
     const { supabaseSession, setUserRole } = useAppStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedRole, setSelectedRole] = useState<"Patient" | "Hospital" | null>(null);
+    const [hasConsented, setHasConsented] = useState(false);
 
     const handleRoleSelection = async (role: "Patient" | "Hospital") => {
+        if (!hasConsented) {
+            toast.error("Please agree to the Privacy Policy to continue.");
+            return;
+        }
         if (!supabaseSession?.user) {
             toast.error("No active session. Please sign in again.");
             return;
@@ -56,7 +62,7 @@ export function RoleSelectionModal({ open, onClose }: RoleSelectionModalProps) {
             // Route based on role
             if (role === "Patient") {
                 toast.success("Welcome! Setting up your medical vault...");
-                router.push("/dashboard");
+                router.push("/patient/dashboard");
             } else {
                 toast.success("Redirecting to verification...");
                 router.push("/clinical/verify");
@@ -82,7 +88,7 @@ export function RoleSelectionModal({ open, onClose }: RoleSelectionModalProps) {
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="grid grid-cols-1 gap-4 py-6">
+                <div className="space-y-4 py-6">
                     {/* Patient Option */}
                     <motion.button
                         whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
@@ -90,7 +96,7 @@ export function RoleSelectionModal({ open, onClose }: RoleSelectionModalProps) {
                         onClick={() => handleRoleSelection("Patient")}
                         disabled={isSubmitting}
                         className={`
-                            relative overflow-hidden rounded-2xl border-2 p-6 text-left transition-all
+                            relative overflow-hidden rounded-2xl border-2 p-6 text-left transition-all w-full
                             ${isSubmitting && selectedRole === "Patient"
                                 ? "border-[#00BFFF] bg-[#00BFFF]/10"
                                 : "border-[#333333] bg-[#111111] hover:border-[#00BFFF] hover:bg-[#00BFFF]/5"
@@ -123,7 +129,7 @@ export function RoleSelectionModal({ open, onClose }: RoleSelectionModalProps) {
                         onClick={() => handleRoleSelection("Hospital")}
                         disabled={isSubmitting}
                         className={`
-                            relative overflow-hidden rounded-2xl border-2 p-6 text-left transition-all
+                            relative overflow-hidden rounded-2xl border-2 p-6 text-left transition-all w-full
                             ${isSubmitting && selectedRole === "Hospital"
                                 ? "border-indigo-500 bg-indigo-500/10"
                                 : "border-[#333333] bg-[#111111] hover:border-indigo-500 hover:bg-indigo-500/5"
@@ -148,6 +154,24 @@ export function RoleSelectionModal({ open, onClose }: RoleSelectionModalProps) {
                             )}
                         </div>
                     </motion.button>
+
+                    {/* Consent Checkbox */}
+                    <div className="flex flex-row items-start space-x-3 space-y-0 rounded-xl border border-white/5 bg-white/5 p-4 mt-6">
+                        <Checkbox
+                            id="audit-consent"
+                            checked={hasConsented}
+                            onCheckedChange={(checked: boolean) => setHasConsented(checked === true)}
+                            disabled={isSubmitting}
+                        />
+                        <div className="space-y-1 leading-none">
+                            <label
+                                htmlFor="audit-consent"
+                                className="text-[11px] font-medium text-gray-400 leading-relaxed cursor-pointer"
+                            >
+                                I agree to HealthChain's <span className="text-indigo-400 underline">Privacy Policy</span> and <span className="text-indigo-400 underline">Data Usage Terms</span>, confirming my consent for secure health record storage.
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="mt-2 p-4 bg-[#1A1A1A] border border-[#333333] rounded-lg">

@@ -9,7 +9,6 @@ import { ReactNode, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import { useAppStore } from '@/lib/store'
 import { Session } from '@supabase/supabase-js'
-import { AuthDialog } from '@/components/features/AuthDialog'
 import { RoleSelectionModal } from '@/components/features/RoleSelectionModal'
 
 // 1. Get projectId from https://cloud.reown.com
@@ -106,7 +105,6 @@ export function Providers({ children }: { children: ReactNode }) {
     <WagmiProvider config={wagmiAdapter.wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         {children}
-        <AuthDialog />
         <RoleSelectionModal
           open={showRoleModal}
           onClose={() => setShowRoleModal(false)}

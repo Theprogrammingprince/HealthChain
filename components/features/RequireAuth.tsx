@@ -1,18 +1,18 @@
 "use client";
-
-import { useAppStore, StaffRole } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
+import { resolveRoute, VerificationStatus } from "@/lib/routing";
 
 interface RequireAuthProps {
     children: React.ReactNode;
-    requiredRole?: 'Patient' | 'Hospital';
+    requiredRole?: 'Patient' | 'Hospital' | 'Admin';
 }
 
 export function RequireAuth({ children, requiredRole }: RequireAuthProps) {
-    const { isAuthenticated, isConnected, userRole, supabaseSession } = useAppStore();
+    const { isAuthenticated, isConnected, userRole, supabaseSession, setUserRole } = useAppStore();
     const router = useRouter();
     const [isChecking, setIsChecking] = useState(true);
 
@@ -20,44 +20,65 @@ export function RequireAuth({ children, requiredRole }: RequireAuthProps) {
         const checkAccess = async () => {
             // Check basic auth
             if (!isConnected || !isAuthenticated || !supabaseSession?.user) {
-                router.push("/");
+                router.push("/signin");
                 return;
             }
 
-            // Check role match
-            if (requiredRole && userRole !== requiredRole) {
-                // Wrong role redirect
-                if (userRole === 'Hospital') {
-                    router.push("/clinical/verify");
-                } else if (userRole === 'Patient') {
-                    router.push("/dashboard");
+            // Stricter verification: Fetch the latest role and verification status from the database
+            let currentRole = userRole;
+            let verificationStatus: VerificationStatus | undefined;
+
+            try {
+                // Fetch User Role
+                const { data: profile, error: roleError } = await supabase
+                    .from("users")
+                    .select("role")
+                    .eq("id", supabaseSession.user.id)
+                    .single();
+
+                if (profile && !roleError) {
+                    currentRole = profile.role.charAt(0).toUpperCase() + profile.role.slice(1) as any;
+                    if (currentRole !== userRole) {
+                        setUserRole(currentRole);
+                    }
                 }
-                return;
-            }
 
-            // Additional check for Hospital role: verify verification status
-            if (requiredRole === 'Hospital' || userRole === 'Hospital') {
-                try {
-                    const { data: hospitalData, error } = await supabase
+                // If Hospital, fetch Verification Status
+                if (currentRole === 'Hospital') {
+                    const { data: hospitalData, error: hospError } = await supabase
                         .from("hospital_profiles")
-                        .select("verification_status, is_verified")
+                        .select("verification_status")
                         .eq("user_id", supabaseSession.user.id)
                         .single();
 
-                    // If no profile or not verified, redirect to verification page
-                    if (error || !hospitalData || !hospitalData.is_verified) {
-                        // Only redirect if not already on verify page
-                        if (window.location.pathname !== '/clinical/verify') {
-                            router.push("/clinical/verify");
-                            return;
-                        }
-                    } else if (hospitalData.is_verified && window.location.pathname === '/clinical/verify') {
-                        // If verified but on verify page, redirect to dashboard
-                        router.push("/clinical");
-                        return;
+                    if (hospitalData && !hospError) {
+                        verificationStatus = hospitalData.verification_status as VerificationStatus;
                     }
-                } catch (error) {
-                    console.error("Error checking hospital verification:", error);
+                }
+            } catch (err) {
+                console.error("Critical: Role/Verification check failed", err);
+            }
+
+            // Centralized Routing Rule Enforcement
+            const targetPath = resolveRoute(currentRole || 'patient', verificationStatus);
+            const currentPath = window.location.pathname;
+
+            // 1. If requiredRole is specified and user has a DIFFERENT role, force redirect to THEIR correct dashboard
+            if (requiredRole && currentRole !== requiredRole) {
+                router.push(targetPath);
+                return;
+            }
+
+            // 2. If user is on a dashboard that doesn't match their status (e.g. verified on /verify), force redirect
+            // Note: We check if the current path starts with the base of the target path or matches exactly to avoid loops
+            // but for HealthChain, paths are specific enough (/clinical/dashboard, /clinical/verify, /clinical/rejected)
+            if (currentPath !== targetPath) {
+                // Only redirect if they are on a "protected" path that doesn't match their status
+                // If they are on the WRONG dashboard for their role/status, fix it.
+                const protectedPaths = ['/patient/dashboard', '/clinical/dashboard', '/clinical/verify', '/clinical/rejected', '/admin/dashboard'];
+                if (protectedPaths.includes(currentPath)) {
+                    router.push(targetPath);
+                    return;
                 }
             }
 
@@ -67,7 +88,7 @@ export function RequireAuth({ children, requiredRole }: RequireAuthProps) {
         // Allow a small delay for hydration/state restoration
         const timer = setTimeout(checkAccess, 500);
         return () => clearTimeout(timer);
-    }, [isConnected, isAuthenticated, userRole, requiredRole, router, supabaseSession]);
+    }, [isConnected, isAuthenticated, userRole, requiredRole, router, supabaseSession, setUserRole]);
 
     if (isChecking) {
         return (

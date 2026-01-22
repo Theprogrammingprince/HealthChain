@@ -75,14 +75,16 @@ export function HeroSection() {
                 >
                     {isConnected ? (
                         <Button asChild size="lg" className="h-12 px-8 text-lg rounded-full shadow-[0_0_20px_rgba(59,130,246,0.4)] hover:shadow-[0_0_30px_rgba(59,130,246,0.6)] transition-all bg-blue-600 hover:bg-blue-700 border-none text-white">
-                            <Link href="/dashboard">
+                            <Link href="/patient/dashboard">
                                 Go to Dashboard <ArrowRight className="ml-2 h-5 w-5" />
                             </Link>
                         </Button>
                     ) : (
-                        <div className="scale-110 origin-center">
-                            <WalletConnect />
-                        </div>
+                        <Button asChild size="lg" className="h-12 px-10 text-lg rounded-full shadow-[0_0_20px_rgba(59,130,246,0.4)] hover:shadow-[0_0_30px_rgba(59,130,246,0.6)] transition-all bg-blue-600 hover:bg-blue-700 border-none text-white font-bold">
+                            <Link href="/auth">
+                                Get Started <ArrowRight className="ml-2 h-5 w-5" />
+                            </Link>
+                        </Button>
                     )}
 
                     <Button variant="outline" className="h-12 border-white/10 hover:bg-white/5 text-gray-300 hover:text-white rounded-full px-8" asChild>

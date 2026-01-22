@@ -1,6 +1,5 @@
-"use client";
 import { Button } from "@/components/ui/button";
-import { Wallet } from "lucide-react";
+import { Wallet, Loader2 } from "lucide-react";
 import { useAppKit } from "@reown/appkit/react";
 import { useAccount } from "wagmi";
 import { useEffect, useState, useRef } from "react";
@@ -14,134 +13,102 @@ export function WalletConnectButton() {
     const { connectWallet, setUserRole } = useAppStore();
     const router = useRouter();
     const [isRegistering, setIsRegistering] = useState(false);
-    const hasRegistered = useRef(false);
+    const registrationAttempted = useRef(false);
 
     useEffect(() => {
-        const registerWalletUser = async () => {
-            // Prevent duplicate registration attempts
-            if (!isConnected || !address || isRegistering || hasRegistered.current) {
-                return;
-            }
+        const handleWalletConnection = async () => {
+            if (!isConnected || !address || isRegistering || registrationAttempted.current) return;
 
+            registrationAttempted.current = true;
             setIsRegistering(true);
-            hasRegistered.current = true;
 
             try {
                 // Connect wallet in app store
                 const shortAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
                 connectWallet(shortAddress);
 
-                // Get stored role from signin page tab selection
+                // Get stored role
                 const storedRole = localStorage.getItem('healthchain_intended_role') || 'patient';
                 const normalizedRole = storedRole.toLowerCase();
 
-                // Set user role in app store
-                setUserRole(normalizedRole === 'hospital' ? 'Hospital' : 'Patient');
+                // Update store
+                setUserRole(normalizedRole === 'hospital' ? 'Hospital' : normalizedRole === 'admin' ? 'Admin' : 'Patient');
 
-                // Check if user exists - handle errors gracefully
-                let userExists = false;
-                try {
-                    const checkResponse = await fetch(`/api/auth/profile?userId=${address}`);
-                    userExists = checkResponse.ok;
-                } catch (checkError) {
-                    // Profile check failed - assume user doesn't exist, proceed with registration
-                    console.warn('Profile check failed, attempting registration:', checkError);
-                    userExists = false;
-                }
+                // Step 1: Check if user profile exists
+                const profileRes = await fetch(`/api/auth/profile?userId=${address}`);
 
-                // Register if user doesn't exist
-                if (!userExists) {
+                if (profileRes.ok) {
+                    toast.success('Welcome back!');
+                } else {
+                    // Step 2: Register if not exists
                     const registrationData = {
                         userId: address,
-                        email: null,
                         walletAddress: address,
                         role: normalizedRole,
                         authProvider: 'wallet',
-                        fullName: null,
-                        avatarUrl: null,
-                        ...(normalizedRole === 'hospital' && {
-                            hospitalName: 'Medical Facility' // Will be updated on verification form
-                        })
+                        fullName: `Wallet User ${address.slice(-4)}`
                     };
 
-                    try {
-                        const registerResponse = await fetch('/api/auth/register', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(registrationData)
-                        });
-
-                        if (registerResponse.ok) {
-                            toast.success('Wallet Connected!', {
-                                description: normalizedRole === 'hospital'
-                                    ? 'Redirecting to verification...'
-                                    : 'Your account has been created'
-                            });
-                        } else {
-                            // Registration failed but wallet is connected
-                            // Still allow navigation so user can complete profile later
-                            const errorData = await registerResponse.json().catch(() => ({}));
-                            console.error('Registration response error:', errorData);
-
-                            // If user already exists (409), that's fine
-                            if (registerResponse.status === 409) {
-                                toast.success('Wallet Connected!', {
-                                    description: 'Welcome back'
-                                });
-                            } else {
-                                toast.warning('Account setup incomplete', {
-                                    description: 'You can complete your profile later'
-                                });
-                            }
-                        }
-                    } catch (registerError) {
-                        console.error('Registration fetch error:', registerError);
-                        toast.warning('Wallet connected', {
-                            description: 'Profile will be set up on next visit'
-                        });
-                    }
-                } else {
-                    toast.success('Wallet Connected!', {
-                        description: 'Welcome back'
+                    const registerRes = await fetch('/api/auth/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(registrationData)
                     });
+
+                    if (registerRes.ok) {
+                        toast.success('Wallet Registered!');
+                    } else if (registerRes.status === 409) {
+                        toast.success('Welcome back!');
+                    } else {
+                        throw new Error('Registration failed');
+                    }
                 }
 
-                // Clean up and redirect based on role
+                // Step 3: Redirect based on role and status
                 localStorage.removeItem('healthchain_intended_role');
 
-                // Redirect based on role
-                if (normalizedRole === 'hospital') {
-                    // Hospitals go to verification page (pending approval flow)
-                    router.push('/clinical/verify');
-                } else {
-                    // Patients go to dashboard
-                    router.push('/dashboard');
+                let dbRole = normalizedRole;
+                let verificationStatus = undefined;
+
+                if (profileRes.ok) {
+                    const profileData = await profileRes.json();
+                    dbRole = profileData.data?.user?.role || normalizedRole;
+                    verificationStatus = profileData.data?.profile?.verification_status;
                 }
 
-            } catch (error) {
-                console.error('Wallet registration error:', error);
-                toast.error('Connection issue', {
-                    description: 'Please try again'
+                import("@/lib/routing").then(({ resolveRoute }) => {
+                    const targetPath = resolveRoute(dbRole, verificationStatus);
+                    router.push(targetPath);
                 });
-                hasRegistered.current = false; // Allow retry on error
+
+            } catch (error: any) {
+                console.error('Wallet auth error:', error);
+                toast.error('Auth issue', { description: error.message || 'Please try again' });
+                registrationAttempted.current = false;
             } finally {
                 setIsRegistering(false);
             }
         };
 
-        registerWalletUser();
-    }, [isConnected, address, connectWallet, setUserRole, router, isRegistering]);
+        if (isConnected && address) {
+            handleWalletConnection();
+        }
+    }, [isConnected, address, router, connectWallet, setUserRole]);
 
     return (
         <Button
             onClick={() => open()}
-            variant="outline"
-            className="w-full h-12 text-base font-medium border-white/10 hover:border-white/20 hover:bg-white/5"
+            disabled={isRegistering}
+            className="w-full h-12 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white font-bold uppercase text-[10px] tracking-widest transition-all rounded-xl"
         >
-            <Wallet className="mr-2 h-5 w-5" />
-            Connect Wallet
+            {isRegistering ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+                <>
+                    <Wallet className="mr-2 h-4 w-4 text-indigo-400" />
+                    Connect Wallet
+                </>
+            )}
         </Button>
     );
 }

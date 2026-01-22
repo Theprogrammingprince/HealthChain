@@ -20,12 +20,12 @@ export const uuidSchema = z.string().uuid();
 /**
  * Role validation
  */
-export const roleSchema = z.enum(['patient', 'hospital']);
+export const roleSchema = z.enum(['patient', 'hospital', 'admin']);
 
 /**
  * Auth provider validation
  */
-export const authProviderSchema = z.enum(['google', 'wallet']);
+export const authProviderSchema = z.enum(['google', 'wallet', 'email']);
 
 /**
  * User profile validation

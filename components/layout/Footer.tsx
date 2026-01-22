@@ -17,7 +17,8 @@ export function Footer() {
 
     const pathname = usePathname();
 
-    if (pathname?.startsWith("/dashboard")) return null;
+    const dashboardPaths = ["/patient/dashboard", "/clinical/dashboard", "/admin/dashboard", "/clinical/verify", "/clinical/rejected"];
+    if (dashboardPaths.some(path => pathname?.startsWith(path))) return null;
 
     return (
         <footer className="bg-black/95 border-t border-white/10 overflow-hidden relative">
@@ -43,8 +44,8 @@ export function Footer() {
                     </div>
 
                     {/* Quick Links */}
-                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 text-sm">
-                        <Link href="/dashboard" className="text-gray-400 hover:text-white transition-colors">
+                    <div className="flex items-center gap-3">
+                        <Link href="/patient/dashboard" className="text-gray-400 hover:text-white transition-colors">
                             Dashboard
                         </Link>
                         <Link href="/emergency" className="text-gray-400 hover:text-white transition-colors">
@@ -139,7 +140,7 @@ export function Footer() {
                         <div>
                             <h3 className="font-semibold text-white mb-4">Platform</h3>
                             <ul className="space-y-2 text-sm">
-                                <li><Link href="/dashboard" className="text-gray-500 hover:text-blue-400 transition-colors">Medical Records</Link></li>
+                                <li><Link href="/patient/dashboard" className="text-gray-500 hover:text-blue-400 transition-colors">Medical Records</Link></li>
                                 <li><Link href="/emergency" className="text-gray-500 hover:text-blue-400 transition-colors">Emergency Access</Link></li>
                                 <li><Link href="/providers" className="text-gray-500 hover:text-blue-400 transition-colors">For Providers</Link></li>
                             </ul>

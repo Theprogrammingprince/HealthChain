@@ -76,6 +76,23 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Harden against Admin role self-assignment
+        if (role === 'admin') {
+            return NextResponse.json(
+                { error: "Unauthorized role request. Admin roles must be assigned by existing administrators." },
+                { status: 403 }
+            );
+        }
+
+        // Validate allowed roles
+        const allowedRoles = ['patient', 'hospital'];
+        if (!allowedRoles.includes(role)) {
+            return NextResponse.json(
+                { error: "Invalid role specified." },
+                { status: 400 }
+            );
+        }
+
         // Prepare user profile data
         const userProfile: UserProfileInsert = {
             id: userId,
