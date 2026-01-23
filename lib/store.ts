@@ -88,7 +88,7 @@ interface AppState {
   isConnected: boolean;
   isAuthenticated: boolean;
   isAuthorized: boolean;
-  userRole: 'Patient' | 'Hospital' | 'Admin' | null;
+  userRole: 'Patient' | 'Hospital' | 'Doctor' | 'Admin' | null;
   supabaseSession: Session | null;
   supabaseUser: User | null;
   userProfile: any | null; // Data from your public.users table
@@ -97,7 +97,7 @@ interface AppState {
   setUserProfile: (profile: any) => void;
   fetchUserProfile: () => Promise<void>;
   checkAuthorization: (status: boolean) => void;
-  setUserRole: (role: 'Patient' | 'Hospital' | 'Admin' | null) => void;
+  setUserRole: (role: 'Patient' | 'Hospital' | 'Doctor' | 'Admin' | null) => void;
 
   // Patient Side
   profileImage: string | null;

@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 export default function AuthPage() {
     const { isConnected } = useAccount();
     const router = useRouter();
-    const [role, setRole] = useState<'Patient' | 'Hospital'>('Patient');
+    const [role, setRole] = useState<'Patient' | 'Hospital' | 'Doctor'>('Patient');
     const [mode, setMode] = useState<"login" | "signup">("login");
     const { setUserRole } = useAppStore();
 
@@ -35,6 +35,11 @@ export default function AuthPage() {
             { icon: Zap, text: "Real-time Interoperability" },
             { icon: Shield, text: "HIPAA Compliant Node" },
             { icon: Database, text: "Audited Case History" }
+        ],
+        Doctor: [
+            { icon: Activity, text: "Seamless Documentation" },
+            { icon: Shield, text: "Verified Credentials" },
+            { icon: Zap, text: "Instant Portability" }
         ],
         Admin: [
             { icon: Shield, text: "Network Governance" },
@@ -76,7 +81,7 @@ export default function AuthPage() {
                                 <Activity className="w-8 h-8 text-indigo-400" />
                             </div>
                             <h2 className="text-5xl font-black tracking-tighter uppercase leading-none">
-                                {role === 'Patient' ? 'Patient' : role === 'Hospital' ? 'Clinical' : 'Admin'} <br />
+                                {role === 'Patient' ? 'Patient' : role === 'Hospital' ? 'Clinical' : role === 'Doctor' ? 'Professional' : 'Admin'} <br />
                                 <span className="bg-gradient-to-r from-indigo-400 to-blue-500 bg-clip-text text-transparent">Intelligence</span>
                             </h2>
                             <p className="text-gray-500 font-medium text-lg leading-relaxed max-w-md">
@@ -84,7 +89,9 @@ export default function AuthPage() {
                                     ? "Securely manage your medical history, own your data, and grant access to providers on your terms."
                                     : role === 'Hospital'
                                         ? "Connect with patients in real-time, maintain HIPAA compliance, and streamline clinical workflows."
-                                        : "Oversee the HealthChain protocol, manage hospital verifications, and monitor network health."}
+                                        : role === 'Doctor'
+                                            ? "Bridge the gap between patients and hospitals with secure documentation and verified credentials."
+                                            : "Oversee the HealthChain protocol, manage hospital verifications, and monitor network health."}
                             </p>
 
                             <div className="space-y-4 pt-4">
@@ -121,9 +128,12 @@ export default function AuthPage() {
                             </div>
 
                             <Tabs defaultValue="Patient" onValueChange={(v) => setRole(v as any)} className="w-full">
-                                <TabsList className="grid w-full grid-cols-2 bg-black/40 p-1 rounded-2xl border border-white/5">
+                                <TabsList className="grid w-full grid-cols-3 bg-black/40 p-1 rounded-2xl border border-white/5">
                                     <TabsTrigger value="Patient" className="rounded-xl data-[state=active]:bg-[#00BFFF] data-[state=active]:text-black text-gray-500 font-bold uppercase text-[9px] tracking-widest transition-all h-9">
                                         Patient
+                                    </TabsTrigger>
+                                    <TabsTrigger value="Doctor" className="rounded-xl data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-gray-500 font-bold uppercase text-[9px] tracking-widest transition-all h-9">
+                                        Doctor
                                     </TabsTrigger>
                                     <TabsTrigger value="Hospital" className="rounded-xl data-[state=active]:bg-indigo-500 data-[state=active]:text-white text-gray-500 font-bold uppercase text-[9px] tracking-widest transition-all h-9">
                                         Clinical
@@ -132,14 +142,14 @@ export default function AuthPage() {
                             </Tabs>
 
                             <div className="space-y-6">
-                                <EmailAuthForm mode={mode} role={role} />
+                                <EmailAuthForm mode={mode} role={role as any} />
 
                                 <div className="text-center">
                                     <button
                                         onClick={() => setMode(mode === "login" ? "signup" : "login")}
                                         className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors"
                                     >
-                                        {mode === "login" ? "Need a medical profile?" : "Already verified?"} {mode === "login" ? "Create Account" : "Sign In"}
+                                        {mode === "login" ? (role === 'Doctor' ? "Apply for professional access?" : "Need a medical profile?") : "Already verified?"} {mode === "login" ? "Create Account" : "Sign In"}
                                     </button>
                                 </div>
                             </div>

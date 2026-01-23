@@ -30,6 +30,9 @@ export function resolveRoute(role: UserRole, status?: VerificationStatus): strin
             // Default fallback for hospitals (likely needs verification)
             return '/clinical/verify';
 
+        case 'doctor':
+            return '/doctor/dashboard';
+
         case 'patient':
             return '/patient/dashboard';
 
