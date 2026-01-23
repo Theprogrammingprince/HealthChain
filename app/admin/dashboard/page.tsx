@@ -35,6 +35,7 @@ interface Stats {
 
 export default function AdminPage() {
     const [activeTab, setActiveTab] = useState("verification");
+    const [hospitalFilter, setHospitalFilter] = useState<"all" | "pending" | "verified" | "rejected">("all");
     const [stats, setStats] = useState<Stats>({
         totalHospitals: 0,
         pendingVerifications: 0,
@@ -114,14 +115,14 @@ export default function AdminPage() {
                             </div>
 
                             <div className="flex items-center gap-2 border-l border-white/10 pl-6">
-                                <button className="p-2 text-gray-400 hover:text-white transition-colors relative">
+                                <Link href="/admin/dashboard/notifications" className="p-2 text-gray-400 hover:text-white transition-colors relative hover:bg-white/5 rounded-full">
                                     <Bell size={18} />
                                     {stats.pendingVerifications > 0 && (
                                         <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center">
                                             {stats.pendingVerifications}
                                         </span>
                                     )}
-                                </button>
+                                </Link>
                                 <Link href="/admin/settings" className="p-2 hover:bg-white/5 rounded-full transition-colors">
                                     <Settings size={18} className="text-gray-400 hover:text-white" />
                                 </Link>
@@ -161,6 +162,7 @@ export default function AdminPage() {
                             label="Total Hospitals"
                             value={statsLoading ? "..." : stats.totalHospitals.toString()}
                             subtext={`${stats.verifiedHospitals} Verified`}
+                            onClick={() => { setHospitalFilter("all"); setActiveTab("verification"); }}
                         />
                         <StatCard
                             icon={<Clock className="text-amber-500" />}
@@ -168,12 +170,14 @@ export default function AdminPage() {
                             value={statsLoading ? "..." : stats.pendingVerifications.toString()}
                             subtext="Awaiting Approval"
                             highlight={stats.pendingVerifications > 0}
+                            onClick={() => { setHospitalFilter("pending"); setActiveTab("verification"); }}
                         />
                         <StatCard
                             icon={<ShieldCheck className="text-emerald-500" />}
                             label="Verified Providers"
                             value={statsLoading ? "..." : stats.verifiedHospitals.toString()}
                             subtext="Active on Network"
+                            onClick={() => { setHospitalFilter("verified"); setActiveTab("verification"); }}
                         />
                         <StatCard
                             icon={<Activity className="text-indigo-500" />}
@@ -185,7 +189,7 @@ export default function AdminPage() {
 
                     {/* Main Content Tabs */}
                     <div className="space-y-6">
-                        <Tabs defaultValue="verification" className="w-full" onValueChange={setActiveTab}>
+                        <Tabs value={activeTab} className="w-full" onValueChange={setActiveTab}>
                             <div className="flex items-center justify-between mb-2">
                                 <TabsList className="bg-[#0A0A0A] border border-white/5 p-1 h-12 rounded-xl">
                                     <TabsTrigger
@@ -220,7 +224,7 @@ export default function AdminPage() {
                                         initial={{ opacity: 0, x: -10 }}
                                         animate={{ opacity: 1, x: 0 }}
                                     >
-                                        <HospitalVerificationTable />
+                                        <HospitalVerificationTable initialFilter={hospitalFilter} />
                                     </motion.div>
                                 </TabsContent>
 
@@ -252,9 +256,12 @@ export default function AdminPage() {
     );
 }
 
-function StatCard({ icon, label, value, subtext, highlight }: { icon: any, label: string, value: string, subtext: string, highlight?: boolean }) {
+function StatCard({ icon, label, value, subtext, highlight, onClick }: { icon: any, label: string, value: string, subtext: string, highlight?: boolean, onClick?: () => void }) {
     return (
-        <Card className={`bg-[#0A0A0A] border-white/5 hover:border-blue-600/30 transition-all duration-300 group overflow-hidden relative ${highlight ? "border-amber-500/30 ring-1 ring-amber-500/20" : ""}`}>
+        <Card
+            onClick={onClick}
+            className={`bg-[#0A0A0A] border-white/5 hover:border-blue-600/30 transition-all duration-300 group overflow-hidden relative cursor-pointer ${highlight ? "border-amber-500/30 ring-1 ring-amber-500/20" : ""}`}
+        >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className={`text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${highlight ? "text-amber-400" : "text-gray-500 group-hover:text-blue-400"}`}>
                     {label}

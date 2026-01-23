@@ -75,7 +75,11 @@ interface HospitalProfile {
     };
 }
 
-export function HospitalVerificationTable() {
+interface HospitalVerificationTableProps {
+    initialFilter?: "all" | "pending" | "verified" | "rejected";
+}
+
+export function HospitalVerificationTable({ initialFilter = "all" }: HospitalVerificationTableProps) {
     const [hospitals, setHospitals] = useState<HospitalProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -84,33 +88,56 @@ export function HospitalVerificationTable() {
     const [viewHospital, setViewHospital] = useState<HospitalProfile | null>(null);
     const [viewCertificate, setViewCertificate] = useState<HospitalProfile | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
-    const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "verified" | "rejected">("all");
+    const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "verified" | "rejected">(initialFilter);
     const [sendingEmail, setSendingEmail] = useState(false);
+
+    // Sync with parent filter
+    useEffect(() => {
+        setStatusFilter(initialFilter);
+    }, [initialFilter]);
 
     // Fetch hospitals from database
     const fetchHospitals = async () => {
         try {
             setLoading(true);
 
-            const { data, error } = await supabase
+            // First, fetch all hospital profiles
+            const { data: hospitalsData, error: hospitalsError } = await supabase
                 .from("hospital_profiles")
-                .select(`
-                    *,
-                    user:users!hospital_profiles_user_id_fkey (
-                        wallet_address,
-                        email,
-                        full_name
-                    )
-                `)
+                .select("*")
                 .order("created_at", { ascending: false });
 
-            if (error) {
-                console.error("Error fetching hospitals:", error);
+            if (hospitalsError) {
+                console.error("Error fetching hospitals:", hospitalsError);
                 toast.error("Failed to fetch hospital data");
                 return;
             }
 
-            setHospitals(data || []);
+            // Then fetch user data for each hospital
+            const userIds = hospitalsData?.map(h => h.user_id).filter(Boolean) || [];
+            let usersMap: Record<string, any> = {};
+
+            if (userIds.length > 0) {
+                const { data: usersData, error: usersError } = await supabase
+                    .from("users")
+                    .select("id, wallet_address, email, full_name")
+                    .in("id", userIds);
+
+                if (!usersError && usersData) {
+                    usersMap = usersData.reduce((acc, user) => {
+                        acc[user.id] = user;
+                        return acc;
+                    }, {} as Record<string, any>);
+                }
+            }
+
+            // Combine the data
+            const combinedData = hospitalsData?.map(hospital => ({
+                ...hospital,
+                user: usersMap[hospital.user_id] || null
+            })) || [];
+
+            setHospitals(combinedData);
         } catch (error) {
             console.error("Fetch error:", error);
             toast.error("An error occurred while fetching data");
@@ -320,8 +347,8 @@ export function HospitalVerificationTable() {
                                 key={status}
                                 onClick={() => setStatusFilter(status)}
                                 className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors capitalize ${statusFilter === status
-                                        ? "bg-white/10 text-white border border-white/10"
-                                        : "text-gray-500 hover:text-gray-300"
+                                    ? "bg-white/10 text-white border border-white/10"
+                                    : "text-gray-500 hover:text-gray-300"
                                     }`}
                             >
                                 {status} ({statusCounts[status]})
@@ -543,10 +570,10 @@ export function HospitalVerificationTable() {
                         <div className="space-y-6 py-4">
                             {/* Status Banner */}
                             <div className={`p-4 rounded-xl border flex items-center gap-3 ${viewHospital.verification_status === "verified"
-                                    ? "bg-emerald-500/10 border-emerald-500/20"
-                                    : viewHospital.verification_status === "rejected"
-                                        ? "bg-red-500/10 border-red-500/20"
-                                        : "bg-yellow-500/10 border-yellow-500/20"
+                                ? "bg-emerald-500/10 border-emerald-500/20"
+                                : viewHospital.verification_status === "rejected"
+                                    ? "bg-red-500/10 border-red-500/20"
+                                    : "bg-yellow-500/10 border-yellow-500/20"
                                 }`}>
                                 {viewHospital.verification_status === "verified" ? (
                                     <CheckCircle className="w-5 h-5 text-emerald-500" />
@@ -557,10 +584,10 @@ export function HospitalVerificationTable() {
                                 )}
                                 <div>
                                     <p className={`font-bold text-sm ${viewHospital.verification_status === "verified"
-                                            ? "text-emerald-400"
-                                            : viewHospital.verification_status === "rejected"
-                                                ? "text-red-400"
-                                                : "text-yellow-400"
+                                        ? "text-emerald-400"
+                                        : viewHospital.verification_status === "rejected"
+                                            ? "text-red-400"
+                                            : "text-yellow-400"
                                         }`}>
                                         {viewHospital.verification_status === "verified"
                                             ? "Verified Hospital"
