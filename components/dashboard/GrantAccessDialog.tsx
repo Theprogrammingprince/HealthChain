@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/lib/supabaseClient";
 import { useAppStore } from "@/lib/store";
 import { toast } from "sonner";
 import {
     Loader2, Search, User, ShieldCheck, Plus, Building2,
-    BadgeCheck, MapPin, Phone, FileText, AlertTriangle
+    BadgeCheck, MapPin, FileText, AlertTriangle
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -78,7 +78,7 @@ export function GrantAccessDialog({ isOpen, onClose }: { isOpen: boolean; onClos
     const [searchQuery, setSearchQuery] = useState("");
     const [userResults, setUserResults] = useState<UserResult[]>([]);
     const [hospitalResults, setHospitalResults] = useState<HospitalResult[]>([]);
-    const [selectedEntity, setSelectedEntity] = useState<any>(null);
+    const [selectedEntity, setSelectedEntity] = useState<HospitalResult | UserResult | null>(null);
     const [entityType, setEntityType] = useState<'user' | 'hospital' | null>(null);
     const [permissionLevel, setPermissionLevel] = useState("view_records");
     const [isLoading, setIsLoading] = useState(false);
@@ -178,9 +178,10 @@ export function GrantAccessDialog({ isOpen, onClose }: { isOpen: boolean; onClos
             toast.success(`Access granted to ${entityName}`);
             await fetchUserProfile();
             resetAndClose();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            toast.error("Failed to grant access", { description: error.message });
+            const errMsg = error instanceof Error ? error.message : "Unknown error";
+            toast.error("Failed to grant access", { description: errMsg });
         } finally {
             setIsLoading(false);
         }
@@ -229,7 +230,7 @@ export function GrantAccessDialog({ isOpen, onClose }: { isOpen: boolean; onClos
 
                 <div className="flex-1 overflow-y-auto space-y-6 py-4">
                     {/* Search Type Tabs */}
-                    <Tabs value={searchType} onValueChange={(v) => { setSearchType(v as any); clearSelection(); setUserResults([]); setHospitalResults([]); }}>
+                    <Tabs value={searchType} onValueChange={(v) => { setSearchType(v as 'users' | 'hospitals'); clearSelection(); setUserResults([]); setHospitalResults([]); }}>
                         <TabsList className="bg-white/5 border border-white/10 p-1 rounded-xl w-full">
                             <TabsTrigger
                                 value="hospitals"
@@ -359,7 +360,7 @@ export function GrantAccessDialog({ isOpen, onClose }: { isOpen: boolean; onClos
                         ((searchType === 'hospitals' && hospitalResults.length === 0) ||
                             (searchType === 'users' && userResults.length === 0)) && (
                             <p className="text-center text-gray-500 text-sm italic py-6">
-                                No {searchType} found matching "{searchQuery}"
+                                No {searchType} found matching &quot;{searchQuery}&quot;
                             </p>
                         )}
 

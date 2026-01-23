@@ -1,39 +1,41 @@
 "use client";
 
-import { useAppStore } from "@/lib/store";
+import { useState, useMemo } from "react";
 import { Bell, CheckCircle2, AlertTriangle, Info, Clock, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 
 export default function NotificationsPage() {
-    // We'll mock some notifications purely for the UI demonstration
-    // In a real app, this would be in the store alongside activityLogs
-    const notifications = [
-        {
-            id: 1,
-            type: "alert",
-            title: "Emergency Access Attempt Blocked",
-            description: "An unauthorized attempt to access your records was detected and blocked by the Guardian protocol.",
-            timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 mins ago
-            read: false
-        },
-        {
-            id: 2,
-            type: "success",
-            title: "Results Verification Complete",
-            description: "Dr. Sarah Chen verified your 'Annual Blood Panel' results on-chain. Integity check passed.",
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-            read: false
-        },
-        {
-            id: 3,
-            type: "info",
-            title: "Wallet Connected",
-            description: "New session established from IP 192.168.1.1. If this wasn't you, disconnect immediately.",
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-            read: true
-        }
-    ];
+    // Use useMemo to compute notifications once on mount
+    const notifications = useMemo(() => {
+        const now = Date.now();
+        return [
+            {
+                id: 1,
+                type: "alert",
+                title: "Emergency Access Attempt Blocked",
+                description: "An unauthorized attempt to access your records was detected and blocked by the Guardian protocol.",
+                timestamp: new Date(now - 1000 * 60 * 30), // 30 mins ago
+                read: false
+            },
+            {
+                id: 2,
+                type: "success",
+                title: "Results Verification Complete",
+                description: "Dr. Sarah Chen verified your Annual Blood Panel results on-chain. Integrity check passed.",
+                timestamp: new Date(now - 1000 * 60 * 60 * 2), // 2 hours ago
+                read: false
+            },
+            {
+                id: 3,
+                type: "info",
+                title: "Wallet Connected",
+                description: "New session established from IP 192.168.1.1. If this was not you, disconnect immediately.",
+                timestamp: new Date(now - 1000 * 60 * 60 * 24), // 1 day ago
+                read: true
+            }
+        ];
+    }, []);
 
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-white p-6 md:p-12">
