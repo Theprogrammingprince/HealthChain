@@ -32,7 +32,8 @@ export interface AccessPermission {
   entityName: string;
   entityAddress: string;
   grantedDate: string;
-  level: 'Full' | 'Emergency Only';
+  level: 'view_summary' | 'view_records' | 'emergency_access' | 'full_access' | string;
+  entityType?: 'user' | 'hospital';
 }
 
 export type StaffRole = 'Doctor' | 'Nurse' | 'Admin';
@@ -237,7 +238,8 @@ export const useAppStore = create<AppState>()(
             entityName: p.entity_name,
             entityAddress: p.entity_address,
             grantedDate: new Date(p.granted_at).toISOString().split('T')[0],
-            level: p.level
+            level: p.level,
+            entityType: p.entity_type || 'user'
           })) || [],
           activityLogs: logsRes.data?.map(l => ({
             id: l.id,

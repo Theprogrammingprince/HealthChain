@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, UserPlus, Shield, User, Clock, Trash2, ArrowLeft, Activity } from "lucide-react";
+import { ShieldCheck, UserPlus, Shield, User, Clock, Trash2, ArrowLeft, Activity, Building2 } from "lucide-react";
 import { GrantAccessDialog } from "@/components/dashboard/GrantAccessDialog";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
@@ -108,51 +108,66 @@ export default function PermissionsPage() {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {accessPermissions.map((perm) => (
-                                    <div key={perm.id} className="group bg-white/5 border border-white/10 hover:border-[#00BFFF]/50 rounded-3xl p-6 transition-all duration-300 relative overflow-hidden">
-                                        <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => handleRevoke(perm.id, perm.entityName)}
-                                                className="h-8 w-8 hover:bg-red-500/20 hover:text-red-500 rounded-full"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
-                                        </div>
+                                {accessPermissions.map((perm: any) => {
+                                    const isHospital = perm.entityType === 'hospital';
+                                    const levelColors: Record<string, { border: string; text: string; bg: string }> = {
+                                        'view_summary': { border: 'border-gray-500/30', text: 'text-gray-400', bg: 'bg-gray-500/10' },
+                                        'view_records': { border: 'border-emerald-500/30', text: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+                                        'emergency_access': { border: 'border-amber-500/30', text: 'text-amber-400', bg: 'bg-amber-500/10' },
+                                        'full_access': { border: 'border-purple-500/30', text: 'text-purple-400', bg: 'bg-purple-500/10' },
+                                        'emergency_override': { border: 'border-amber-500/30', text: 'text-amber-400', bg: 'bg-amber-500/10' },
+                                        'admin': { border: 'border-purple-500/30', text: 'text-purple-400', bg: 'bg-purple-500/10' },
+                                    };
+                                    const colors = levelColors[perm.level] || levelColors['view_records'];
 
-                                        <div className="flex items-start justify-between mb-6">
-                                            <div className="p-3 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-2xl border border-white/5">
-                                                <User className="w-6 h-6 text-[#00BFFF]" />
-                                            </div>
-                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${perm.level === 'emergency_override' ? 'border-red-500/30 text-red-400 bg-red-500/10' :
-                                                    perm.level === 'admin' ? 'border-purple-500/30 text-purple-400 bg-purple-500/10' :
-                                                        'border-emerald-500/30 text-emerald-400 bg-emerald-500/10'
-                                                }`}>
-                                                {perm.level.replace('_', ' ')}
-                                            </span>
-                                        </div>
-
-                                        <div className="space-y-4">
-                                            <div>
-                                                <h3 className="font-bold text-lg leading-tight mb-1">{perm.entityName}</h3>
-                                                <p className="text-xs text-gray-500 font-mono truncate">{perm.entityAddress}</p>
+                                    return (
+                                        <div key={perm.id} className="group bg-white/5 border border-white/10 hover:border-[#00BFFF]/50 rounded-3xl p-6 transition-all duration-300 relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => handleRevoke(perm.id, perm.entityName)}
+                                                    className="h-8 w-8 hover:bg-red-500/20 hover:text-red-500 rounded-full"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
                                             </div>
 
-                                            <div className="flex items-center gap-2 text-xs text-gray-500 bg-white/5 p-3 rounded-xl">
-                                                <Clock className="w-3 h-3" />
-                                                <span>Granted: {perm.grantedDate}</span>
-                                            </div>
-
-                                            {perm.level === 'emergency_override' && (
-                                                <div className="flex items-center gap-2 text-[10px] text-red-400 font-bold uppercase tracking-wide">
-                                                    <ShieldCheck className="w-3 h-3" />
-                                                    Updates on Emergency
+                                            <div className="flex items-start justify-between mb-6">
+                                                <div className={`p-3 rounded-2xl border border-white/5 ${isHospital ? 'bg-gradient-to-br from-blue-500/20 to-cyan-500/20' : 'bg-gradient-to-br from-purple-500/20 to-blue-500/20'}`}>
+                                                    {isHospital ? <Building2 className="w-6 h-6 text-blue-400" /> : <User className="w-6 h-6 text-[#00BFFF]" />}
                                                 </div>
-                                            )}
+                                                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${colors.border} ${colors.text} ${colors.bg}`}>
+                                                    {perm.level.replace(/_/g, ' ')}
+                                                </span>
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <h3 className="font-bold text-lg leading-tight">{perm.entityName}</h3>
+                                                        {isHospital && (
+                                                            <span className="text-[9px] font-bold uppercase tracking-widest text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full">Hospital</span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-xs text-gray-500 font-mono truncate">{perm.entityAddress}</p>
+                                                </div>
+
+                                                <div className="flex items-center gap-2 text-xs text-gray-500 bg-white/5 p-3 rounded-xl">
+                                                    <Clock className="w-3 h-3" />
+                                                    <span>Granted: {perm.grantedDate}</span>
+                                                </div>
+
+                                                {(perm.level === 'emergency_access' || perm.level === 'emergency_override') && (
+                                                    <div className="flex items-center gap-2 text-[10px] text-amber-400 font-bold uppercase tracking-wide">
+                                                        <ShieldCheck className="w-3 h-3" />
+                                                        SOS Alert Recipient
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </motion.section>
@@ -163,17 +178,37 @@ export default function PermissionsPage() {
                             <div className="p-4 bg-[#00BFFF]/10 rounded-2xl hidden md:block">
                                 <ShieldCheck className="w-8 h-8 text-[#00BFFF]" />
                             </div>
-                            <div className="space-y-4">
-                                <h3 className="text-xl font-bold">How Access Works</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-gray-400">
-                                    <p>
-                                        <strong className="text-white block mb-1">View Records</strong>
-                                        Authorized users can basically view your health summary and records but cannot modify anything. Best for general practitioners or family.
-                                    </p>
-                                    <p>
-                                        <strong className="text-white block mb-1">Emergency Override</strong>
-                                        These users will be instantly notified if you trigger an SOS. They get special temporary access to critical data needed for rescue.
-                                    </p>
+                            <div className="space-y-6 flex-1">
+                                <h3 className="text-xl font-bold">Understanding Access Levels</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                                    <div className="p-4 bg-white/5 rounded-xl border border-gray-500/20">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="w-2 h-2 rounded-full bg-gray-400" />
+                                            <strong className="text-gray-300">View Summary Only</strong>
+                                        </div>
+                                        <p className="text-gray-500 text-xs">Basic health info, allergies, and blood type. Best for general inquiries or pharmacies.</p>
+                                    </div>
+                                    <div className="p-4 bg-white/5 rounded-xl border border-emerald-500/20">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                                            <strong className="text-emerald-300">View All Records</strong>
+                                        </div>
+                                        <p className="text-gray-500 text-xs">Full read access to all records, lab results, and prescriptions. For regular doctors and hospitals.</p>
+                                    </div>
+                                    <div className="p-4 bg-white/5 rounded-xl border border-amber-500/20">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="w-2 h-2 rounded-full bg-amber-400" />
+                                            <strong className="text-amber-300">Emergency Access</strong>
+                                        </div>
+                                        <p className="text-gray-500 text-xs">Instant SOS alerts and critical data access. For emergency contacts and first responders.</p>
+                                    </div>
+                                    <div className="p-4 bg-white/5 rounded-xl border border-purple-500/20">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="w-2 h-2 rounded-full bg-purple-400" />
+                                            <strong className="text-purple-300">Full Access (Guardian)</strong>
+                                        </div>
+                                        <p className="text-gray-500 text-xs">Complete control including adding records. For family members or primary physicians.</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
