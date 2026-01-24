@@ -81,10 +81,10 @@ export async function POST(request: NextRequest) {
                 devMode: true,
             });
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Email send error:", error);
         return NextResponse.json(
-            { error: "Failed to send email", details: error.message },
+            { error: "Failed to send email", details: (error as { message?: string }).message },
             { status: 500 }
         );
     }

@@ -103,9 +103,9 @@ export function DocumentUploadDialog() {
             await new Promise(r => setTimeout(r, 150));
         }
 
-        // Generate IDs inside async function (not during render)
+        // Generate IDs inside async function using timestamp
         const timestamp = new Date().getTime();
-        const randomNum = Math.floor(Math.random() * 1000);
+        const randomNum = timestamp % 10000; // Use modulo for variation
         const recordId = crypto.randomUUID ? crypto.randomUUID() : `${timestamp}-${randomNum}`;
         const ipfsHash = `Qm${recordId.replace(/-/g, '').substring(0, 13)}`;
 

@@ -138,8 +138,8 @@ export function sanitizeString(input: string | null | undefined): string | null 
 /**
  * Sanitize object recursively
  */
-export function sanitizeObject<T extends Record<string, any>>(obj: T): T {
-    const sanitized: any = {};
+export function sanitizeObject<T extends Record<string, unknown>>(obj: T): T {
+    const sanitized: Record<string, unknown> = {};
 
     for (const [key, value] of Object.entries(obj)) {
         if (typeof value === 'string') {
@@ -149,7 +149,7 @@ export function sanitizeObject<T extends Record<string, any>>(obj: T): T {
                 typeof item === 'string' ? sanitizeString(item) : item
             );
         } else if (value && typeof value === 'object') {
-            sanitized[key] = sanitizeObject(value);
+            sanitized[key] = sanitizeObject(value as Record<string, unknown>);
         } else {
             sanitized[key] = value;
         }
@@ -161,7 +161,7 @@ export function sanitizeObject<T extends Record<string, any>>(obj: T): T {
 /**
  * Validate and sanitize registration data
  */
-export function validateRegistrationData(data: any) {
+export function validateRegistrationData(data: Record<string, unknown>) {
     // First validate structure
     const validated = registrationSchema.parse(data);
 

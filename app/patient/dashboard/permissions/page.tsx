@@ -33,7 +33,7 @@ export default function PermissionsPage() {
 
             toast.success(`Access revoked for ${name}`);
             fetchUserProfile();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
             toast.error("Failed to revoke access");
         }
@@ -108,7 +108,7 @@ export default function PermissionsPage() {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {accessPermissions.map((perm: any) => {
+                                {accessPermissions.map((perm) => {
                                     const isHospital = perm.entityType === 'hospital';
                                     const levelColors: Record<string, { border: string; text: string; bg: string }> = {
                                         'view_summary': { border: 'border-gray-500/30', text: 'text-gray-400', bg: 'bg-gray-500/10' },

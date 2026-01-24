@@ -84,7 +84,7 @@ export function RoleSelectionModal({ open, onClose }: RoleSelectionModalProps) {
                         Select Your Role
                     </DialogTitle>
                     <DialogDescription className="text-center text-gray-400">
-                        Choose how you'll use HealthChain
+                        Choose how you&apos;ll use HealthChain
                     </DialogDescription>
                 </DialogHeader>
 

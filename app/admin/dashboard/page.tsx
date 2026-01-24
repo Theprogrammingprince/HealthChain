@@ -8,7 +8,6 @@ import {
     Globe2,
     Settings,
     Activity,
-    Lock,
     Users,
     ChevronRight,
     Search,

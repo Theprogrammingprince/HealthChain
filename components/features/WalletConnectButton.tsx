@@ -81,9 +81,10 @@ export function WalletConnectButton() {
                     router.push(targetPath);
                 });
 
-            } catch (error: any) {
+            } catch (error: unknown) {
                 console.error('Wallet auth error:', error);
-                toast.error('Auth issue', { description: error.message || 'Please try again' });
+                const errorMessage = error instanceof Error ? error.message : 'Please try again';
+                toast.error('Auth issue', { description: errorMessage });
                 registrationAttempted.current = false;
             } finally {
                 setIsRegistering(false);
@@ -93,6 +94,7 @@ export function WalletConnectButton() {
         if (isConnected && address) {
             handleWalletConnection();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isConnected, address, router, connectWallet, setUserRole]);
 
     return (

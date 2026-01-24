@@ -87,9 +87,9 @@ export default function AuthCallbackPage() {
                 const targetPath = resolveRoute(role, verificationStatus);
                 router.push(targetPath);
 
-            } catch (error: any) {
-                console.error('Callback error:', error)
-                toast.error('Auth failed', { description: error.message })
+            } catch (error: unknown) {
+                const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
+                toast.error('Auth failed', { description: errorMessage });
                 router.push('/auth')
             }
         }

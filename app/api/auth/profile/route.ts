@@ -27,12 +27,12 @@ export async function GET(request: NextRequest) {
             data: userProfile
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching user profile:', error);
         return NextResponse.json(
             {
                 error: 'Failed to fetch user profile',
-                details: error.message
+                details: (error as { message?: string }).message
             },
             { status: 500 }
         );
