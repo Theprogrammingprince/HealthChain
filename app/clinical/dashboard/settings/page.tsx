@@ -237,7 +237,7 @@ export default function HospitalSettingsPage() {
                                     <div>
                                         <CardTitle className="text-2xl text-white">Profile Information</CardTitle>
                                         <CardDescription className="text-gray-400">
-                                            Update your hospital's contact and location details
+                                            Update your hospital&apos;s contact and location details
                                         </CardDescription>
                                     </div>
                                 </div>

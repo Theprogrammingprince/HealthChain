@@ -149,7 +149,7 @@ export function GuardianDashboard() {
                                             </div>
                                             <div>
                                                 <p className="text-[10px] text-red-300/50 uppercase tracking-wider font-bold">Requesting Entity</p>
-                                                <p className="font-bold text-white text-lg md:text-xl">St. Mary's Trauma Center</p>
+                                                <p className="font-bold text-white text-lg md:text-xl">St. Mary&apos;s Trauma Center</p>
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <div className="px-2 py-0.5 rounded bg-red-500/20 text-red-400 text-[10px] font-bold border border-red-500/20">Accredited Level 1</div>
                                                     <div className="px-2 py-0.5 rounded bg-gray-800 text-gray-400 text-[10px] font-bold border border-white/5">ER Dept</div>
@@ -164,7 +164,7 @@ export function GuardianDashboard() {
                                             <div>
                                                 <p className="text-[10px] text-red-300/50 uppercase tracking-wider font-bold">Medical Context</p>
                                                 <p className="font-bold text-white text-base">Unconscious Admission</p>
-                                                <p className="text-xs text-gray-400 mt-1">Provider flagged request as "Life Threatening"</p>
+                                                <p className="text-xs text-gray-400 mt-1">Provider flagged request as &quot;Life Threatening&quot;</p>
                                             </div>
                                         </div>
 

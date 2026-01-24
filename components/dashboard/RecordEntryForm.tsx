@@ -87,8 +87,14 @@ export function RecordEntryForm() {
         setIsSubmitting(true);
         await new Promise(r => setTimeout(r, 2500)); // Simulating IPFS + Blockchain Tx
 
+        // Generate IDs in async function context
+        const timestamp = new Date().getTime();
+        const randomSuffix = `${Math.random().toString(36).substring(2, 11)}`;
+        const recordId = crypto && typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `${timestamp}-${randomSuffix}`;
+        const ipfsHash = `Qm${timestamp.toString(36)}${randomSuffix}`;
+
         const newRecord = {
-            id: Math.random().toString(36).substring(2, 11),
+            id: recordId,
             name: values.diagnosis,
             type: 'Clinical Note' as RecordType,
             date: new Date().toISOString().split('T')[0],
@@ -96,7 +102,7 @@ export function RecordEntryForm() {
             doctor: 'Dr. Gabriel (Current Staff)',
             notes: values.notes,
             diagnosis: values.diagnosis,
-            ipfsHash: "Qm" + Math.random().toString(36).substring(2, 15),
+            ipfsHash: ipfsHash,
             category: 'Diagnosis' as any
         };
 

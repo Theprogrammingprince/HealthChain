@@ -154,7 +154,7 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                     onSuccess?.();
                 }
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Auth error:", error);
             toast.error(mode === "signup" ? "Signup Failed" : "Login Failed", {
                 description: error.message,
@@ -171,6 +171,12 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                     <div className="w-20 h-20 bg-indigo-500/20 rounded-full flex items-center justify-center border border-indigo-500/20">
                         <Mail className="w-10 h-10 text-indigo-400" />
                     </div>
+                </div>
+                <div className="space-y-2">
+                    <h3 className="text-2xl font-black tracking-tighter uppercase">Check your email</h3>
+                    <p className="text-gray-500 text-sm font-medium">
+                        We&apos;ve sent a verification link to <span className="text-white">{form.getValues('email')}</span>.
+                    </p>
                 </div>
                 {role === 'Doctor' ? (
                     <>
@@ -195,6 +201,7 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                         </p>
                     </div>
                     <p className="text-xs text-gray-500 mt-2 ml-8">
+                        Once you click the link in your email, you&apos;ll be automatically routed to the {role} {role === 'Hospital' ? 'Verification' : 'Dashboard'}.
                         {role === 'Doctor'
                             ? "Your medical license and hospital affiliation are being verified by the hospital administration. You will receive access once approved."
                             : `Once you click the link in your email, you'll be automatically routed to the ${role} ${role === 'Hospital' ? 'Verification' : 'Dashboard'}.`
@@ -321,7 +328,7 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                                 </FormControl>
                                 <div className="space-y-1 leading-none">
                                     <FormLabel className="text-[11px] font-medium text-gray-400 leading-relaxed">
-                                        I agree to HealthChain's <span className="text-indigo-400 cursor-pointer">Privacy Policy</span> and <span className="text-indigo-400 cursor-pointer">Data Usage Terms</span>, including the storage of my encrypted health records on decentralized channels.
+                                        I agree to HealthChain&apos;s <span className="text-indigo-400 cursor-pointer">Privacy Policy</span> and <span className="text-indigo-400 cursor-pointer">Data Usage Terms</span>, including the storage of my encrypted health records on decentralized channels.
                                     </FormLabel>
                                     <FormMessage />
                                 </div>

@@ -388,7 +388,7 @@ export default function HospitalVerifyPage() {
                                     Your verification request has been submitted successfully. Our super admin team will review your application within <strong>24-48 hours</strong>.
                                 </p>
                                 <p className="text-xs text-yellow-300/60 mt-2">
-                                    You'll receive a notification once your status is updated.
+                                    You&apos;ll receive a notification once your status is updated.
                                 </p>
                             </div>
                         </motion.div>

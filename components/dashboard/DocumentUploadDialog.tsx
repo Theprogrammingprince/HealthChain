@@ -103,15 +103,21 @@ export function DocumentUploadDialog() {
             await new Promise(r => setTimeout(r, 150));
         }
 
+        // Generate IDs inside async function (not during render)
+        const timestamp = new Date().getTime();
+        const randomNum = Math.floor(Math.random() * 1000);
+        const recordId = crypto.randomUUID ? crypto.randomUUID() : `${timestamp}-${randomNum}`;
+        const ipfsHash = `Qm${recordId.replace(/-/g, '').substring(0, 13)}`;
+
         const newRecord = {
-            id: Math.random().toString(36).substring(2, 11),
+            id: recordId,
             name: values.name,
             type: values.type as RecordType,
             date: values.date,
             facility: values.facility,
             doctor: values.doctor,
             notes: values.notes,
-            ipfsHash: "Qm" + Math.random().toString(36).substring(2, 15),
+            ipfsHash: ipfsHash,
             category: (values.type === 'Lab Result' ? 'Laboratory' : values.type === 'Imaging' ? 'Radiology' : values.type === 'Prescription' ? 'Pharmacy' : 'General') as 'Laboratory' | 'Pharmacy' | 'Radiology' | 'General'
         };
 
@@ -127,7 +133,7 @@ export function DocumentUploadDialog() {
             setFiles([]);
             form.reset();
             setOpen(false);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Upload failed:", error);
             toast.error("Process Failed", {
                 description: "Failed to secure document in vault. Please try again.",

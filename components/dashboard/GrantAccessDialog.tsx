@@ -5,14 +5,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/lib/supabaseClient";
 import { useAppStore } from "@/lib/store";
 import { toast } from "sonner";
 import {
     Loader2, Search, User, ShieldCheck, Plus, Building2,
-    BadgeCheck, MapPin, Phone, FileText, AlertTriangle
+    BadgeCheck, MapPin, FileText, AlertTriangle
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -78,7 +77,7 @@ export function GrantAccessDialog({ isOpen, onClose }: { isOpen: boolean; onClos
     const [searchQuery, setSearchQuery] = useState("");
     const [userResults, setUserResults] = useState<UserResult[]>([]);
     const [hospitalResults, setHospitalResults] = useState<HospitalResult[]>([]);
-    const [selectedEntity, setSelectedEntity] = useState<any>(null);
+    const [selectedEntity, setSelectedEntity] = useState<HospitalResult | UserResult | null>(null);
     const [entityType, setEntityType] = useState<'user' | 'hospital' | null>(null);
     const [permissionLevel, setPermissionLevel] = useState("view_records");
     const [isLoading, setIsLoading] = useState(false);
@@ -141,10 +140,10 @@ export function GrantAccessDialog({ isOpen, onClose }: { isOpen: boolean; onClos
         setIsLoading(true);
 
         try {
-            const granteeId = entityType === 'hospital' ? selectedEntity.user_id : selectedEntity.id;
+            const granteeId = entityType === 'hospital' ? (selectedEntity as HospitalResult).user_id : (selectedEntity as UserResult).id;
             const entityName = entityType === 'hospital'
-                ? selectedEntity.hospital_name
-                : (selectedEntity.full_name || selectedEntity.email);
+                ? (selectedEntity as HospitalResult).hospital_name
+                : ((selectedEntity as UserResult).full_name || (selectedEntity as UserResult).email);
 
             // 1. Grant Permission
             const { error: grantError } = await supabase
@@ -178,9 +177,10 @@ export function GrantAccessDialog({ isOpen, onClose }: { isOpen: boolean; onClos
             toast.success(`Access granted to ${entityName}`);
             await fetchUserProfile();
             resetAndClose();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            toast.error("Failed to grant access", { description: error.message });
+            const errMsg = error instanceof Error ? error.message : "Unknown error";
+            toast.error("Failed to grant access", { description: errMsg });
         } finally {
             setIsLoading(false);
         }
@@ -229,7 +229,7 @@ export function GrantAccessDialog({ isOpen, onClose }: { isOpen: boolean; onClos
 
                 <div className="flex-1 overflow-y-auto space-y-6 py-4">
                     {/* Search Type Tabs */}
-                    <Tabs value={searchType} onValueChange={(v) => { setSearchType(v as any); clearSelection(); setUserResults([]); setHospitalResults([]); }}>
+                    <Tabs value={searchType} onValueChange={(v) => { setSearchType(v as 'users' | 'hospitals'); clearSelection(); setUserResults([]); setHospitalResults([]); }}>
                         <TabsList className="bg-white/5 border border-white/10 p-1 rounded-xl w-full">
                             <TabsTrigger
                                 value="hospitals"
@@ -275,20 +275,20 @@ export function GrantAccessDialog({ isOpen, onClose }: { isOpen: boolean; onClos
                                     </div>
                                     <div>
                                         <p className="font-bold text-lg">
-                                            {entityType === 'hospital' ? selectedEntity.hospital_name : (selectedEntity.full_name || 'Unknown User')}
+                                            {entityType === 'hospital' ? (selectedEntity as HospitalResult).hospital_name : ((selectedEntity as UserResult).full_name || 'Unknown User')}
                                         </p>
                                         {entityType === 'hospital' ? (
                                             <div className="space-y-1 mt-2">
-                                                {getVerificationBadge(selectedEntity.verification_status)}
+                                                {getVerificationBadge((selectedEntity as HospitalResult).verification_status)}
                                                 <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
-                                                    <FileText className="w-3 h-3" /> License: {selectedEntity.license_number}
+                                                    <FileText className="w-3 h-3" /> License: {(selectedEntity as HospitalResult).license_number}
                                                 </p>
                                                 <p className="text-xs text-gray-400 flex items-center gap-1">
-                                                    <MapPin className="w-3 h-3" /> {selectedEntity.city}, {selectedEntity.state}, {selectedEntity.country}
+                                                    <MapPin className="w-3 h-3" /> {(selectedEntity as HospitalResult).city}, {(selectedEntity as HospitalResult).state}, {(selectedEntity as HospitalResult).country}
                                                 </p>
                                             </div>
                                         ) : (
-                                            <p className="text-xs text-gray-400">{selectedEntity.email}</p>
+                                            <p className="text-xs text-gray-400">{(selectedEntity as UserResult).email}</p>
                                         )}
                                     </div>
                                 </div>
@@ -359,7 +359,7 @@ export function GrantAccessDialog({ isOpen, onClose }: { isOpen: boolean; onClos
                         ((searchType === 'hospitals' && hospitalResults.length === 0) ||
                             (searchType === 'users' && userResults.length === 0)) && (
                             <p className="text-center text-gray-500 text-sm italic py-6">
-                                No {searchType} found matching "{searchQuery}"
+                                No {searchType} found matching &quot;{searchQuery}&quot;
                             </p>
                         )}
 

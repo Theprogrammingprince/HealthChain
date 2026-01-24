@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-    Bell, ArrowLeft, Check, Building2, User, Shield,
-    Clock, Trash2, CheckCheck, RefreshCw
+    Bell, ArrowLeft, Building2, User, Shield,
+    Trash2, CheckCheck, RefreshCw
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -225,7 +225,7 @@ export default function AdminNotificationsPage() {
                             </div>
                             <h3 className="text-xl font-bold text-gray-300 mb-2">No Notifications</h3>
                             <p className="text-gray-500 max-w-md">
-                                You're all caught up! System notifications and alerts will appear here.
+                                You&apos;re all caught up! System notifications and alerts will appear here.
                             </p>
                         </motion.div>
                     ) : (
@@ -241,15 +241,15 @@ export default function AdminNotificationsPage() {
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: index * 0.05 }}
                                     className={`group p-5 rounded-2xl border transition-all cursor-pointer ${notif.is_read
-                                            ? 'bg-white/[0.02] border-white/5 hover:bg-white/5'
-                                            : 'bg-blue-600/5 border-blue-500/20 hover:bg-blue-600/10'
+                                        ? 'bg-white/[0.02] border-white/5 hover:bg-white/5'
+                                        : 'bg-blue-600/5 border-blue-500/20 hover:bg-blue-600/10'
                                         }`}
                                     onClick={() => !notif.is_read && markAsRead(notif.id)}
                                 >
                                     <div className="flex items-start gap-4">
                                         <div className={`p-2.5 rounded-xl border ${notif.is_read
-                                                ? 'bg-white/5 border-white/10'
-                                                : 'bg-blue-500/10 border-blue-500/20'
+                                            ? 'bg-white/5 border-white/10'
+                                            : 'bg-blue-500/10 border-blue-500/20'
                                             }`}>
                                             {getIcon(notif.type)}
                                         </div>

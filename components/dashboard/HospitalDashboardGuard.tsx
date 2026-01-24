@@ -146,7 +146,7 @@ export function HospitalDashboardGuard({
                             <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-lg p-4">
                                 <p className="text-sm text-yellow-200/80">
                                     Our admin team is reviewing your application. This typically takes 24-48 hours.
-                                    You'll receive an email notification once your account is verified.
+                                    You&apos;ll receive an email notification once your account is verified.
                                 </p>
                             </div>
                         )}
