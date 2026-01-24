@@ -26,6 +26,7 @@ import { ActivityLogTable } from "@/components/dashboard/ActivityLogTable";
 import { RecordCard } from "@/components/dashboard/RecordCard";
 import { PassportPhotoUpload } from "@/components/dashboard/PassportPhotoUpload";
 import { ProfileSetupDialog } from "@/components/dashboard/ProfileSetupDialog";
+import { PendingRecordsList } from "@/components/dashboard/PendingRecordsList";
 
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -232,6 +233,11 @@ export default function DashboardPage() {
 
                         {/* Left Content (8 cols) */}
                         <div className="lg:col-span-8 space-y-12">
+
+                            {/* Pending Approvals Section */}
+                            <motion.section variants={itemVariants}>
+                                <PendingRecordsList />
+                            </motion.section>
 
                             {/* Document Manager */}
                             <motion.section variants={itemVariants} className="space-y-6">

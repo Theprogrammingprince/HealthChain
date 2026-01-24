@@ -23,6 +23,7 @@ import { RecordEntryForm } from "@/components/dashboard/RecordEntryForm";
 import { StaffManagementTable } from "@/components/dashboard/StaffManagementTable";
 import { VitalsTimeline } from "@/components/dashboard/VitalsTimeline";
 import { ActivityLogTable } from "@/components/dashboard/ActivityLogTable";
+import { DoctorSubmissionTable } from "@/components/dashboard/DoctorSubmissionTable";
 import { AccessDeniedScreen } from "@/components/dashboard/AccessDeniedScreen";
 import { HospitalDashboardGuard } from "@/components/dashboard/HospitalDashboardGuard";
 import { VerificationStatusBanner } from "@/components/dashboard/VerificationStatusBanner";
@@ -244,6 +245,11 @@ export default function ClinicalDashboardPage() {
                                             Staff Registry
                                         </TabsTrigger>
                                     )}
+                                    {currentStaff?.role === 'Admin' && (
+                                        <TabsTrigger value="submissions" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white rounded-xl transition-all font-black px-10 py-3 uppercase text-xs tracking-widest">
+                                            Doctor Submissions
+                                        </TabsTrigger>
+                                    )}
                                 </TabsList>
 
                                 <TabsContent value="patients" className="space-y-10">
@@ -326,6 +332,12 @@ export default function ClinicalDashboardPage() {
                                             </motion.section>
                                         </div>
                                     </div>
+                                </TabsContent>
+
+                                <TabsContent value="submissions" className="space-y-10">
+                                    <motion.section variants={itemVariants}>
+                                        <DoctorSubmissionTable />
+                                    </motion.section>
                                 </TabsContent>
 
                                 <TabsContent value="staff" className="space-y-10">
