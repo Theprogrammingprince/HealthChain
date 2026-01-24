@@ -250,6 +250,23 @@ export async function getHospitalProfile(userId: string) {
 }
 
 /**
+ * Get all hospitals (for dropdowns)
+ */
+export async function getAllHospitals() {
+    const { data, error } = await supabase
+        .from('hospital_profiles')
+        .select('id, hospital_name')
+        .order('hospital_name', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching all hospitals:', error);
+        throw error;
+    }
+
+    return data;
+}
+
+/**
  * Update hospital profile
  */
 export async function updateHospitalProfile(userId: string, updates: HospitalProfileUpdate) {
