@@ -252,22 +252,42 @@ export default function HospitalVerifyPage() {
             setUploadProgress(0);
 
             // STEP 1: Ensure user exists in the users table first
-            // This handles the case where wallet registration may have failed earlier
-            const { data: existingUser, error: userCheckError } = await supabase
+            // This handles the case where registration may have failed earlier
+
+            // First check by ID
+            const { data: existingUserById, error: userByIdError } = await supabase
                 .from("users")
-                .select("id")
+                .select("id, email")
                 .eq("id", userId)
                 .single();
 
-            if (userCheckError && userCheckError.code === 'PGRST116') {
-                // User doesn't exist - create them first
+            if (userByIdError && userByIdError.code === 'PGRST116') {
+                // ID not found, check if email exists with a DIFFERENT ID
+                const userEmail = supabaseSession?.user?.email;
+                if (userEmail) {
+                    const { data: existingUserByEmail, error: emailError } = await supabase
+                        .from("users")
+                        .select("id")
+                        .eq("email", userEmail)
+                        .single();
+
+                    if (existingUserByEmail) {
+                        toast.error("This email is already associated with another account.", {
+                            description: "Please use a different email or contact support."
+                        });
+                        setIsSubmitting(false);
+                        return;
+                    }
+                }
+
+                // Neither ID nor Email exists, safe to create
                 console.log("Creating user record for:", userId);
                 const { error: createUserError } = await supabase
                     .from("users")
                     .insert({
                         id: userId,
                         wallet_address: walletAddress || null,
-                        email: supabaseSession?.user?.email || null,
+                        email: userEmail || null,
                         role: "hospital",
                         auth_provider: walletAddress ? "wallet" : "google",
                         full_name: supabaseSession?.user?.user_metadata?.full_name || data.hospitalName,
@@ -277,11 +297,22 @@ export default function HospitalVerifyPage() {
 
                 if (createUserError) {
                     console.error("Failed to create user:", createUserError);
-                    toast.error("Failed to create user profile. Please try again.");
+                    if (createUserError.code === '23505') {
+                        toast.error("Account conflict detected.", {
+                            description: "A record with this email or ID already exists."
+                        });
+                    } else {
+                        toast.error("Failed to create user profile. Please try again.");
+                    }
                     setIsSubmitting(false);
                     return;
                 }
                 console.log("User created successfully");
+            } else if (userByIdError) {
+                console.error("Error checking user by ID:", userByIdError);
+                toast.error("An error occurred. Please try again.");
+                setIsSubmitting(false);
+                return;
             }
 
             // STEP 2: Upload certificate

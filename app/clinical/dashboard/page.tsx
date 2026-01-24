@@ -12,10 +12,12 @@ import {
     Settings,
     ArrowRight,
     Lock,
-    Plus
+    Plus,
+    LifeBuoy
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { PatientSearchBar } from "@/components/dashboard/PatientSearchBar";
 import { BreakGlassDialog } from "@/components/dashboard/BreakGlassDialog";
@@ -192,6 +194,13 @@ export default function ClinicalDashboardPage() {
                                         >
                                             <Settings className="w-4 h-4 mr-2" /> Hospital Settings
                                         </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            className="focus:bg-white/5 cursor-pointer rounded-xl p-3"
+                                            onClick={() => router.push('/support')}
+                                        >
+                                            <LifeBuoy className="w-4 h-4 mr-2" /> Protocol Support
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator className="bg-white/10" />
                                         <DropdownMenuItem className="focus:bg-red-500/10 cursor-pointer rounded-xl p-3 text-red-500" onClick={handleLogout}>
                                             <LogOut className="w-4 h-4 mr-2" /> End Shift
                                         </DropdownMenuItem>
@@ -360,7 +369,7 @@ export default function ClinicalDashboardPage() {
                                 FERPA/HIPAA Compliant Node Interaction • Cryptographic Session: {walletAddress?.slice(0, 16)}... • Polygon Mainnet Layer
                             </p>
                             <div className="flex items-center gap-6">
-                                <button className="text-[10px] font-black text-gray-600 hover:text-indigo-400 uppercase tracking-widest transition-colors">Clinical Support</button>
+                                <Link href="/support" className="text-[10px] font-black text-gray-600 hover:text-indigo-400 uppercase tracking-widest transition-colors">Support Center</Link>
                                 <button className="text-[10px] font-black text-gray-600 hover:text-indigo-400 uppercase tracking-widest transition-colors">Smart Contract Audit</button>
                             </div>
                         </div>

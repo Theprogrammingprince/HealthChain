@@ -14,7 +14,8 @@ import {
     ClipboardCheck,
     Loader2,
     Search,
-    Filter
+    Filter,
+    LifeBuoy
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
@@ -163,6 +164,12 @@ export default function DoctorDashboard() {
                                     className="focus:bg-white/5 cursor-pointer rounded-xl p-3"
                                 >
                                     <Settings className="w-4 h-4 mr-2" /> Profile Settings
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={() => router.push('/support')}
+                                    className="focus:bg-white/5 cursor-pointer rounded-xl p-3"
+                                >
+                                    <LifeBuoy className="w-4 h-4 mr-2" /> Protocol Support
                                 </DropdownMenuItem>
                                 <DropdownMenuItem className="focus:bg-red-500/10 cursor-pointer rounded-xl p-3 text-red-500" onClick={handleLogout}>
                                     <LogOut className="w-4 h-4 mr-2" /> End Session

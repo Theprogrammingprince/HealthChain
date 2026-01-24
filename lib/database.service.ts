@@ -21,14 +21,24 @@ import type {
 /**
  * Create a new user profile in the database
  */
-export async function createUserProfile(data: UserProfileInsert) {
-    const { data: profile, error } = await supabase
+export async function createUserProfile(data: UserProfileInsert, client = supabase) {
+    const { data: profile, error } = await client
         .from('users')
         .insert([data])
         .select()
         .single();
 
     if (error) {
+        // If user already exists, return the existing user instead of failing
+        if (error.code === '23505') {
+            const { data: existingUser } = await client
+                .from('users')
+                .select('*')
+                .eq('id', data.id!)
+                .single();
+
+            if (existingUser) return existingUser as UserProfile;
+        }
         console.error('Error creating user profile:', error);
         throw error;
     }
@@ -66,8 +76,8 @@ export async function getUserProfile(userId: string) {
 /**
  * Get user profile by wallet address
  */
-export async function getUserByWalletAddress(walletAddress: string) {
-    const { data, error } = await supabase
+export async function getUserByWalletAddress(walletAddress: string, client = supabase) {
+    const { data, error } = await client
         .from('users')
         .select('*')
         .eq('wallet_address', walletAddress)
@@ -87,8 +97,8 @@ export async function getUserByWalletAddress(walletAddress: string) {
 /**
  * Get user profile by email
  */
-export async function getUserByEmail(email: string) {
-    const { data, error } = await supabase
+export async function getUserByEmail(email: string, client = supabase) {
+    const { data, error } = await client
         .from('users')
         .select('*')
         .eq('email', email)
@@ -147,14 +157,22 @@ export async function updateLastSignIn(userId: string) {
 /**
  * Create a new patient profile
  */
-export async function createPatientProfile(data: PatientProfileInsert) {
-    const { data: profile, error } = await supabase
+export async function createPatientProfile(data: PatientProfileInsert, client = supabase) {
+    const { data: profile, error } = await client
         .from('patient_profiles')
         .insert([data])
         .select()
         .single();
 
     if (error) {
+        if (error.code === '23505') {
+            const { data: existing } = await client
+                .from('patient_profiles')
+                .select('*')
+                .eq('user_id', data.user_id!)
+                .single();
+            if (existing) return existing as PatientProfile;
+        }
         console.error('Error creating patient profile:', error);
         throw error;
     }
@@ -210,8 +228,8 @@ export async function updatePatientProfile(userId: string, updates: PatientProfi
 /**
  * Create a new hospital profile
  */
-export async function createHospitalProfile(data: HospitalProfileInsert) {
-    const { data: profile, error } = await supabase
+export async function createHospitalProfile(data: HospitalProfileInsert, client = supabase) {
+    const { data: profile, error } = await client
         .from('hospital_profiles')
         .insert([{
             ...data,
@@ -221,6 +239,14 @@ export async function createHospitalProfile(data: HospitalProfileInsert) {
         .single();
 
     if (error) {
+        if (error.code === '23505') {
+            const { data: existing } = await client
+                .from('hospital_profiles')
+                .select('*')
+                .eq('user_id', data.user_id!)
+                .single();
+            if (existing) return existing as HospitalProfile;
+        }
         console.error('Error creating hospital profile:', error);
         throw error;
     }
@@ -293,8 +319,8 @@ export async function updateHospitalProfile(userId: string, updates: HospitalPro
 /**
  * Create a new doctor profile
  */
-export async function createDoctorProfile(data: DoctorProfileInsert) {
-    const { data: profile, error } = await supabase
+export async function createDoctorProfile(data: DoctorProfileInsert, client = supabase) {
+    const { data: profile, error } = await client
         .from('doctor_profiles')
         .insert([{
             ...data,
@@ -304,6 +330,14 @@ export async function createDoctorProfile(data: DoctorProfileInsert) {
         .single();
 
     if (error) {
+        if (error.code === '23505') {
+            const { data: existing } = await client
+                .from('doctor_profiles')
+                .select('*')
+                .eq('user_id', data.user_id!)
+                .single();
+            if (existing) return existing as DoctorProfile;
+        }
         console.error('Error creating doctor profile:', error);
         throw error;
     }
@@ -423,23 +457,29 @@ export async function getCompleteUserProfile(userId: string) {
  */
 export async function createCompleteUserProfile(
     userProfile: UserProfileInsert,
-    roleProfile: PatientProfileInsert | HospitalProfileInsert | DoctorProfileInsert
+    roleProfile: PatientProfileInsert | HospitalProfileInsert | DoctorProfileInsert,
+    client = supabase
 ) {
-    // Create user profile first
-    const user = await createUserProfile(userProfile);
+    try {
+        // Create user profile first
+        const user = await createUserProfile(userProfile, client);
 
-    // Create role-specific profile
-    let profile = null;
-    if (user.role === 'patient') {
-        profile = await createPatientProfile(roleProfile as PatientProfileInsert);
-    } else if (user.role === 'hospital') {
-        profile = await createHospitalProfile(roleProfile as HospitalProfileInsert);
-    } else if (user.role === 'doctor') {
-        profile = await createDoctorProfile(roleProfile as DoctorProfileInsert);
+        // Create role-specific profile
+        let profile = null;
+        if (user.role === 'patient') {
+            profile = await createPatientProfile(roleProfile as PatientProfileInsert, client);
+        } else if (user.role === 'hospital') {
+            profile = await createHospitalProfile(roleProfile as HospitalProfileInsert, client);
+        } else if (user.role === 'doctor') {
+            profile = await createDoctorProfile(roleProfile as DoctorProfileInsert, client);
+        }
+
+        return {
+            user,
+            profile
+        };
+    } catch (error) {
+        console.error('Error in createCompleteUserProfile:', error);
+        throw error;
     }
-
-    return {
-        user,
-        profile
-    };
 }
