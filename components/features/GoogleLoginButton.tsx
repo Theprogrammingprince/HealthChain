@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 
 import { toast } from "sonner";
 
-export function GoogleLoginButton({ role = 'Patient' }: { role?: 'Patient' | 'Hospital' }) {
+export function GoogleLoginButton({ role = 'Patient' }: { role?: 'Patient' | 'Hospital' | 'Doctor' }) {
     const [isConnecting, setIsConnecting] = useState(false);
 
     const handleLogin = async () => {

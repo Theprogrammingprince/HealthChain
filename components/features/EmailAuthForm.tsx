@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { motion } from "framer-motion";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/lib/supabaseClient";
@@ -15,7 +16,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
-import { Loader2, Mail, Lock, CheckCircle2, ArrowRight } from "lucide-react";
+import { Loader2, Mail, Lock, CheckCircle2, ArrowRight, Stethoscope, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
@@ -26,14 +27,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 const authSchema = z.object({
     email: z.string().email("Invalid email address"),
     password: z.string().min(6, "Password must be at least 6 characters"),
-    consent: z.boolean().optional().default(false),
+    consent: z.boolean(),
+    hospitalAffiliation: z.string().optional(),
+    medicalLicense: z.string().optional(),
 });
 
 type AuthFormData = z.infer<typeof authSchema>;
 
 interface EmailAuthFormProps {
     mode: "login" | "signup";
-    role?: "Patient" | "Hospital";
+    role?: "Patient" | "Hospital" | "Doctor";
     onSuccess?: () => void;
 }
 
@@ -49,6 +52,8 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
             email: "",
             password: "",
             consent: false,
+            hospitalAffiliation: "",
+            medicalLicense: "",
         },
     });
 
@@ -56,6 +61,13 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
         if (mode === "signup" && !data.consent) {
             toast.error("You must agree to the privacy policy to continue.");
             return;
+        }
+
+        if (mode === "signup" && role === "Doctor") {
+            if (!data.hospitalAffiliation || !data.medicalLicense) {
+                toast.error("Professional credentials are required.");
+                return;
+            }
         }
         setIsLoading(true);
         try {
@@ -105,6 +117,11 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                     } else {
                         console.log("No session found after signup. Showing success screen.");
                         setShowSuccess(true);
+                    }
+
+                    if (role === 'Doctor') {
+                        setShowSuccess(true);
+                        return;
                     }
 
                     onSuccess?.();
@@ -161,15 +178,34 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                         We&apos;ve sent a verification link to <span className="text-white">{form.getValues('email')}</span>.
                     </p>
                 </div>
+                {role === 'Doctor' ? (
+                    <>
+                        <h3 className="text-2xl font-black tracking-tighter uppercase">Application Received</h3>
+                        <p className="text-gray-500 text-sm font-medium">
+                            Your professional application is <span className="text-emerald-400">Under Review</span>.
+                        </p>
+                    </>
+                ) : (
+                    <>
+                        <h3 className="text-2xl font-black tracking-tighter uppercase">Check your email</h3>
+                        <p className="text-gray-500 text-sm font-medium">
+                            We've sent a verification link to <span className="text-white">{form.getValues('email')}</span>.
+                        </p>
+                    </>
+                )}
                 <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-left">
                     <div className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-indigo-400 mt-0.5" />
                         <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                            Protocol Step: Verify Identity
+                            {role === 'Doctor' ? 'Credential Verification in Progress' : 'Protocol Step: Verify Identity'}
                         </p>
                     </div>
                     <p className="text-xs text-gray-500 mt-2 ml-8">
                         Once you click the link in your email, you&apos;ll be automatically routed to the {role} {role === 'Hospital' ? 'Verification' : 'Dashboard'}.
+                        {role === 'Doctor'
+                            ? "Your medical license and hospital affiliation are being verified by the hospital administration. You will receive access once approved."
+                            : `Once you click the link in your email, you'll be automatically routed to the ${role} ${role === 'Hospital' ? 'Verification' : 'Dashboard'}.`
+                        }
                     </p>
                 </div>
                 <Button
@@ -228,6 +264,55 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                         </FormItem>
                     )}
                 />
+
+                {mode === "signup" && role === "Doctor" && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        className="space-y-4 pt-2"
+                    >
+                        <FormField
+                            control={form.control}
+                            name="hospitalAffiliation"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Hospital Affiliation</FormLabel>
+                                    <FormControl>
+                                        <div className="relative">
+                                            <Stethoscope className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                                            <Input
+                                                placeholder="Enter Hospital Name"
+                                                className="bg-white/5 border-white/10 pl-10 focus:border-indigo-500"
+                                                {...field}
+                                            />
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="medicalLicense"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Medical License Number</FormLabel>
+                                    <FormControl>
+                                        <div className="relative">
+                                            <ShieldCheck className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                                            <Input
+                                                placeholder="License ID (e.g. MED-123)"
+                                                className="bg-white/5 border-white/10 pl-10 focus:border-indigo-500"
+                                                {...field}
+                                            />
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </motion.div>
+                )}
 
                 {mode === "signup" && (
                     <FormField
