@@ -91,10 +91,10 @@ interface AppState {
   userRole: 'Patient' | 'Hospital' | 'Admin' | null;
   supabaseSession: Session | null;
   supabaseUser: User | null;
-  userProfile: any | null; // Data from your public.users table
+  userProfile: Record<string, unknown> | null; // Data from your public.users table
 
   setSession: (session: Session | null) => void;
-  setUserProfile: (profile: any) => void;
+  setUserProfile: (profile: Record<string, unknown> | null) => void;
   fetchUserProfile: () => Promise<void>;
   checkAuthorization: (status: boolean) => void;
   setUserRole: (role: 'Patient' | 'Hospital' | 'Admin' | null) => void;

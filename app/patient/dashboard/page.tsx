@@ -6,27 +6,16 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
-    HeartPulse,
-    Activity,
-    Droplet,
-    Scale,
-    Clock,
-    TrendingUp,
-    FlaskConical,
     ShieldCheck,
     Lock,
-    ChevronRight,
     Plus,
     ArrowRight,
     LogOut,
     Bell,
     Settings,
-    LayoutDashboard,
     FileText,
     User,
-    History,
-    ShieldAlert,
-    Dna
+    ShieldAlert
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
@@ -38,7 +27,7 @@ import { RecordCard } from "@/components/dashboard/RecordCard";
 import { PassportPhotoUpload } from "@/components/dashboard/PassportPhotoUpload";
 import { ProfileSetupDialog } from "@/components/dashboard/ProfileSetupDialog";
 
-import { Button } from "@/components/ui/button";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -50,9 +39,9 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
 
-import { RequireAuth } from "@/components/features/RequireAuth";
+
+
 
 export default function DashboardPage() {
     const [isLoading, setIsLoading] = useState(true);
@@ -66,7 +55,7 @@ export default function DashboardPage() {
         fetchUserProfile,
         supabaseUser
     } = useAppStore();
-    const [activeTab, setActiveTab] = useState("overview");
+
 
     useEffect(() => {
         const initData = async () => {
@@ -140,7 +129,7 @@ export default function DashboardPage() {
                 description: `${guardians.length} guardians have been alerted.`
             });
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
             toast.error("Failed to broadcast SOS", { id: 'sos' });
         }

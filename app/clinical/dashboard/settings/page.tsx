@@ -88,6 +88,7 @@ export default function HospitalSettingsPage() {
 
     useEffect(() => {
         loadHospitalProfile();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [supabaseSession, walletAddress]);
 
     const loadHospitalProfile = async () => {

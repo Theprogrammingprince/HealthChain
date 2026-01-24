@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { motion, AnimatePresence } from "framer-motion";
+
 import {
     FileEdit,
     Stethoscope,
@@ -13,7 +13,6 @@ import {
     ShieldCheck,
     Loader2,
     CheckCircle2,
-    FilePlus,
     History,
     UserCheck
 } from "lucide-react";
@@ -29,13 +28,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { useAppStore, RecordType } from "@/lib/store";
@@ -87,9 +80,9 @@ export function RecordEntryForm() {
         setIsSubmitting(true);
         await new Promise(r => setTimeout(r, 2500)); // Simulating IPFS + Blockchain Tx
 
-        // Generate IDs in async function context
+        // Generate IDs in async function context using timestamp-based approach
         const timestamp = new Date().getTime();
-        const randomSuffix = `${Math.random().toString(36).substring(2, 11)}`;
+        const randomSuffix = timestamp.toString(36).substring(2, 11);
         const recordId = crypto && typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `${timestamp}-${randomSuffix}`;
         const ipfsHash = `Qm${timestamp.toString(36)}${randomSuffix}`;
 
@@ -103,7 +96,7 @@ export function RecordEntryForm() {
             notes: values.notes,
             diagnosis: values.diagnosis,
             ipfsHash: ipfsHash,
-            category: 'Diagnosis' as any
+            category: 'Diagnosis' as 'Laboratory' | 'Pharmacy' | 'Radiology' | 'General'
         };
 
         addRecord(newRecord);

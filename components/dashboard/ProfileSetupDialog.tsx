@@ -189,10 +189,11 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
 
             await fetchUserProfile(); // Refresh store
             onClose();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Profile update caught error:", error);
-            const errorMessage = error?.message || (typeof error === 'string' ? error : "Database connection failed");
-            const errorDetails = error?.details || "No additional details provided by server.";
+            const err = error as { message?: string; details?: string };
+            const errorMessage = err.message || (typeof error === 'string' ? error : "Database connection failed");
+            const errorDetails = err.details || "No additional details provided by server.";
 
             toast.error("Update Failed", {
                 description: `${errorMessage}. ${errorDetails}`,

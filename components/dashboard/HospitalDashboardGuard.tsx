@@ -33,6 +33,7 @@ export function HospitalDashboardGuard({
 
     useEffect(() => {
         checkVerificationStatus();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [supabaseSession, walletAddress]);
 
     const checkVerificationStatus = async () => {

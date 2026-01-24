@@ -22,11 +22,11 @@ export async function POST(request: NextRequest) {
         let validatedData;
         try {
             validatedData = validateRegistrationData(body);
-        } catch (validationError: any) {
+        } catch (validationError: unknown) {
             return NextResponse.json(
                 {
                     error: 'Invalid input data',
-                    details: validationError.errors || validationError.message
+                    details: (validationError as { errors?: unknown; message?: string }).errors || (validationError as { errors?: unknown; message?: string }).message
                 },
                 { status: 400 }
             );
@@ -160,17 +160,18 @@ export async function POST(request: NextRequest) {
             { status: 201 }
         );
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Registration error:', error);
+        const err = error as { message?: string; code?: string; details?: string; hint?: string; name?: string; errors?: unknown };
         console.error('Error details:', {
-            message: error.message,
-            code: error.code,
-            details: error.details,
-            hint: error.hint
+            message: err.message,
+            code: err.code,
+            details: err.details,
+            hint: err.hint
         });
 
         // Check if it's a database table missing error
-        if (error.code === '42P01' || error.message?.includes('relation') || error.message?.includes('does not exist')) {
+        if (err.code === '42P01' || err.message?.includes('relation') || err.message?.includes('does not exist')) {
             return NextResponse.json(
                 {
                     error: 'Database tables not set up',
@@ -182,11 +183,11 @@ export async function POST(request: NextRequest) {
         }
 
         // Check if it's a validation error
-        if (error.name === 'ZodError' || error.errors) {
+        if (err.name === 'ZodError' || err.errors) {
             return NextResponse.json(
                 {
                     error: 'Invalid input data',
-                    details: error.errors || error.message
+                    details: err.errors || err.message
                 },
                 { status: 400 }
             );
@@ -197,7 +198,7 @@ export async function POST(request: NextRequest) {
             {
                 error: 'Registration failed',
                 message: process.env.NODE_ENV === 'development'
-                    ? error.message
+                    ? err.message
                     : 'An error occurred during registration. Please try again.',
                 // Provide helpful hints
                 hint: 'Check browser console for details or contact support'

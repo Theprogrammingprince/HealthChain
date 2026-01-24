@@ -85,6 +85,7 @@ export default function HospitalVerifyPage() {
     // Check verification status on mount
     useEffect(() => {
         checkVerificationStatus();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [supabaseSession]);
 
     const checkVerificationStatus = async () => {

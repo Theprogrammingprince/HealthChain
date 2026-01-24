@@ -49,7 +49,7 @@ interface HospitalVerificationRequest {
 
 export default function AdminVerifyPage() {
     const router = useRouter();
-    const { supabaseSession, userRole } = useAppStore();
+    const { supabaseSession } = useAppStore();
     const [isLoading, setIsLoading] = useState(true);
     const [requests, setRequests] = useState<HospitalVerificationRequest[]>([]);
     const [processingId, setProcessingId] = useState<string | null>(null);
@@ -57,6 +57,7 @@ export default function AdminVerifyPage() {
     useEffect(() => {
         checkAdminAccess();
         fetchVerificationRequests();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [supabaseSession]);
 
     const checkAdminAccess = async () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Lock, Mail, ArrowLeft, ArrowRight, Shield, Zap, Database } from "lucide-react";
+import { Activity, Lock, ArrowLeft, Shield, Zap, Database } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GoogleLoginButton } from "@/components/features/GoogleLoginButton";
 import { WalletConnectButton } from "@/components/features/WalletConnectButton";
@@ -11,14 +11,13 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import { useAccount } from "wagmi";
-import { Button } from "@/components/ui/button";
+
 
 export default function AuthPage() {
-    const { isConnected } = useAccount();
-    const router = useRouter();
+
     const [role, setRole] = useState<'Patient' | 'Hospital'>('Patient');
     const [mode, setMode] = useState<"login" | "signup">("login");
-    const { setUserRole } = useAppStore();
+    const { } = useAppStore();
 
     useEffect(() => {
         // Sync role to localStorage so other auth components can access it
