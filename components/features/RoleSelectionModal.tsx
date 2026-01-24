@@ -168,7 +168,7 @@ export function RoleSelectionModal({ open, onClose }: RoleSelectionModalProps) {
                                 htmlFor="audit-consent"
                                 className="text-[11px] font-medium text-gray-400 leading-relaxed cursor-pointer"
                             >
-                                I agree to HealthChain's <span className="text-indigo-400 underline">Privacy Policy</span> and <span className="text-indigo-400 underline">Data Usage Terms</span>, confirming my consent for secure health record storage.
+                                I agree to HealthChain&apos;s <span className="text-indigo-400 underline">Privacy Policy</span> and <span className="text-indigo-400 underline">Data Usage Terms</span>, confirming my consent for secure health record storage.
                             </label>
                         </div>
                     </div>

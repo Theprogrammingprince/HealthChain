@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/lib/supabaseClient";
 import { useAppStore } from "@/lib/store";
@@ -141,10 +140,10 @@ export function GrantAccessDialog({ isOpen, onClose }: { isOpen: boolean; onClos
         setIsLoading(true);
 
         try {
-            const granteeId = entityType === 'hospital' ? selectedEntity.user_id : selectedEntity.id;
+            const granteeId = entityType === 'hospital' ? (selectedEntity as HospitalResult).user_id : (selectedEntity as UserResult).id;
             const entityName = entityType === 'hospital'
-                ? selectedEntity.hospital_name
-                : (selectedEntity.full_name || selectedEntity.email);
+                ? (selectedEntity as HospitalResult).hospital_name
+                : ((selectedEntity as UserResult).full_name || (selectedEntity as UserResult).email);
 
             // 1. Grant Permission
             const { error: grantError } = await supabase
@@ -276,20 +275,20 @@ export function GrantAccessDialog({ isOpen, onClose }: { isOpen: boolean; onClos
                                     </div>
                                     <div>
                                         <p className="font-bold text-lg">
-                                            {entityType === 'hospital' ? selectedEntity.hospital_name : (selectedEntity.full_name || 'Unknown User')}
+                                            {entityType === 'hospital' ? (selectedEntity as HospitalResult).hospital_name : ((selectedEntity as UserResult).full_name || 'Unknown User')}
                                         </p>
                                         {entityType === 'hospital' ? (
                                             <div className="space-y-1 mt-2">
-                                                {getVerificationBadge(selectedEntity.verification_status)}
+                                                {getVerificationBadge((selectedEntity as HospitalResult).verification_status)}
                                                 <p className="text-xs text-gray-400 flex items-center gap-1 mt-1">
-                                                    <FileText className="w-3 h-3" /> License: {selectedEntity.license_number}
+                                                    <FileText className="w-3 h-3" /> License: {(selectedEntity as HospitalResult).license_number}
                                                 </p>
                                                 <p className="text-xs text-gray-400 flex items-center gap-1">
-                                                    <MapPin className="w-3 h-3" /> {selectedEntity.city}, {selectedEntity.state}, {selectedEntity.country}
+                                                    <MapPin className="w-3 h-3" /> {(selectedEntity as HospitalResult).city}, {(selectedEntity as HospitalResult).state}, {(selectedEntity as HospitalResult).country}
                                                 </p>
                                             </div>
                                         ) : (
-                                            <p className="text-xs text-gray-400">{selectedEntity.email}</p>
+                                            <p className="text-xs text-gray-400">{(selectedEntity as UserResult).email}</p>
                                         )}
                                     </div>
                                 </div>

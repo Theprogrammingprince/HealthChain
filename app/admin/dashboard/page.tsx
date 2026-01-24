@@ -158,14 +158,14 @@ export default function AdminPage() {
                     {/* Stat Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <StatCard
-                            icon={<Users className="text-blue-500" />}
+                            icon={Users}
                             label="Total Hospitals"
                             value={statsLoading ? "..." : stats.totalHospitals.toString()}
                             subtext={`${stats.verifiedHospitals} Verified`}
                             onClick={() => { setHospitalFilter("all"); setActiveTab("verification"); }}
                         />
                         <StatCard
-                            icon={<Clock className="text-amber-500" />}
+                            icon={Clock}
                             label="Pending Review"
                             value={statsLoading ? "..." : stats.pendingVerifications.toString()}
                             subtext="Awaiting Approval"
@@ -173,14 +173,14 @@ export default function AdminPage() {
                             onClick={() => { setHospitalFilter("pending"); setActiveTab("verification"); }}
                         />
                         <StatCard
-                            icon={<ShieldCheck className="text-emerald-500" />}
+                            icon={ShieldCheck}
                             label="Verified Providers"
                             value={statsLoading ? "..." : stats.verifiedHospitals.toString()}
                             subtext="Active on Network"
                             onClick={() => { setHospitalFilter("verified"); setActiveTab("verification"); }}
                         />
                         <StatCard
-                            icon={<Activity className="text-indigo-500" />}
+                            icon={Activity}
                             label="Registered Patients"
                             value={statsLoading ? "..." : stats.totalPatients.toString()}
                             subtext="User Profiles"
@@ -256,7 +256,7 @@ export default function AdminPage() {
     );
 }
 
-function StatCard({ icon, label, value, subtext, highlight, onClick }: { icon: any, label: string, value: string, subtext: string, highlight?: boolean, onClick?: () => void }) {
+function StatCard({ icon: Icon, label, value, subtext, highlight, onClick }: { icon: React.ComponentType<{ className?: string }>, label: string, value: string, subtext: string, highlight?: boolean, onClick?: () => void }) {
     return (
         <Card
             onClick={onClick}
@@ -267,7 +267,7 @@ function StatCard({ icon, label, value, subtext, highlight, onClick }: { icon: a
                     {label}
                 </CardTitle>
                 <div className={`p-2 rounded-lg transition-colors ${highlight ? "bg-amber-500/10" : "bg-white/5 group-hover:bg-blue-600/10"}`}>
-                    {icon}
+                    <Icon className={highlight ? "text-amber-500" : "text-blue-500 group-hover:text-blue-400"} />
                 </div>
             </CardHeader>
             <CardContent>

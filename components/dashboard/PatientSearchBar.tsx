@@ -11,22 +11,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 
 export function PatientSearchBar() {
-    const [query, setQuery] = useState("");
     const { patients } = useAppStore();
     const searchParams = useSearchParams();
-    const [results, setResults] = useState(patients);
 
-    useEffect(() => {
-        // Detect emergency link via URL (simulated)
-        const emergencyId = searchParams.get('emergency');
-        if (emergencyId) {
-            const patient = patients.find(p => p.id === emergencyId);
-            if (patient) {
-                setQuery(patient.id);
-                setResults([patient]);
-            }
-        }
-    }, [searchParams, patients]);
+    // Initialize state based on emergency params to avoid setState in effect
+    const emergencyId = searchParams.get('emergency');
+    const emergencyPatient = emergencyId ? patients.find(p => p.id === emergencyId) : null;
+
+    const [query, setQuery] = useState(emergencyPatient ? emergencyPatient.id : "");
+    const [results, setResults] = useState(emergencyPatient ? [emergencyPatient] : patients);
+
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
