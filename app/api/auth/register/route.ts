@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createCompleteUserProfile, getUserByEmail, getUserByWalletAddress } from '@/lib/database.service';
-import type { UserProfileInsert, PatientProfileInsert, HospitalProfileInsert } from '@/lib/database.types';
+import type { UserProfileInsert, PatientProfileInsert, HospitalProfileInsert, DoctorProfileInsert } from '@/lib/database.types';
 import { validateRegistrationData } from '@/lib/validation';
 import { checkRateLimit, getClientIp } from '@/lib/auth.middleware';
 
@@ -58,7 +58,16 @@ export async function POST(request: NextRequest) {
             registrationNumber,
             specialization,
             website,
-            description
+            description,
+            // Doctor-specific fields
+            firstName,
+            lastName,
+            medicalLicenseNumber,
+            specialty,
+            subSpecialty,
+            yearsOfExperience,
+            primaryHospitalId,
+            hospitalDepartment
         } = validatedData;
 
         // SECURITY: Check if user already exists (prevent duplicate accounts)
@@ -85,7 +94,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Validate allowed roles
-        const allowedRoles = ['patient', 'hospital'];
+        const allowedRoles = ['patient', 'hospital', 'doctor'];
         if (!allowedRoles.includes(role)) {
             return NextResponse.json(
                 { error: "Invalid role specified." },
@@ -105,7 +114,7 @@ export async function POST(request: NextRequest) {
         };
 
         // Prepare role-specific profile data
-        let roleProfile: PatientProfileInsert | HospitalProfileInsert;
+        let roleProfile: PatientProfileInsert | HospitalProfileInsert | DoctorProfileInsert;
 
         if (role === 'patient') {
             roleProfile = {
@@ -125,7 +134,7 @@ export async function POST(request: NextRequest) {
                 allergies: null,
                 medications: null
             } as PatientProfileInsert;
-        } else {
+        } else if (role === 'hospital') {
             // Hospital role - validated by Zod schema
             roleProfile = {
                 user_id: userId,
@@ -142,6 +151,29 @@ export async function POST(request: NextRequest) {
                 website: website || null,
                 description: description || null
             } as HospitalProfileInsert;
+        } else if (role === 'doctor') {
+            // Doctor role
+            roleProfile = {
+                user_id: userId,
+                first_name: firstName || fullName?.split(' ')[0] || 'Doctor',
+                last_name: lastName || fullName?.split(' ').slice(1).join(' ') || 'User',
+                email: email!,
+                phone: phoneNumber || null,
+                medical_license_number: medicalLicenseNumber || 'PENDING',
+                specialty: specialty || 'General Practice',
+                sub_specialty: subSpecialty || null,
+                years_of_experience: yearsOfExperience || 0,
+                primary_hospital_id: null, // This requires a UUID, form gives a name
+                hospital_name: primaryHospitalId || 'Private Practice',
+                hospital_department: hospitalDepartment || null,
+                license_document_url: null,
+                certification_urls: null
+            } as DoctorProfileInsert;
+        } else {
+            return NextResponse.json(
+                { error: "Invalid role configuration" },
+                { status: 400 }
+            );
         }
 
         // SECURITY: Create user in database with sanitized data

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,6 +21,14 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import { resolveRoute } from "@/lib/routing";
+import { getAllHospitals } from "@/lib/database.service";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -42,6 +50,7 @@ interface EmailAuthFormProps {
 
 export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFormProps) {
     const [isLoading, setIsLoading] = useState(false);
+    const [hospitals, setHospitals] = useState<{ id: string, hospital_name: string }[]>([]);
     const [showSuccess, setShowSuccess] = useState(false);
     const router = useRouter();
     const { setUserRole } = useAppStore();
@@ -56,6 +65,20 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
             medicalLicense: "",
         },
     });
+
+    useEffect(() => {
+        if (mode === "signup" && role === "Doctor") {
+            const fetchHospitals = async () => {
+                try {
+                    const data = await getAllHospitals();
+                    setHospitals(data || []);
+                } catch (err) {
+                    console.error("Failed to fetch hospitals:", err);
+                }
+            };
+            fetchHospitals();
+        }
+    }, [mode, role]);
 
     const onSubmit = async (data: AuthFormData) => {
         if (mode === "signup" && !data.consent) {
@@ -95,7 +118,13 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                         authProvider: "email",
                         fullName: data.email.split('@')[0], // Default name
                         consent_at: new Date().toISOString(),
-                        ...(role === "Hospital" && { hospitalName: "New Medical Facility" })
+                        ...(role === "Hospital" && { hospitalName: "New Medical Facility" }),
+                        ...(role === "Doctor" && {
+                            medicalLicenseNumber: data.medicalLicense,
+                            primaryHospitalId: data.hospitalAffiliation,
+                            firstName: data.email.split('@')[0],
+                            lastName: "Doctor"
+                        })
                     };
 
                     await fetch("/api/auth/register", {
@@ -277,16 +306,29 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Hospital Affiliation</FormLabel>
-                                    <FormControl>
-                                        <div className="relative">
-                                            <Stethoscope className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-                                            <Input
-                                                placeholder="Enter Hospital Name"
-                                                className="bg-white/5 border-white/10 pl-10 focus:border-indigo-500"
-                                                {...field}
-                                            />
-                                        </div>
-                                    </FormControl>
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                    >
+                                        <FormControl>
+                                            <div className="relative">
+                                                <Stethoscope className="absolute left-3 top-3 h-4 w-4 z-10 text-gray-500" />
+                                                <SelectTrigger className="bg-white/5 border-white/10 pl-10 focus:border-indigo-500 h-10 w-full">
+                                                    <SelectValue placeholder="Select Hospital" />
+                                                </SelectTrigger>
+                                            </div>
+                                        </FormControl>
+                                        <SelectContent className="bg-[#0A0A0A] border-white/10 text-white">
+                                            {hospitals.map((hospital) => (
+                                                <SelectItem key={hospital.id} value={hospital.id} className="focus:bg-white/5 cursor-pointer">
+                                                    {hospital.hospital_name}
+                                                </SelectItem>
+                                            ))}
+                                            {hospitals.length === 0 && (
+                                                <div className="p-2 text-xs text-gray-500 italic">No hospitals found</div>
+                                            )}
+                                        </SelectContent>
+                                    </Select>
                                     <FormMessage />
                                 </FormItem>
                             )}

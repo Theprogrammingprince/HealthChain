@@ -47,10 +47,14 @@ export default function AuthCallbackPage() {
                         userId: session.user.id,
                         email: session.user.email,
                         role: role,
-                        authProvider: 'google',
-                        fullName: session.user.user_metadata?.full_name || session.user.user_metadata?.name,
+                        authProvider: session.user.app_metadata?.provider || 'email',
+                        fullName: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0],
                         avatarUrl: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
-                        ...(role === 'hospital' && { hospitalName: 'Medical Facility' })
+                        ...(role === 'hospital' && { hospitalName: 'Medical Facility' }),
+                        ...(role === 'doctor' && {
+                            firstName: session.user.user_metadata?.full_name?.split(' ')[0] || 'Doctor',
+                            lastName: session.user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || 'User'
+                        })
                     }
 
                     const registerRes = await fetch('/api/auth/register', {
