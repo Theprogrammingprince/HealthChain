@@ -20,7 +20,7 @@ export const uuidSchema = z.string().uuid();
 /**
  * Role validation
  */
-export const roleSchema = z.enum(['patient', 'hospital', 'admin']);
+export const roleSchema = z.enum(['patient', 'hospital', 'doctor', 'admin']);
 
 /**
  * Auth provider validation
@@ -107,7 +107,16 @@ export const registrationSchema = z.object({
     registrationNumber: z.string().optional().nullable(),
     specialization: z.array(z.string()).optional().nullable(),
     website: z.string().optional().nullable(),
-    description: z.string().optional().nullable()
+    description: z.string().optional().nullable(),
+    // Doctor fields - all optional
+    firstName: z.string().optional().nullable(),
+    lastName: z.string().optional().nullable(),
+    medicalLicenseNumber: z.string().optional().nullable(),
+    specialty: z.string().optional().nullable(),
+    subSpecialty: z.string().optional().nullable(),
+    yearsOfExperience: z.number().optional().nullable(),
+    primaryHospitalId: z.string().optional().nullable(),
+    hospitalDepartment: z.string().optional().nullable()
 }).refine(
     data => data.email || data.walletAddress,
     { message: 'Either email or walletAddress must be provided' }

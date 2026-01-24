@@ -17,7 +17,7 @@ export function Footer() {
 
     const pathname = usePathname();
 
-    const dashboardPaths = ["/patient/dashboard", "/clinical/dashboard", "/admin/dashboard", "/clinical/verify", "/clinical/rejected"];
+    const dashboardPaths = ["/patient/dashboard", "/clinical/dashboard", "/admin/dashboard", "/clinical/verify", "/clinical/rejected", "/doctor"];
     if (dashboardPaths.some(path => pathname?.startsWith(path))) return null;
 
     return (

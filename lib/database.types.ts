@@ -1,5 +1,5 @@
 // Database types for Supabase tables
-export type UserRole = 'patient' | 'hospital' | 'admin';
+export type UserRole = 'patient' | 'hospital' | 'doctor' | 'admin';
 export type AuthProvider = 'google' | 'wallet' | 'email';
 
 export interface UserProfile {
@@ -56,12 +56,38 @@ export interface HospitalProfile {
     updated_at: string;
 }
 
+export interface DoctorProfile {
+    id: string;
+    user_id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone?: string | null;
+    medical_license_number: string;
+    specialty: string;
+    sub_specialty?: string | null;
+    years_of_experience?: number | null;
+    verification_status: 'pending' | 'verified' | 'rejected' | 'suspended';
+    verification_date?: string | null;
+    verified_by?: string | null;
+    rejection_reason?: string | null;
+    primary_hospital_id?: string | null;
+    hospital_name?: string | null;
+    hospital_department?: string | null;
+    license_document_url?: string | null;
+    certification_urls?: string[] | null;
+    created_at: string;
+    updated_at: string;
+}
+
 // Insert types (without auto-generated fields)
 export type UserProfileInsert = Omit<UserProfile, 'created_at' | 'updated_at' | 'last_sign_in'>;
 export type PatientProfileInsert = Omit<PatientProfile, 'id' | 'created_at' | 'updated_at'>;
 export type HospitalProfileInsert = Omit<HospitalProfile, 'id' | 'created_at' | 'updated_at' | 'verification_status'>;
+export type DoctorProfileInsert = Omit<DoctorProfile, 'id' | 'created_at' | 'updated_at' | 'verification_status' | 'verification_date' | 'verified_by' | 'rejection_reason'>;
 
 // Update types (all fields optional except id)
 export type UserProfileUpdate = Partial<Omit<UserProfile, 'id' | 'created_at'>>;
 export type PatientProfileUpdate = Partial<Omit<PatientProfile, 'id' | 'user_id' | 'created_at'>>;
 export type HospitalProfileUpdate = Partial<Omit<HospitalProfile, 'id' | 'user_id' | 'created_at'>>;
+export type DoctorProfileUpdate = Partial<Omit<DoctorProfile, 'id' | 'user_id' | 'created_at'>>;

@@ -95,7 +95,13 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                         authProvider: "email",
                         fullName: data.email.split('@')[0], // Default name
                         consent_at: new Date().toISOString(),
-                        ...(role === "Hospital" && { hospitalName: "New Medical Facility" })
+                        ...(role === "Hospital" && { hospitalName: "New Medical Facility" }),
+                        ...(role === "Doctor" && {
+                            medicalLicenseNumber: data.medicalLicense,
+                            primaryHospitalId: data.hospitalAffiliation,
+                            firstName: data.email.split('@')[0],
+                            lastName: "Doctor"
+                        })
                     };
 
                     await fetch("/api/auth/register", {
@@ -154,7 +160,7 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                     onSuccess?.();
                 }
             }
-        } catch (error: unknown) {
+        } catch (error:  unknown) {
             console.error("Auth error:", error);
             toast.error(mode === "signup" ? "Signup Failed" : "Login Failed", {
                 description: error.message,

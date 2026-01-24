@@ -9,6 +9,9 @@ import type {
     HospitalProfile,
     HospitalProfileInsert,
     HospitalProfileUpdate,
+    DoctorProfile,
+    DoctorProfileInsert,
+    DoctorProfileUpdate,
     UserRole,
     AuthProvider
 } from './database.types';
@@ -268,6 +271,109 @@ export async function updateHospitalProfile(userId: string, updates: HospitalPro
     return data as HospitalProfile;
 }
 
+// ==================== DOCTOR PROFILE OPERATIONS ====================
+
+/**
+ * Create a new doctor profile
+ */
+export async function createDoctorProfile(data: DoctorProfileInsert) {
+    const { data: profile, error } = await supabase
+        .from('doctor_profiles')
+        .insert([{
+            ...data,
+            verification_status: 'pending'
+        }])
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error creating doctor profile:', error);
+        throw error;
+    }
+
+    return profile as DoctorProfile;
+}
+
+/**
+ * Get doctor profile by user ID
+ */
+export async function getDoctorProfile(userId: string) {
+    const { data, error } = await supabase
+        .from('doctor_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+    if (error) {
+        if (error.code === 'PGRST116') {
+            return null;
+        }
+        console.error('Error fetching doctor profile:', error);
+        throw error;
+    }
+
+    return data as DoctorProfile;
+}
+
+/**
+ * Update doctor profile
+ */
+export async function updateDoctorProfile(userId: string, updates: DoctorProfileUpdate) {
+    const { data, error } = await supabase
+        .from('doctor_profiles')
+        .update({
+            ...updates,
+            updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error updating doctor profile:', error);
+        throw error;
+    }
+
+    return data as DoctorProfile;
+}
+
+/**
+ * Get doctor statistics
+ */
+export async function getDoctorStatistics(doctorId: string) {
+    const { data, error } = await supabase
+        .from('doctor_statistics')
+        .select('*')
+        .eq('doctor_id', doctorId)
+        .single();
+
+    if (error) {
+        console.error('Error fetching doctor statistics:', error);
+        return null;
+    }
+
+    return data;
+}
+
+/**
+ * Get recent submissions for a doctor
+ */
+export async function getRecentDoctorSubmissions(doctorId: string, limit = 5) {
+    const { data, error } = await supabase
+        .from('recent_submissions_detailed')
+        .select('*')
+        .eq('doctor_id', doctorId)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+    if (error) {
+        console.error('Error fetching recent submissions:', error);
+        return [];
+    }
+
+    return data;
+}
+
 // ==================== COMBINED OPERATIONS ====================
 
 /**
@@ -285,6 +391,8 @@ export async function getCompleteUserProfile(userId: string) {
         roleProfile = await getPatientProfile(userId);
     } else if (userProfile.role === 'hospital') {
         roleProfile = await getHospitalProfile(userId);
+    } else if (userProfile.role === 'doctor') {
+        roleProfile = await getDoctorProfile(userId);
     }
 
     return {
@@ -298,7 +406,7 @@ export async function getCompleteUserProfile(userId: string) {
  */
 export async function createCompleteUserProfile(
     userProfile: UserProfileInsert,
-    roleProfile: PatientProfileInsert | HospitalProfileInsert
+    roleProfile: PatientProfileInsert | HospitalProfileInsert | DoctorProfileInsert
 ) {
     // Create user profile first
     const user = await createUserProfile(userProfile);
@@ -309,6 +417,8 @@ export async function createCompleteUserProfile(
         profile = await createPatientProfile(roleProfile as PatientProfileInsert);
     } else if (user.role === 'hospital') {
         profile = await createHospitalProfile(roleProfile as HospitalProfileInsert);
+    } else if (user.role === 'doctor') {
+        profile = await createDoctorProfile(roleProfile as DoctorProfileInsert);
     }
 
     return {
