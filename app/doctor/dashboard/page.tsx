@@ -240,7 +240,7 @@ export default function DoctorDashboard() {
                                 </div>
 
                                 <div className="space-y-4">
-                                    <AnimatePresence mode="popLayout text-white">
+                                    <AnimatePresence mode="popLayout">
                                         {submissions.length > 0 ? (
                                             submissions.map((sub, i) => (
                                                 <motion.div

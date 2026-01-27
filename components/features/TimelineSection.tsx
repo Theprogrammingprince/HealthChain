@@ -2,28 +2,28 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
-import { Wallet, UploadCloud, QrCode, ShieldCheck } from "lucide-react";
+import { UploadCloud, QrCode, ShieldCheck, Activity } from "lucide-react";
 
 const steps = [
     {
-        title: "Connect Wallet",
-        description: "Sign in securely with MetaMask or WalletConnect. Your wallet is your identity - no passwords to forget.",
-        icon: <Wallet className="w-6 h-6 text-blue-400" />,
+        title: "Secure Identity",
+        description: "Create your unique health profile in seconds. Your identity is private, portable, and always under your control.",
+        icon: <ShieldCheck className="w-6 h-6 text-blue-400" />,
     },
     {
-        title: "Upload History",
-        description: "Upload critical medical data (blood type, allergies, conditions) to IPFS. Encrypted by default.",
+        title: "Global Records",
+        description: "Securely upload your critical medical history. Encrypted by default and stored on a globally resilient network.",
         icon: <UploadCloud className="w-6 h-6 text-blue-400" />,
     },
     {
-        title: "Generate QR",
-        description: "Get a unique emergency QR code. Print it for your wallet or save it to your phone lock screen.",
+        title: "Emergency QR",
+        description: "Generate your secure emergency pass. Keep it on your phone or in your wallet for instant first responder access.",
         icon: <QrCode className="w-6 h-6 text-blue-400" />,
     },
     {
-        title: "Emergency Access",
-        description: "First responders scan to view *only* the life-saving data you authorized. Zero delays.",
-        icon: <ShieldCheck className="w-6 h-6 text-blue-400" />,
+        title: "Instant Care",
+        description: "In an emergency, seconds matter. Authorized responders get the data they need to save your life, instantly.",
+        icon: <Activity className="w-6 h-6 text-blue-400" />,
     },
 ];
 

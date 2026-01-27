@@ -13,16 +13,15 @@ export function ImpactSection() {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-background to-background opacity-40 pointer-events-none" />
 
             <div className="container relative mx-auto max-w-6xl">
-                <div className="flex flex-col items-center text-center space-y-8 mb-16">
+                <div className="flex flex-col items-center text-center space-y-8 mb-20">
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
+                        transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
                     >
-                        <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 group cursor-default">
-                            Lives Lost Every Day to <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-orange-600">Missing Medical History</span>
-                            <span className="block h-1 w-0 bg-blue-500 group-hover:w-full transition-all duration-700 ease-out mt-2 opacity-50 shadow-[0_0_20px_rgba(59,130,246,0.8)]"></span>
+                        <h2 className="text-5xl md:text-8xl font-bold tracking-[-0.04em] mb-4 group cursor-default leading-none">
+                            The Cost of <span className="text-red-500">Missing History</span>
                         </h2>
                     </motion.div>
 

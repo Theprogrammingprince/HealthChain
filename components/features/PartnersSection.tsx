@@ -52,7 +52,7 @@ const partners: Partner[] = [
         name: "Mayo Clinic",
         type: "Global Partner",
         status: "In Discussions",
-        description: "World-renowned medical center exploring decentralized records for international patients.",
+        description: "World-renowned medical center exploring secure cross-border record sharing for international patients.",
         patients: "Research Collaboration",
         icon: <Globe2 className="w-8 h-8" />,
         color: "text-indigo-500"
