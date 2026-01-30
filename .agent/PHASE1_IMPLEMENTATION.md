@@ -94,7 +94,7 @@ If rejected: (status: rejected, patient_rejection_reason stored)
 - [x] Item 1: Patient dashboard integration
 - [x] Item 2: Hospital approval workflow
 - [x] Item 3: Display rejection reasons in patient/doctor views
-- [ ] Item 4: Activity log integration when approving/rejecting
+- [x] Item 4: Activity log integration when approving/rejecting
 
 ### Phase 2: Audit & Transparency
 - [ ] Full activity log integration
@@ -131,3 +131,44 @@ Updated to:
 - Support additional statuses: `draft`, `archived`
 
 ---
+
+## Item 4: Activity Log Integration ✅
+
+### Database Service Functions (`lib/database.service.ts`)
+Added new activity log functions:
+
+- **`createActivityLog(userId, actor, action, details?, patientId?)`** - Creates an activity log entry with mock transaction hash
+- **`logPatientRecordApproval(patientId, patientName, recordTitle, doctorName)`** - Logs when patient approves a record
+- **`logPatientRecordRejection(patientId, patientName, recordTitle, doctorName, reason?)`** - Logs when patient rejects with reason
+- **`logHospitalRecordApproval(userId, hospitalName, recordTitle, doctorName, patientId)`** - Logs hospital approval
+- **`logHospitalRecordRejection(...)`** - Logs hospital rejection with reason
+
+### PendingRecordsList Updates
+- Calls `logPatientRecordApproval()` after successful approval
+- Calls `logPatientRecordRejection()` after successful rejection
+- Passes record details (title, doctor name) for meaningful log entries
+
+### DoctorSubmissionTable Updates
+- Fetches and stores `hospitalName` for activity logging
+- Calls `logHospitalRecordApproval()` after approving submissions
+- Calls `logHospitalRecordRejection()` after rejecting submissions
+- Includes rejection reason in log entries
+
+### Activity Log Format
+All logs include:
+- **Actor**: Patient name or Hospital name
+- **Action**: 'Record Approved' or 'Record Rejected'
+- **Details**: Full description including record title, doctor name, and rejection reason
+- **TX Hash**: Mock blockchain transaction hash (0x...)
+
+---
+
+# Phase 1 Complete! 🎉
+
+All core patient record integration items have been implemented:
+1. ✅ Patient dashboard shows real approved records
+2. ✅ Hospital can approve/reject doctor submissions
+3. ✅ Rejection reasons are displayed in doctor dashboard
+4. ✅ Activity logs are created on approve/reject actions
+
+Ready for Phase 2: Audit & Transparency
