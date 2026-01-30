@@ -1315,3 +1315,224 @@ export async function logEmergencyAccess(
         patientId
     );
 }
+
+// ==================== NOTIFICATION OPERATIONS ====================
+
+export type NotificationType =
+    | "record_approved"
+    | "record_rejected"
+    | "pending_approval"
+    | "hospital_verified"
+    | "access_granted"
+    | "access_revoked"
+    | "emergency_alert"
+    | "system";
+
+/**
+ * Create a notification for a user
+ */
+export async function createNotification(
+    userId: string,
+    type: NotificationType,
+    title: string,
+    message: string,
+    actionLink?: string
+) {
+    const { data, error } = await supabase
+        .from('notifications')
+        .insert({
+            user_id: userId,
+            type,
+            title,
+            message,
+            action_link: actionLink || null,
+            is_read: false
+        })
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error creating notification:', error);
+        return null;
+    }
+
+    return data;
+}
+
+/**
+ * Notify patient when record is approved
+ */
+export async function notifyPatientRecordApproved(
+    patientId: string,
+    recordTitle: string,
+    approverName: string
+) {
+    return createNotification(
+        patientId,
+        'record_approved',
+        'Record Approved',
+        `Your medical record "${recordTitle}" has been approved by ${approverName}.`,
+        '/patient/dashboard'
+    );
+}
+
+/**
+ * Notify patient when record is rejected
+ */
+export async function notifyPatientRecordRejected(
+    patientId: string,
+    recordTitle: string,
+    rejectorName: string,
+    reason?: string
+) {
+    const message = reason
+        ? `Your medical record "${recordTitle}" was rejected by ${rejectorName}. Reason: ${reason}`
+        : `Your medical record "${recordTitle}" was rejected by ${rejectorName}.`;
+
+    return createNotification(
+        patientId,
+        'record_rejected',
+        'Record Rejected',
+        message,
+        '/patient/dashboard'
+    );
+}
+
+/**
+ * Notify patient of pending approval
+ */
+export async function notifyPatientPendingApproval(
+    patientId: string,
+    recordTitle: string,
+    doctorName: string,
+    hospitalName: string
+) {
+    return createNotification(
+        patientId,
+        'pending_approval',
+        'New Record Pending Approval',
+        `Dr. ${doctorName} from ${hospitalName} has submitted a record "${recordTitle}" for your approval.`,
+        '/patient/dashboard'
+    );
+}
+
+/**
+ * Notify doctor when their submission is approved
+ */
+export async function notifyDoctorRecordApproved(
+    doctorId: string,
+    recordTitle: string,
+    approverType: 'hospital' | 'patient',
+    approverName: string
+) {
+    return createNotification(
+        doctorId,
+        'record_approved',
+        `${approverType === 'hospital' ? 'Hospital' : 'Patient'} Approved Record`,
+        `Your submission "${recordTitle}" was approved by ${approverName}.`,
+        '/doctor/dashboard'
+    );
+}
+
+/**
+ * Notify doctor when their submission is rejected
+ */
+export async function notifyDoctorRecordRejected(
+    doctorId: string,
+    recordTitle: string,
+    rejectorType: 'hospital' | 'patient',
+    rejectorName: string,
+    reason?: string
+) {
+    const message = reason
+        ? `Your submission "${recordTitle}" was rejected by ${rejectorName}. Reason: ${reason}`
+        : `Your submission "${recordTitle}" was rejected by ${rejectorName}.`;
+
+    return createNotification(
+        doctorId,
+        'record_rejected',
+        `${rejectorType === 'hospital' ? 'Hospital' : 'Patient'} Rejected Record`,
+        message,
+        '/doctor/dashboard'
+    );
+}
+
+/**
+ * Notify hospital of new pending submission
+ */
+export async function notifyHospitalPendingSubmission(
+    hospitalAdminId: string,
+    recordTitle: string,
+    doctorName: string,
+    patientName: string
+) {
+    return createNotification(
+        hospitalAdminId,
+        'pending_approval',
+        'New Submission for Review',
+        `Dr. ${doctorName} has submitted a record "${recordTitle}" for patient ${patientName}.`,
+        '/clinical/dashboard'
+    );
+}
+
+/**
+ * Get user notifications
+ */
+export async function getUserNotifications(userId: string, limit = 20) {
+    const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+    if (error) {
+        console.error('Error fetching notifications:', error);
+        return [];
+    }
+
+    return data;
+}
+
+/**
+ * Get unread notification count
+ */
+export async function getUnreadNotificationCount(userId: string): Promise<number> {
+    const { count, error } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('is_read', false);
+
+    if (error) {
+        console.error('Error fetching unread count:', error);
+        return 0;
+    }
+
+    return count || 0;
+}
+
+/**
+ * Mark notification as read
+ */
+export async function markNotificationAsRead(notificationId: string) {
+    const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', notificationId);
+
+    return !error;
+}
+
+/**
+ * Mark all notifications as read for a user
+ */
+export async function markAllNotificationsAsRead(userId: string) {
+    const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', userId)
+        .eq('is_read', false);
+
+    return !error;
+}
