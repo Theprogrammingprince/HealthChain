@@ -26,6 +26,7 @@ import { StaffManagementTable } from "@/components/dashboard/StaffManagementTabl
 import { VitalsTimeline } from "@/components/dashboard/VitalsTimeline";
 import { ActivityLogTable } from "@/components/dashboard/ActivityLogTable";
 import { DoctorSubmissionTable } from "@/components/dashboard/DoctorSubmissionTable";
+import { HospitalArrivalsTable } from "@/components/dashboard/HospitalArrivalsTable";
 import { AccessDeniedScreen } from "@/components/dashboard/AccessDeniedScreen";
 import { HospitalDashboardGuard } from "@/components/dashboard/HospitalDashboardGuard";
 import { VerificationStatusBanner } from "@/components/dashboard/VerificationStatusBanner";
@@ -259,6 +260,11 @@ export default function ClinicalDashboardPage() {
                                             Doctor Submissions
                                         </TabsTrigger>
                                     )}
+                                    {currentStaff?.role === 'Admin' && (
+                                        <TabsTrigger value="arrivals" className="data-[state=active]:bg-amber-500 data-[state=active]:text-black rounded-xl transition-all font-black px-10 py-3 uppercase text-xs tracking-widest">
+                                            Clinical Arrivals
+                                        </TabsTrigger>
+                                    )}
                                 </TabsList>
 
                                 <TabsContent value="patients" className="space-y-10">
@@ -352,6 +358,12 @@ export default function ClinicalDashboardPage() {
                                 <TabsContent value="staff" className="space-y-10">
                                     <motion.section variants={itemVariants}>
                                         <StaffManagementTable />
+                                    </motion.section>
+                                </TabsContent>
+
+                                <TabsContent value="arrivals" className="space-y-10">
+                                    <motion.section variants={itemVariants}>
+                                        <HospitalArrivalsTable />
                                     </motion.section>
                                 </TabsContent>
                             </Tabs>
