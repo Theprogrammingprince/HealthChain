@@ -483,3 +483,293 @@ export async function createCompleteUserProfile(
         throw error;
     }
 }
+
+// ==================== PATIENT MEDICAL RECORDS OPERATIONS ====================
+
+/**
+ * Medical Record Submission type
+ */
+export interface MedicalRecordSubmission {
+    id: string;
+    submission_code: string;
+    doctor_id: string;
+    patient_id: string;
+    hospital_id: string | null;
+    record_type: string;
+    record_title: string;
+    record_description: string | null;
+    ipfs_hash: string | null;
+    hospital_approval_status: 'pending' | 'approved' | 'rejected';
+    hospital_rejection_reason: string | null;
+    patient_approval_status: 'pending' | 'approved' | 'rejected';
+    patient_rejection_reason: string | null;
+    overall_status: 'draft' | 'pending_hospital_review' | 'pending_patient_approval' | 'approved' | 'rejected' | 'archived';
+    created_at: string;
+    updated_at: string;
+    // Joined fields
+    doctor_name?: string;
+    doctor_specialty?: string;
+    hospital_name?: string;
+}
+
+/**
+ * Get all approved medical records for a patient
+ */
+export async function getPatientApprovedRecords(patientId: string) {
+    const { data, error } = await supabase
+        .from('medical_record_submissions')
+        .select(`
+            id,
+            submission_code,
+            record_type,
+            record_title,
+            record_description,
+            ipfs_hash,
+            overall_status,
+            created_at,
+            updated_at,
+            doctor_id,
+            hospital_id
+        `)
+        .eq('patient_id', patientId)
+        .eq('overall_status', 'approved')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching approved records:', error);
+        return [];
+    }
+
+    // Fetch doctor and hospital names for each record
+    const enrichedRecords = await Promise.all(
+        (data || []).map(async (record) => {
+            let doctorName = 'Unknown Doctor';
+            let hospitalName = 'Unknown Facility';
+
+            // Get doctor info
+            if (record.doctor_id) {
+                const { data: doctorData } = await supabase
+                    .from('doctor_profiles')
+                    .select('first_name, last_name, specialty')
+                    .eq('id', record.doctor_id)
+                    .single();
+                if (doctorData) {
+                    doctorName = `Dr. ${doctorData.first_name} ${doctorData.last_name}`;
+                }
+            }
+
+            // Get hospital info
+            if (record.hospital_id) {
+                const { data: hospitalData } = await supabase
+                    .from('hospital_profiles')
+                    .select('hospital_name')
+                    .eq('id', record.hospital_id)
+                    .single();
+                if (hospitalData) {
+                    hospitalName = hospitalData.hospital_name;
+                }
+            }
+
+            return {
+                ...record,
+                doctor_name: doctorName,
+                hospital_name: hospitalName
+            };
+        })
+    );
+
+    return enrichedRecords;
+}
+
+/**
+ * Get pending approval records for a patient (records that need patient approval)
+ */
+export async function getPatientPendingApprovals(patientId: string) {
+    const { data, error } = await supabase
+        .from('medical_record_submissions')
+        .select(`
+            id,
+            submission_code,
+            record_type,
+            record_title,
+            record_description,
+            overall_status,
+            patient_approval_status,
+            created_at,
+            updated_at,
+            doctor_id,
+            hospital_id
+        `)
+        .eq('patient_id', patientId)
+        .eq('overall_status', 'pending_patient_approval')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching pending approvals:', error);
+        return [];
+    }
+
+    // Fetch doctor and hospital names for each record
+    const enrichedRecords = await Promise.all(
+        (data || []).map(async (record) => {
+            let doctorName = 'Unknown Doctor';
+            let hospitalName = 'Unknown Facility';
+
+            // Get doctor info
+            if (record.doctor_id) {
+                const { data: doctorData } = await supabase
+                    .from('doctor_profiles')
+                    .select('first_name, last_name, specialty')
+                    .eq('id', record.doctor_id)
+                    .single();
+                if (doctorData) {
+                    doctorName = `Dr. ${doctorData.first_name} ${doctorData.last_name}`;
+                }
+            }
+
+            // Get hospital info
+            if (record.hospital_id) {
+                const { data: hospitalData } = await supabase
+                    .from('hospital_profiles')
+                    .select('hospital_name')
+                    .eq('id', record.hospital_id)
+                    .single();
+                if (hospitalData) {
+                    hospitalName = hospitalData.hospital_name;
+                }
+            }
+
+            return {
+                ...record,
+                doctor_name: doctorName,
+                hospital_name: hospitalName
+            };
+        })
+    );
+
+    return enrichedRecords;
+}
+
+/**
+ * Patient approves a medical record submission
+ */
+export async function approveRecordAsPatient(recordId: string, patientId: string) {
+    const { data, error } = await supabase
+        .from('medical_record_submissions')
+        .update({
+            patient_approval_status: 'approved',
+            patient_approval_date: new Date().toISOString(),
+            overall_status: 'approved',
+            updated_at: new Date().toISOString()
+        })
+        .eq('id', recordId)
+        .eq('patient_id', patientId)
+        .eq('overall_status', 'pending_patient_approval')
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error approving record:', error);
+        throw error;
+    }
+
+    return data;
+}
+
+/**
+ * Patient rejects a medical record submission
+ */
+export async function rejectRecordAsPatient(recordId: string, patientId: string, reason?: string) {
+    const { data, error } = await supabase
+        .from('medical_record_submissions')
+        .update({
+            patient_approval_status: 'rejected',
+            patient_rejection_reason: reason || 'Rejected by patient',
+            overall_status: 'rejected',
+            updated_at: new Date().toISOString()
+        })
+        .eq('id', recordId)
+        .eq('patient_id', patientId)
+        .eq('overall_status', 'pending_patient_approval')
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error rejecting record:', error);
+        throw error;
+    }
+
+    return data;
+}
+
+/**
+ * Get all medical records for a patient (all statuses)
+ */
+export async function getAllPatientRecords(patientId: string) {
+    const { data, error } = await supabase
+        .from('medical_record_submissions')
+        .select(`
+            id,
+            submission_code,
+            record_type,
+            record_title,
+            record_description,
+            ipfs_hash,
+            overall_status,
+            hospital_approval_status,
+            patient_approval_status,
+            hospital_rejection_reason,
+            patient_rejection_reason,
+            created_at,
+            updated_at,
+            doctor_id,
+            hospital_id
+        `)
+        .eq('patient_id', patientId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching all patient records:', error);
+        return [];
+    }
+
+    // Fetch doctor and hospital names for each record
+    const enrichedRecords = await Promise.all(
+        (data || []).map(async (record) => {
+            let doctorName = 'Unknown Doctor';
+            let hospitalName = 'Unknown Facility';
+
+            // Get doctor info
+            if (record.doctor_id) {
+                const { data: doctorData } = await supabase
+                    .from('doctor_profiles')
+                    .select('first_name, last_name, specialty')
+                    .eq('id', record.doctor_id)
+                    .single();
+                if (doctorData) {
+                    doctorName = `Dr. ${doctorData.first_name} ${doctorData.last_name}`;
+                }
+            }
+
+            // Get hospital info
+            if (record.hospital_id) {
+                const { data: hospitalData } = await supabase
+                    .from('hospital_profiles')
+                    .select('hospital_name')
+                    .eq('id', record.hospital_id)
+                    .single();
+                if (hospitalData) {
+                    hospitalName = hospitalData.hospital_name;
+                }
+            }
+
+            return {
+                ...record,
+                doctor_name: doctorName,
+                hospital_name: hospitalName
+            };
+        })
+    );
+
+    return enrichedRecords;
+}
