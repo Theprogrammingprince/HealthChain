@@ -93,7 +93,7 @@ If rejected: (status: rejected, patient_rejection_reason stored)
 ### Phase 1 Remaining
 - [x] Item 1: Patient dashboard integration
 - [x] Item 2: Hospital approval workflow
-- [ ] Item 3: Display rejection reasons in patient/doctor views
+- [x] Item 3: Display rejection reasons in patient/doctor views
 - [ ] Item 4: Activity log integration when approving/rejecting
 
 ### Phase 2: Audit & Transparency
@@ -104,3 +104,30 @@ If rejected: (status: rejected, patient_rejection_reason stored)
 ### Phase 3: Emergency Summary
 - [ ] PDF export
 - [ ] QR code sharing
+
+---
+
+## Item 3: Rejection Reason Display ✅
+
+### Database Service Updates (`lib/database.service.ts`)
+Updated `getRecentDoctorSubmissions()` to:
+- Include `hospital_rejection_reason` and `patient_rejection_reason` fields
+- Add computed `rejection_reason` (first available reason)
+- Add `rejected_by` field ('hospital' or 'patient')
+- Enrich with patient names
+
+### Doctor Dashboard Updates (`app/doctor/dashboard/page.tsx`)
+Updated the recent submissions section to:
+- Display title instead of just record type
+- Show rejection reason box when status is 'rejected'
+- Indicate who rejected (hospital admin or patient)
+- Display the actual rejection reason quote
+
+### StatusBadge Component Updates (`components/ui/status-badge.tsx`)
+Updated to:
+- Handle snake_case database statuses (e.g., `pending_hospital_review`)
+- Normalize statuses for consistent matching
+- Use human-readable labels for display
+- Support additional statuses: `draft`, `archived`
+
+---
