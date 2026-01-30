@@ -1011,3 +1011,116 @@ export async function getAllHospitalSubmissions(hospitalId: string) {
 
     return enrichedRecords;
 }
+
+// ==================== ACTIVITY LOG OPERATIONS ====================
+
+/**
+ * Create an activity log entry
+ */
+export async function createActivityLog(
+    userId: string,
+    actor: string,
+    action: 'Viewed' | 'Downloaded' | 'Uploaded' | 'Access Granted' | 'Access Revoked' | 'Record Approved' | 'Record Rejected' | 'Emergency Access',
+    details?: string,
+    patientId?: string
+) {
+    // Generate a mock transaction hash (in production, this would be a real blockchain tx)
+    const txHash = '0x' + [...Array(40)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+
+    const { data, error } = await supabase
+        .from('activity_logs')
+        .insert({
+            user_id: userId,
+            patient_id: patientId || userId,
+            actor_name: actor,
+            actor: actor,
+            action: action,
+            details: details || '',
+            tx_hash: txHash
+        })
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error creating activity log:', error);
+        return null;
+    }
+
+    return data;
+}
+
+/**
+ * Log record approval by patient
+ */
+export async function logPatientRecordApproval(
+    patientId: string,
+    patientName: string,
+    recordTitle: string,
+    doctorName: string
+) {
+    return createActivityLog(
+        patientId,
+        patientName,
+        'Record Approved',
+        `Approved medical record "${recordTitle}" from ${doctorName}`,
+        patientId
+    );
+}
+
+/**
+ * Log record rejection by patient
+ */
+export async function logPatientRecordRejection(
+    patientId: string,
+    patientName: string,
+    recordTitle: string,
+    doctorName: string,
+    reason?: string
+) {
+    return createActivityLog(
+        patientId,
+        patientName,
+        'Record Rejected',
+        `Rejected medical record "${recordTitle}" from ${doctorName}${reason ? `. Reason: ${reason}` : ''}`,
+        patientId
+    );
+}
+
+/**
+ * Log record approval by hospital
+ */
+export async function logHospitalRecordApproval(
+    userId: string,
+    hospitalName: string,
+    recordTitle: string,
+    doctorName: string,
+    patientId: string
+) {
+    return createActivityLog(
+        userId,
+        hospitalName,
+        'Record Approved',
+        `Hospital approved record "${recordTitle}" from ${doctorName} for patient review`,
+        patientId
+    );
+}
+
+/**
+ * Log record rejection by hospital
+ */
+export async function logHospitalRecordRejection(
+    userId: string,
+    hospitalName: string,
+    recordTitle: string,
+    doctorName: string,
+    patientId: string,
+    reason?: string
+) {
+    return createActivityLog(
+        userId,
+        hospitalName,
+        'Record Rejected',
+        `Hospital rejected record "${recordTitle}" from ${doctorName}${reason ? `. Reason: ${reason}` : ''}`,
+        patientId
+    );
+}
