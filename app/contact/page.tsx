@@ -1,58 +1,51 @@
 'use client';
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Mail, MapPin, Phone, MessageSquare, Send, ChevronRight, Globe, Clock } from "lucide-react";
+import { Mail, MapPin, Phone, MessageSquare, Send, ChevronRight, Globe, Clock, Sparkles, Building2, Zap } from "lucide-react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function ContactPage() {
     return (
-        <div className="min-h-screen bg-black text-white selection:bg-blue-500/30">
-            {/* Hero Section */}
-            <section className="relative pt-32 pb-16 px-6 overflow-hidden">
-                <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
-                <div className="absolute bottom-0 left-1/4 w-64 h-64 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
+        <div className="min-h-screen bg-black text-white selection:bg-blue-500/30 font-sans">
+            {/* Massive Atmospheric Header */}
+            <section className="relative pt-48 pb-32 px-6 overflow-hidden border-b border-white/5">
+                <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-[140px] pointer-events-none" />
+                <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-emerald-600/5 rounded-full blur-[100px] pointer-events-none" />
+                <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
 
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="relative z-10 max-w-4xl mx-auto text-center"
+                    className="relative z-10 max-w-[1400px] mx-auto text-center space-y-8"
                 >
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.2 }}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-semibold mb-8 uppercase tracking-widest"
-                    >
-                        <MessageSquare className="w-4 h-4" />
-                        <span>Get In Touch</span>
-                    </motion.div>
+                    <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.3em]">
+                        <MessageSquare className="w-3 h-3" />
+                        <span>Communication Hub</span>
+                    </div>
 
-                    <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-8 bg-gradient-to-b from-white via-white/90 to-white/50 bg-clip-text text-transparent">
-                        Let&apos;s build the future <br />
-                        <span className="text-blue-500 italic font-serif">of healthcare together.</span>
+                    <h1 className="text-7xl md:text-9xl font-black tracking-tighter leading-none uppercase italic font-serif">
+                        Open <br /> <span className="text-blue-600 not-italic font-sans">Channels.</span>
                     </h1>
 
-                    <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
-                        Have questions about enterprise integration, security, or need clinical support? Our team is ready to assist you.
+                    <p className="text-xl md:text-2xl text-gray-500 max-w-2xl mx-auto leading-relaxed font-medium">
+                        Initialize a connection with the HealthChain coordination team for enterprise integration or clinical support.
                     </p>
                 </motion.div>
             </section>
 
-            <main className="max-w-[1200px] mx-auto px-6 py-12">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-                    {/* Left Column: Contact Info */}
-                    <motion.div
-                        initial={{ opacity: 0, x: -50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.8 }}
-                        className="space-y-12"
-                    >
+            <main className="max-w-[1400px] mx-auto px-6 py-32">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-24 items-start">
+                    {/* Left Column: Contact Info Architecture */}
+                    <div className="lg:col-span-5 space-y-16">
                         <div className="space-y-8">
-                            <h2 className="text-3xl font-bold text-white">Contact Information</h2>
-                            <p className="text-gray-400 text-lg leading-relaxed">
-                                Join the decentralized healthcare revolution. We &apos;re here to answer any questions you may have.
+                            <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter leading-tight">
+                                Protocol <br /> Information.
+                            </h2>
+                            <p className="text-gray-500 text-lg leading-relaxed font-medium max-w-md">
+                                Join the decentralized healthcare revolution. Our coordination nodes are global and operate across all time zones.
                             </p>
                         </div>
 
@@ -60,187 +53,161 @@ export default function ContactPage() {
                             {[
                                 {
                                     icon: Mail,
-                                    title: "Email Us",
+                                    title: "Clinical Exchange",
                                     details: ["support@healthchain.app", "partners@healthchain.app"],
                                     color: "text-blue-400",
                                     bgColor: "bg-blue-500/10"
                                 },
                                 {
-                                    icon: Phone,
-                                    title: "Call Us",
-                                    details: ["+1 (555) 000-HEALTH", "Mon-Fri, 9am - 6pm EST"],
-                                    color: "text-emerald-400",
-                                    bgColor: "bg-emerald-500/10"
-                                },
-                                {
-                                    icon: MapPin,
-                                    title: "Headquarters",
+                                    icon: Building2,
+                                    title: "Operations Base",
                                     details: ["123 Blockchain Ave, Suite 500", "San Francisco, CA 94103"],
                                     color: "text-purple-400",
                                     bgColor: "bg-purple-500/10"
                                 },
                                 {
                                     icon: Globe,
-                                    title: "Global Support",
-                                    details: ["24/7 Emergency Coverage", "Multilingual Assistance"],
-                                    color: "text-cyan-400",
-                                    bgColor: "bg-cyan-500/10"
+                                    title: "Network Nodes",
+                                    details: ["24/7 Global Coverage", "Multilingual Support"],
+                                    color: "text-emerald-400",
+                                    bgColor: "bg-emerald-500/10"
                                 }
                             ].map((item, i) => (
                                 <motion.div
                                     key={i}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.4 + (i * 0.1) }}
-                                    className="group flex items-start gap-6 p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-white/10 transition-all"
+                                    initial={{ opacity: 0, x: -20 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: i * 0.1 }}
+                                    className="group flex items-start gap-8 p-8 rounded-[2.5rem] bg-zinc-950/50 border border-white/5 hover:border-blue-500/20 hover:bg-zinc-900 transition-all duration-700"
                                 >
-                                    <div className={`p-4 rounded-2xl ${item.bgColor} group-hover:scale-110 transition-transform`}>
-                                        <item.icon className={`w-6 h-6 ${item.color}`} />
+                                    <div className={`p-5 rounded-2xl ${item.bgColor} group-hover:scale-110 transition-transform duration-500`}>
+                                        <item.icon className={`w-8 h-8 ${item.color}`} />
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold text-white text-lg mb-2">{item.title}</h3>
-                                        {item.details.map((line, j) => (
-                                            <p key={j} className="text-gray-400 leading-relaxed font-medium">
-                                                {line}
-                                            </p>
-                                        ))}
+                                    <div className="space-y-4">
+                                        <h3 className="font-black text-white text-xl uppercase tracking-tight">{item.title}</h3>
+                                        <div className="space-y-1">
+                                            {item.details.map((line, j) => (
+                                                <p key={j} className="text-gray-500 leading-relaxed font-medium">
+                                                    {line}
+                                                </p>
+                                            ))}
+                                        </div>
                                     </div>
                                 </motion.div>
                             ))}
                         </div>
-                    </motion.div>
+                    </div>
 
-                    {/* Right Column: Contact Form */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.8 }}
-                        className="relative"
-                    >
-                        <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-[2.5rem] blur opacity-20" />
-                        <div className="relative bg-zinc-950 border border-white/10 rounded-[2.5rem] p-8 md:p-12 overflow-hidden shadow-2xl">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-[80px] pointer-events-none" />
+                    {/* Right Column: Transmission Form Architecture */}
+                    <div className="lg:col-span-7 relative group">
+                        <div className="absolute -inset-4 bg-blue-600/5 rounded-[4rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="relative bg-zinc-950 border border-white/5 rounded-[3.5rem] p-12 md:p-16 overflow-hidden shadow-3xl">
+                            <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 rounded-full blur-[100px] pointer-events-none" />
 
-                            <form className="space-y-8 relative z-10" onSubmit={(e) => e.preventDefault()}>
-                                <div className="space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-3">
-                                            <label className="text-sm font-black uppercase tracking-widest text-gray-500">First Name</label>
+                            <form className="space-y-10 relative z-10" onSubmit={(e) => e.preventDefault()}>
+                                <div className="space-y-8">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-700">First Instance</label>
                                             <Input
                                                 placeholder="John"
-                                                className="bg-white/[0.03] border-white/5 focus:border-blue-500/50 h-14 rounded-xl px-6 text-white placeholder:text-gray-700 transition-all"
+                                                className="bg-white/[0.02] border-white/5 focus:border-blue-500/30 h-16 rounded-2xl px-8 text-white font-bold placeholder:text-gray-800 transition-all"
                                             />
                                         </div>
-                                        <div className="space-y-3">
-                                            <label className="text-sm font-black uppercase tracking-widest text-gray-500">Last Name</label>
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-700">Last Instance</label>
                                             <Input
                                                 placeholder="Doe"
-                                                className="bg-white/[0.03] border-white/5 focus:border-blue-500/50 h-14 rounded-xl px-6 text-white placeholder:text-gray-700 transition-all"
+                                                className="bg-white/[0.02] border-white/5 focus:border-blue-500/30 h-16 rounded-2xl px-8 text-white font-bold placeholder:text-gray-800 transition-all"
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="space-y-3">
-                                        <label className="text-sm font-black uppercase tracking-widest text-gray-500">Email Address</label>
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-700">Network Address (Email)</label>
                                         <Input
                                             placeholder="john@healthchain.app"
                                             type="email"
-                                            className="bg-white/[0.03] border-white/5 focus:border-blue-500/50 h-14 rounded-xl px-6 text-white placeholder:text-gray-700 transition-all"
+                                            className="bg-white/[0.02] border-white/5 focus:border-blue-500/30 h-16 rounded-2xl px-8 text-white font-bold placeholder:text-gray-800 transition-all"
                                         />
                                     </div>
 
-                                    <div className="space-y-3">
-                                        <label className="text-sm font-black uppercase tracking-widest text-gray-500">Subject</label>
-                                        <select className="flex h-14 w-full rounded-xl border border-white/5 bg-white/[0.03] px-6 py-2 text-white ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 transition-all appearance-none cursor-pointer">
-                                            <option className="bg-zinc-950 text-white" value="general">General Inquiry</option>
-                                            <option className="bg-zinc-950 text-white" value="partnership">Clinical Partnership</option>
-                                            <option className="bg-zinc-950 text-white" value="support">Patient Support</option>
-                                            <option className="bg-zinc-950 text-white" value="media">Media & Press</option>
-                                            <option className="bg-zinc-950 text-white" value="careers">Careers</option>
-                                        </select>
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-700">Inquiry Payload Type</label>
+                                        <div className="relative">
+                                            <select className="flex h-16 w-full rounded-2xl border border-white/5 bg-white/[0.02] px-8 py-2 text-white font-bold ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/20 transition-all appearance-none cursor-pointer">
+                                                <option className="bg-zinc-950 text-white" value="general">General Transmission</option>
+                                                <option className="bg-zinc-950 text-white" value="partnership">Clinical Node Partnership</option>
+                                                <option className="bg-zinc-950 text-white" value="support">Patient Recovery Support</option>
+                                                <option className="bg-zinc-950 text-white" value="media">Media & Global Press</option>
+                                            </select>
+                                            <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-gray-600">
+                                                <ChevronRight className="w-5 h-5 rotate-90" />
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div className="space-y-3">
-                                        <label className="text-sm font-black uppercase tracking-widest text-gray-500">Message</label>
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-700">Interaction Details</label>
                                         <Textarea
-                                            placeholder="How can we help you revolutionize your healthcare experience?"
-                                            className="min-h-[160px] bg-white/[0.03] border-white/5 focus:border-blue-500/50 rounded-2xl px-6 py-4 text-white placeholder:text-gray-700 transition-all resize-none"
+                                            placeholder="Describe your clinical or technical requirements..."
+                                            className="min-h-[200px] bg-white/[0.02] border-white/5 focus:border-blue-500/30 rounded-3xl px-8 py-6 text-white font-bold placeholder:text-gray-800 transition-all resize-none"
                                         />
                                     </div>
                                 </div>
 
-                                <Button className="w-full bg-blue-600 hover:bg-blue-500 text-white h-16 rounded-2xl font-bold text-lg shadow-[0_20px_40px_-10px_rgba(37,99,235,0.4)] hover:shadow-[0_25px_50px_-12px_rgba(37,99,235,0.5)] transition-all group">
-                                    Send Message
-                                    <Send className="ml-2 w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                                <Button className="w-full bg-blue-600 hover:bg-blue-500 text-white h-24 rounded-2xl font-black uppercase tracking-widest text-xl shadow-3xl shadow-blue-600/30 transition-all group overflow-hidden">
+                                    <span className="relative z-10 flex items-center gap-4">
+                                        Transmit Message
+                                        <Send className="w-6 h-6 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" />
+                                    </span>
                                 </Button>
 
-                                <p className="text-center text-xs text-gray-600 font-medium">
-                                    By submitting this form, you agree to our
-                                    <Link href="/privacy" className="text-blue-500 hover:text-blue-400 underline underline-offset-4 ml-1">Privacy Policy</Link>
-                                </p>
+                                <div className="flex items-center justify-center gap-3 text-[10px] font-black text-gray-700 uppercase tracking-widest">
+                                    <Zap className="w-3 h-3 text-blue-500" />
+                                    <span>Encrypted Transmission Enabled</span>
+                                </div>
                             </form>
                         </div>
-                    </motion.div>
+                    </div>
                 </div>
             </main>
 
-            {/* Global Presence Section */}
-            <section className="py-24 px-6 relative overflow-hidden bg-gradient-to-b from-transparent via-zinc-900/50 to-transparent">
-                <div className="max-w-[1200px] mx-auto text-center">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="space-y-8"
-                    >
-                        <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white mb-8">
-                            Global Presence, <br />
-                            <span className="text-emerald-500">Localized Support.</span>
-                        </h2>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                            {[
-                                { city: "New York", country: "Americas", time: "EST" },
-                                { city: "London", country: "Europe", time: "GMT" },
-                                { city: "Singapore", country: "Asia Pacific", time: "SGT" },
-                                { city: "Lagos", country: "Africa", time: "WAT" }
-                            ].map((office, i) => (
-                                <div key={i} className="space-y-2">
-                                    <p className="text-white font-bold text-lg">{office.city}</p>
-                                    <p className="text-gray-500 text-sm font-medium uppercase tracking-widest">{office.country}</p>
-                                    <div className="flex items-center justify-center gap-2 text-xs text-emerald-500 font-mono">
-                                        <Clock className="w-3 h-3" />
-                                        <span>{office.time} Coverage</span>
-                                    </div>
+            {/* Global Distribution Visualization */}
+            <section className="py-32 bg-zinc-950/20 backdrop-blur-3xl border-y border-white/5">
+                <div className="max-w-[1400px] mx-auto px-6">
+                    <div className="text-center mb-24 space-y-6">
+                        <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter">Global <span className="text-blue-500">Nodes.</span></h2>
+                        <p className="text-gray-500 text-lg font-medium">Active support coordination centers across the protocol.</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
+                        {[
+                            { city: "San Francisco", region: "Americas", status: "Active" },
+                            { city: "London", region: "Europe", status: "Active" },
+                            { city: "Singapore", region: "Asia Pacific", status: "Active" },
+                            { city: "Lagos", region: "Africa", status: "Active" }
+                        ].map((node, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: i * 0.1 }}
+                                className="p-10 rounded-[2.5rem] bg-black border border-white/5 text-center group hover:border-blue-500/20 transition-all"
+                            >
+                                <div className="w-3 h-3 bg-blue-500 rounded-full mx-auto mb-6 shadow-3xl shadow-blue-500/50 animate-pulse" />
+                                <h4 className="text-2xl font-black text-white uppercase tracking-tighter mb-1">{node.city}</h4>
+                                <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] mb-4">{node.region}</p>
+                                <div className="flex items-center justify-center gap-2 text-[9px] font-black text-blue-500/50 uppercase tracking-widest">
+                                    <Clock className="w-3 h-3" />
+                                    <span>24/7 Operational</span>
                                 </div>
-                            ))}
-                        </div>
-                    </motion.div>
+                            </motion.div>
+                        ))}
+                    </div>
                 </div>
-            </section>
-
-            {/* FAQ CTA */}
-            <section className="py-20 px-6">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    className="max-w-4xl mx-auto rounded-[3rem] bg-gradient-to-br from-blue-600 to-indigo-700 p-8 md:p-16 text-center shadow-2xl relative overflow-hidden"
-                >
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[40px] -translate-y-1/2 translate-x-1/2" />
-
-                    <h2 className="text-3xl md:text-5xl font-black text-white mb-6 leading-tight">
-                        Check our Frequently <br /> Asked Questions
-                    </h2>
-                    <p className="text-blue-100 text-lg mb-10 max-w-xl mx-auto">
-                        Find instant answers to common questions about security, integration, and patient data management.
-                    </p>
-                    <Link href="/faq">
-                        <Button className="bg-white text-blue-600 hover:bg-blue-50 rounded-full px-10 h-16 text-lg font-black shadow-xl transition-all group">
-                            Visit Help Center
-                            <ChevronRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                        </Button>
-                    </Link>
-                </motion.div>
             </section>
         </div>
     );

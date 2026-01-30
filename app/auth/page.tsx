@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Lock, ArrowLeft, Shield, Zap, Database } from "lucide-react";
+import { Activity, Lock, ArrowLeft, Shield, Zap, Database, ChevronRight, Globe, Fingerprint } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GoogleLoginButton } from "@/components/features/GoogleLoginButton";
 import { WalletConnectButton } from "@/components/features/WalletConnectButton";
@@ -12,171 +12,178 @@ import { useState, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import { useAccount } from "wagmi";
 
-
 export default function AuthPage() {
     const { isConnected } = useAccount();
     const router = useRouter();
     const [role, setRole] = useState<'Patient' | 'Hospital' | 'Doctor'>('Patient');
     const [mode, setMode] = useState<"login" | "signup">("login");
-    const { } = useAppStore();
 
     useEffect(() => {
-        // Sync role to localStorage so other auth components can access it
         localStorage.setItem('healthchain_intended_role', role.toLowerCase());
     }, [role]);
 
     const benefits = {
         Patient: [
-            { icon: Shield, text: "Self-Sovereign Identity" },
-            { icon: Lock, text: "End-to-End Encryption" },
-            { icon: Database, text: "Full Data Portability" }
+            { icon: Shield, text: "Self-Sovereign Identity", desc: "You own the keys to your data." },
+            { icon: Lock, text: "End-to-End Encryption", desc: "Pure client-side AES-256 security." },
+            { icon: Database, text: "Full Data Portability", desc: "Your records, wherever you go." }
         ],
         Hospital: [
-            { icon: Zap, text: "Real-time Interoperability" },
-            { icon: Shield, text: "HIPAA Compliant Node" },
-            { icon: Database, text: "Audited Case History" }
+            { icon: Zap, text: "Real-time Interop", desc: "Instant clinical data synchronization." },
+            { icon: Globe, text: "HIPAA Compliant Node", desc: "Built for regulatory excellence." },
+            { icon: Activity, text: "Audited Case History", desc: "Transparent, immutable trails." }
         ],
         Doctor: [
-            { icon: Activity, text: "Seamless Documentation" },
-            { icon: Shield, text: "Verified Credentials" },
-            { icon: Zap, text: "Instant Portability" }
-        ],
-        Admin: [
-            { icon: Shield, text: "Network Governance" },
-            { icon: Activity, text: "System Monitoring" },
-            { icon: Lock, text: "Permission Control" }
+            { icon: Fingerprint, text: "Verified Credentials", desc: "On-chain professional verification." },
+            { icon: Activity, text: "Seamless Documentation", desc: "EHR-agnostic data entry." },
+            { icon: Shield, text: "Instant Portability", desc: "Access records across facilities." }
         ]
     };
 
     return (
-        <div className="min-h-screen bg-[#0A0A0A] text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
-            {/* Background Ambience */}
-            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-900/10 rounded-full blur-[100px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/10 rounded-full blur-[100px]" />
+        <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 relative overflow-hidden selection:bg-blue-500/30">
+            {/* Cinematic Background */}
+            <div className="fixed inset-0 pointer-events-none">
+                <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[120px] animate-pulse" />
+                <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[100px]" />
+                <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
             </div>
 
-            <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-gray-500 hover:text-white transition-colors group z-20">
-                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                <span className="text-[10px] font-black uppercase tracking-widest">Back to Hub</span>
+            <Link href="/" className="absolute top-8 left-8 flex items-center gap-3 text-gray-500 hover:text-white transition-all group z-50">
+                <div className="p-2 rounded-lg bg-white/5 border border-white/10 group-hover:border-blue-500/30 transition-all">
+                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Return to Hub</span>
             </Link>
 
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10"
-            >
-                {/* Left Side: Dynamic Info */}
-                <div className="hidden lg:block space-y-8 pr-12">
+            <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
+                {/* Left Side: Strategic Info */}
+                <div className="hidden lg:block space-y-12 pr-12">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={role}
-                            initial={{ opacity: 0, x: -20 }}
+                            initial={{ opacity: 0, x: -30 }}
                             animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 20 }}
-                            className="space-y-6"
+                            exit={{ opacity: 0, x: 30 }}
+                            className="space-y-10"
                         >
-                            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500/10 to-blue-500/10 rounded-2xl flex items-center justify-center border border-white/10 backdrop-blur-xl">
-                                <Activity className="w-8 h-8 text-indigo-400" />
+                            <div className="space-y-4">
+                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-widest">
+                                    <Activity className="w-3 h-3" />
+                                    <span>Protocol Access</span>
+                                </div>
+                                <h2 className="text-6xl md:text-8xl font-black tracking-tighter leading-none">
+                                    {role === 'Patient' ? 'Patient' : role === 'Hospital' ? 'Clinical' : 'Doctor'} <br />
+                                    <span className="text-blue-500 italic font-serif">Intelligence.</span>
+                                </h2>
+                                <p className="text-xl text-gray-500 font-medium leading-relaxed max-w-md">
+                                    {role === 'Patient'
+                                        ? "Own your health history. Manage approvals and access clinical providers on your own terms."
+                                        : role === 'Hospital'
+                                            ? "Deploy high-performance clinical infrastructure with sovereign data security standards."
+                                            : "Bridge the gap with secure documnetation and instant record access across the network."}
+                                </p>
                             </div>
-                            <h2 className="text-5xl font-black tracking-tighter uppercase leading-none">
-                                {role === 'Patient' ? 'Patient' : role === 'Hospital' ? 'Clinical' : role === 'Doctor' ? 'Professional' : 'Admin'} <br />
-                                <span className="bg-gradient-to-r from-indigo-400 to-blue-500 bg-clip-text text-transparent">Intelligence</span>
-                            </h2>
-                            <p className="text-gray-500 font-medium text-lg leading-relaxed max-w-md">
-                                {role === 'Patient'
-                                    ? "Securely manage your medical history, own your data, and grant access to providers on your terms."
-                                    : role === 'Hospital'
-                                        ? "Connect with patients in real-time, maintain HIPAA compliance, and streamline clinical workflows."
-                                        : role === 'Doctor'
-                                            ? "Bridge the gap between patients and hospitals with secure documentation and verified credentials."
-                                            : "Oversee the HealthChain protocol, manage hospital verifications, and monitor network health."}
-                            </p>
 
-                            <div className="space-y-4 pt-4">
+                            <div className="grid gap-4 max-w-md">
                                 {benefits[role].map((benefit, i) => (
-                                    <div
+                                    <motion.div
                                         key={i}
-                                        className="flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: i * 0.1 }}
+                                        className="flex items-start gap-5 p-6 bg-white/[0.02] border border-white/5 rounded-[2rem] backdrop-blur-sm group hover:bg-white/[0.04] transition-all"
                                     >
-                                        <div className="p-2 bg-indigo-500/10 rounded-lg">
-                                            <benefit.icon className="w-5 h-5 text-indigo-400" />
+                                        <div className="p-3 bg-blue-500/10 rounded-xl group-hover:scale-110 transition-transform">
+                                            <benefit.icon className="w-6 h-6 text-blue-400" />
                                         </div>
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">{benefit.text}</span>
-                                    </div>
+                                        <div>
+                                            <h4 className="font-bold text-white text-sm mb-1">{benefit.text}</h4>
+                                            <p className="text-gray-500 text-xs font-medium">{benefit.desc}</p>
+                                        </div>
+                                    </motion.div>
                                 ))}
                             </div>
                         </motion.div>
                     </AnimatePresence>
                 </div>
 
-                {/* Right Side: Auth Card */}
+                {/* Right Side: Auth Architecture */}
                 <div className="w-full max-w-md mx-auto">
-                    <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group">
-                        {/* Shimmer Effect */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-blue-500/5 pointer-events-none" />
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-zinc-950 border border-white/10 p-10 md:p-12 rounded-[3.5rem] shadow-2xl relative overflow-hidden group"
+                    >
+                        {/* Shimmer Ambient */}
+                        <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-blue-500/20 transition-all duration-700" />
 
-                        <div className="relative z-10 space-y-8">
-                            <div className="text-center">
-                                <h1 className="text-3xl font-black tracking-tighter uppercase mb-2">
-                                    {mode === "login" ? "Initialize Protocol" : "Join the Network"}
+                        <div className="relative z-10 space-y-10 text-center">
+                            <div className="space-y-2">
+                                <h1 className="text-3xl font-black tracking-tight uppercase leading-none">
+                                    {mode === "login" ? "Initialize Access" : "Network Enrollment"}
                                 </h1>
-                                <p className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em]">
-                                    Secure Medical Infrastructure
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-600">
+                                    Protocol Version 2.4.0
                                 </p>
                             </div>
 
                             <Tabs defaultValue="Patient" onValueChange={(v) => setRole(v as any)} className="w-full">
-                                <TabsList className="grid w-full grid-cols-3 bg-black/40 p-1 rounded-2xl border border-white/5">
-                                    <TabsTrigger value="Patient" className="rounded-xl data-[state=active]:bg-[#00BFFF] data-[state=active]:text-black text-gray-500 font-bold uppercase text-[9px] tracking-widest transition-all h-9">
+                                <TabsList className="grid w-full grid-cols-3 bg-black/50 p-1.5 rounded-2xl border border-white/5">
+                                    <TabsTrigger value="Patient" className="rounded-xl data-[state=active]:bg-white data-[state=active]:text-black text-[9px] font-black uppercase tracking-widest h-10 transition-all">
                                         Patient
                                     </TabsTrigger>
-                                    <TabsTrigger value="Doctor" className="rounded-xl data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-gray-500 font-bold uppercase text-[9px] tracking-widest transition-all h-9">
+                                    <TabsTrigger value="Doctor" className="rounded-xl data-[state=active]:bg-white data-[state=active]:text-black text-[9px] font-black uppercase tracking-widest h-10 transition-all">
                                         Doctor
                                     </TabsTrigger>
-                                    <TabsTrigger value="Hospital" className="rounded-xl data-[state=active]:bg-indigo-500 data-[state=active]:text-white text-gray-500 font-bold uppercase text-[9px] tracking-widest transition-all h-9">
+                                    <TabsTrigger value="Hospital" className="rounded-xl data-[state=active]:bg-white data-[state=active]:text-black text-[9px] font-black uppercase tracking-widest h-10 transition-all">
                                         Clinical
                                     </TabsTrigger>
                                 </TabsList>
                             </Tabs>
 
-                            <div className="space-y-6">
+                            <div className="space-y-8 text-left">
                                 <EmailAuthForm mode={mode} role={role as any} />
 
                                 <div className="text-center">
                                     <button
                                         onClick={() => setMode(mode === "login" ? "signup" : "login")}
-                                        className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors"
+                                        className="text-[10px] font-bold uppercase tracking-[0.1em] text-gray-400 hover:text-white transition-colors"
                                     >
-                                        {mode === "login" ? (role === 'Doctor' ? "Apply for professional access?" : "Need a medical profile?") : "Already verified?"} {mode === "login" ? "Create Account" : "Sign In"}
+                                        {mode === "login" ? "Request a new medical profile?" : "Already verified on the network?"}
+                                        <span className="text-blue-500 ml-1">{mode === "login" ? "Create Account" : "Sign In"}</span>
                                     </button>
                                 </div>
                             </div>
 
                             <div className="relative">
                                 <div className="absolute inset-0 flex items-center">
-                                    <span className="w-full border-t border-white/10" />
+                                    <span className="w-full border-t border-white/5" />
                                 </div>
-                                <div className="relative flex justify-center text-[9px] uppercase tracking-[0.3em] font-black">
-                                    <span className="bg-[#121212] px-4 text-gray-600">Advanced Access</span>
+                                <div className="relative flex justify-center text-[9px] uppercase tracking-[0.4em] font-black">
+                                    <span className="bg-zinc-950 px-6 text-gray-700">Advanced Auth</span>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 gap-4">
                                 <GoogleLoginButton role={role} />
                                 <WalletConnectButton />
                             </div>
 
-                            {/* Trust Badge */}
-                            <div className="pt-6 border-t border-white/5 flex items-center justify-center gap-2 text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                                <Lock className="w-3 h-3" />
-                                <span>End-to-End Encrypted Node</span>
+                            {/* Verification Footer */}
+                            <div className="pt-8 border-t border-white/5 flex flex-col items-center gap-4">
+                                <div className="flex items-center gap-3 text-[9px] text-gray-600 font-black uppercase tracking-widest">
+                                    <Lock className="w-3 h-3 text-emerald-500/50" />
+                                    <span>Encrypted Handshake Active</span>
+                                </div>
+                                <p className="text-[10px] text-gray-700 max-w-xs leading-relaxed font-medium">
+                                    Accessing the HealthChain mainnet requires a verified digital wallet or clinical email address.
+                                </p>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
-            </motion.div>
+            </div>
         </div>
     );
 }
