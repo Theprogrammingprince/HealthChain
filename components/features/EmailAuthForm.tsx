@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
@@ -16,12 +17,11 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
-import { Loader2, Mail, Lock, CheckCircle2, ArrowRight, Stethoscope, ShieldCheck } from "lucide-react";
+import { Loader2, Mail, Lock, CheckCircle2, ArrowRight, Stethoscope, ShieldCheck, Activity, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import { resolveRoute } from "@/lib/routing";
-import { getAllHospitals } from "@/lib/database.service";
 import {
     Select,
     SelectContent,
@@ -38,6 +38,7 @@ const authSchema = z.object({
     consent: z.boolean(),
     hospitalAffiliation: z.string().optional(),
     medicalLicense: z.string().optional(),
+    specialty: z.string().optional().default("General Practice"),
 });
 
 type AuthFormData = z.infer<typeof authSchema>;
@@ -52,6 +53,8 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
     const [isLoading, setIsLoading] = useState(false);
     const [hospitals, setHospitals] = useState<{ id: string, hospital_name: string }[]>([]);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [resendCooldown, setResendCooldown] = useState(0);
+    const [isResending, setIsResending] = useState(false);
     const router = useRouter();
     const { setUserRole } = useAppStore();
 
@@ -63,6 +66,7 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
             consent: false,
             hospitalAffiliation: "",
             medicalLicense: "",
+            specialty: "General Practice",
         },
     });
 
@@ -70,8 +74,13 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
         if (mode === "signup" && role === "Doctor") {
             const fetchHospitals = async () => {
                 try {
-                    const data = await getAllHospitals();
-                    setHospitals(data || []);
+                    const res = await fetch('/api/hospitals');
+                    const json = await res.json();
+                    if (json.success) {
+                        setHospitals(json.data || []);
+                    } else {
+                        console.error("Failed to fetch hospitals:", json.error);
+                    }
                 } catch (err) {
                     console.error("Failed to fetch hospitals:", err);
                 }
@@ -79,6 +88,51 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
             fetchHospitals();
         }
     }, [mode, role]);
+
+    // Cooldown timer effect
+    useEffect(() => {
+        if (resendCooldown > 0) {
+            const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [resendCooldown]);
+
+    // Start cooldown when success screen is shown
+    useEffect(() => {
+        if (showSuccess) {
+            setResendCooldown(60); // 60 seconds initial cooldown
+        }
+    }, [showSuccess]);
+
+    const handleResendEmail = async () => {
+        const email = form.getValues('email');
+        if (!email) return;
+
+        setIsResending(true);
+        try {
+            const { error } = await supabase.auth.resend({
+                type: 'signup',
+                email: email,
+                options: {
+                    emailRedirectTo: `${window.location.origin}/auth/callback`,
+                }
+            });
+
+            if (error) throw error;
+
+            toast.success("Verification email sent!", {
+                description: "Please check your inbox and spam folder."
+            });
+            setResendCooldown(60); // Reset cooldown after successful resend
+        } catch (error: any) {
+            console.error("Resend error:", error);
+            toast.error("Failed to resend email", {
+                description: error.message || "Please try again later."
+            });
+        } finally {
+            setIsResending(false);
+        }
+    };
 
     const onSubmit = async (data: AuthFormData) => {
         if (mode === "signup" && !data.consent) {
@@ -95,15 +149,27 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
         setIsLoading(true);
         try {
             if (mode === "signup") {
+                // Store all role-specific data in user_metadata so it's available in callback
+                const userMetadata: Record<string, unknown> = {
+                    role: role.toLowerCase(),
+                    consent_at: new Date().toISOString(),
+                };
+
+                // Add doctor-specific metadata
+                if (role === "Doctor") {
+                    userMetadata.first_name = data.email.split('@')[0];
+                    userMetadata.last_name = "MD";
+                    userMetadata.medical_license = data.medicalLicense;
+                    userMetadata.specialty = data.specialty || "General Practice";
+                    userMetadata.hospital_id = data.hospitalAffiliation;
+                }
+
                 const { data: authData, error: authError } = await supabase.auth.signUp({
                     email: data.email,
                     password: data.password,
                     options: {
                         emailRedirectTo: `${window.location.origin}/auth/callback`,
-                        data: {
-                            role: role.toLowerCase(),
-                            consent_at: new Date().toISOString(),
-                        },
+                        data: userMetadata,
                     },
                 });
 
@@ -111,6 +177,7 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
 
                 if (authData.user) {
                     // Call registration API to create profile
+                    const session = authData.session;
                     const registrationData = {
                         userId: authData.user.id,
                         email: data.email,
@@ -122,16 +189,27 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                         ...(role === "Doctor" && {
                             medicalLicenseNumber: data.medicalLicense,
                             primaryHospitalId: data.hospitalAffiliation,
+                            specialty: data.specialty,
                             firstName: data.email.split('@')[0],
-                            lastName: "Doctor"
+                            lastName: "MD"
                         })
                     };
 
-                    await fetch("/api/auth/register", {
+                    const response = await fetch("/api/auth/register", {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
+                        headers: {
+                            "Content-Type": "application/json",
+                            ...(session?.access_token && { "Authorization": `Bearer ${session.access_token}` })
+                        },
                         body: JSON.stringify(registrationData),
                     });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        const errorMsg = errorData.message || errorData.error || 'Failed to create system profile';
+                        if (errorData.details) console.error("Reg details:", errorData.details);
+                        throw new Error(errorMsg);
+                    }
 
                     // Update store
                     setUserRole(role);
@@ -186,7 +264,7 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
         } catch (error: unknown) {
             console.error("Auth error:", error);
             toast.error(mode === "signup" ? "Signup Failed" : "Login Failed", {
-                description: error.message,
+                description: error.message || (error as any).details,
             });
         } finally {
             setIsLoading(false);
@@ -245,6 +323,27 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                     <span className="text-[10px] font-black uppercase tracking-widest mr-2">Return to Hub</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
+
+                {/* Resend Email Button */}
+                <div className="pt-4 border-t border-white/5">
+                    <p className="text-[10px] text-gray-600 mb-3 uppercase tracking-widest font-bold">
+                        Didn't receive the email?
+                    </p>
+                    <Button
+                        onClick={handleResendEmail}
+                        variant="outline"
+                        disabled={resendCooldown > 0 || isResending}
+                        className="w-full border-white/10 hover:bg-white/5 text-gray-400 hover:text-white disabled:opacity-50"
+                    >
+                        {isResending ? (
+                            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...</>
+                        ) : resendCooldown > 0 ? (
+                            <><RefreshCw className="w-4 h-4 mr-2" /> Resend in {resendCooldown}s</>
+                        ) : (
+                            <><RefreshCw className="w-4 h-4 mr-2" /> Resend Verification Email</>
+                        )}
+                    </Button>
+                </div>
             </div>
         );
     }
@@ -253,7 +352,7 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
-                    control={form.control}
+                    control={form.control as any}
                     name="email"
                     render={({ field }) => (
                         <FormItem>
@@ -273,7 +372,7 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                     )}
                 />
                 <FormField
-                    control={form.control}
+                    control={form.control as any}
                     name="password"
                     render={({ field }) => (
                         <FormItem>
@@ -301,7 +400,7 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                         className="space-y-4 pt-2"
                     >
                         <FormField
-                            control={form.control}
+                            control={form.control as any}
                             name="hospitalAffiliation"
                             render={({ field }) => (
                                 <FormItem>
@@ -334,7 +433,7 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                             )}
                         />
                         <FormField
-                            control={form.control}
+                            control={form.control as any}
                             name="medicalLicense"
                             render={({ field }) => (
                                 <FormItem>
@@ -353,12 +452,42 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                                 </FormItem>
                             )}
                         />
+                        <FormField
+                            control={form.control as any}
+                            name="specialty"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Area of Specialty</FormLabel>
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                    >
+                                        <FormControl>
+                                            <div className="relative">
+                                                <Activity className="absolute left-3 top-3 h-4 w-4 z-10 text-gray-500" />
+                                                <SelectTrigger className="bg-white/5 border-white/10 pl-10 focus:border-indigo-500 h-10 w-full">
+                                                    <SelectValue placeholder="Select Specialty" />
+                                                </SelectTrigger>
+                                            </div>
+                                        </FormControl>
+                                        <SelectContent className="bg-[#0A0A0A] border-white/10 text-white">
+                                            {["General Practice", "Cardiology", "Neurology", "Pediatrics", "Oncology", "Surgery", "Radiology", "Dermatology", "Psychiatry", "Other"].map((spec) => (
+                                                <SelectItem key={spec} value={spec} className="focus:bg-white/5 cursor-pointer">
+                                                    {spec}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     </motion.div>
                 )}
 
                 {mode === "signup" && (
                     <FormField
-                        control={form.control}
+                        control={form.control as any}
                         name="consent"
                         render={({ field }) => (
                             <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-white/5 bg-white/5 p-4">
@@ -390,6 +519,10 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                         mode === "signup" ? "Create Account" : "Sign In"
                     )}
                 </Button>
+
+                <p className="text-center text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-4">
+                    Need assistance? <Link href="/support" className="text-indigo-400 hover:text-indigo-300">Contact Protocol Support</Link>
+                </p>
             </form>
         </Form>
     );

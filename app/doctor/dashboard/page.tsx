@@ -14,7 +14,10 @@ import {
     ClipboardCheck,
     Loader2,
     Search,
-    Filter
+    Filter,
+    LifeBuoy,
+    AlertCircle,
+    ArrowRight
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
@@ -164,6 +167,12 @@ export default function DoctorDashboard() {
                                 >
                                     <Settings className="w-4 h-4 mr-2" /> Profile Settings
                                 </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={() => router.push('/support')}
+                                    className="focus:bg-white/5 cursor-pointer rounded-xl p-3"
+                                >
+                                    <LifeBuoy className="w-4 h-4 mr-2" /> Protocol Support
+                                </DropdownMenuItem>
                                 <DropdownMenuItem className="focus:bg-red-500/10 cursor-pointer rounded-xl p-3 text-red-500" onClick={handleLogout}>
                                     <LogOut className="w-4 h-4 mr-2" /> End Session
                                 </DropdownMenuItem>
@@ -200,6 +209,37 @@ export default function DoctorDashboard() {
                             </div>
                         </div>
                     </motion.div>
+
+                    {/* Profile Completion Banner */}
+                    {profile && (!profile.phone || !profile.years_of_experience || profile.verification_status === 'pending') && (
+                        <motion.div
+                            variants={itemVariants}
+                            className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10 border border-indigo-500/20 rounded-2xl p-5"
+                        >
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-12 h-12 bg-indigo-500/20 rounded-xl flex items-center justify-center shrink-0">
+                                        <AlertCircle className="w-6 h-6 text-indigo-400" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-white text-lg">Complete Your Profile</h3>
+                                        <p className="text-gray-400 text-sm mt-1">
+                                            {profile.verification_status === 'pending'
+                                                ? 'Your profile is under review. Complete all details to expedite verification.'
+                                                : 'Add your phone number and experience to enable full verification.'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <Button
+                                    onClick={() => router.push('/doctor/settings')}
+                                    className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold px-6 shrink-0"
+                                >
+                                    Complete Profile
+                                    <ArrowRight className="w-4 h-4 ml-2" />
+                                </Button>
+                            </div>
+                        </motion.div>
+                    )}
 
                     {/* Stats Grid */}
                     <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

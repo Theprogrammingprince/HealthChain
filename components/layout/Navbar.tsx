@@ -20,6 +20,7 @@ export function Navbar() {
         { href: "/clinical/dashboard", label: "Hospital", className: "text-indigo-400 hover:text-indigo-300" },
         { href: "/admin/dashboard", label: "Admin", className: "text-blue-400 hover:text-blue-300" },
         { href: "/emergency", label: "Emergency", className: "text-red-500 hover:text-red-400" },
+        { href: "/support", label: "Support", className: "text-emerald-400 hover:text-emerald-300" },
     ];
 
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

@@ -12,10 +12,12 @@ import {
     Settings,
     ArrowRight,
     Lock,
-    Plus
+    Plus,
+    LifeBuoy
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { PatientSearchBar } from "@/components/dashboard/PatientSearchBar";
 import { BreakGlassDialog } from "@/components/dashboard/BreakGlassDialog";
@@ -24,6 +26,7 @@ import { StaffManagementTable } from "@/components/dashboard/StaffManagementTabl
 import { VitalsTimeline } from "@/components/dashboard/VitalsTimeline";
 import { ActivityLogTable } from "@/components/dashboard/ActivityLogTable";
 import { DoctorSubmissionTable } from "@/components/dashboard/DoctorSubmissionTable";
+import { HospitalArrivalsTable } from "@/components/dashboard/HospitalArrivalsTable";
 import { AccessDeniedScreen } from "@/components/dashboard/AccessDeniedScreen";
 import { HospitalDashboardGuard } from "@/components/dashboard/HospitalDashboardGuard";
 import { VerificationStatusBanner } from "@/components/dashboard/VerificationStatusBanner";
@@ -192,6 +195,13 @@ export default function ClinicalDashboardPage() {
                                         >
                                             <Settings className="w-4 h-4 mr-2" /> Hospital Settings
                                         </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            className="focus:bg-white/5 cursor-pointer rounded-xl p-3"
+                                            onClick={() => router.push('/support')}
+                                        >
+                                            <LifeBuoy className="w-4 h-4 mr-2" /> Protocol Support
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator className="bg-white/10" />
                                         <DropdownMenuItem className="focus:bg-red-500/10 cursor-pointer rounded-xl p-3 text-red-500" onClick={handleLogout}>
                                             <LogOut className="w-4 h-4 mr-2" /> End Shift
                                         </DropdownMenuItem>
@@ -248,6 +258,11 @@ export default function ClinicalDashboardPage() {
                                     {currentStaff?.role === 'Admin' && (
                                         <TabsTrigger value="submissions" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white rounded-xl transition-all font-black px-10 py-3 uppercase text-xs tracking-widest">
                                             Doctor Submissions
+                                        </TabsTrigger>
+                                    )}
+                                    {currentStaff?.role === 'Admin' && (
+                                        <TabsTrigger value="arrivals" className="data-[state=active]:bg-amber-500 data-[state=active]:text-black rounded-xl transition-all font-black px-10 py-3 uppercase text-xs tracking-widest">
+                                            Clinical Arrivals
                                         </TabsTrigger>
                                     )}
                                 </TabsList>
@@ -345,6 +360,12 @@ export default function ClinicalDashboardPage() {
                                         <StaffManagementTable />
                                     </motion.section>
                                 </TabsContent>
+
+                                <TabsContent value="arrivals" className="space-y-10">
+                                    <motion.section variants={itemVariants}>
+                                        <HospitalArrivalsTable />
+                                    </motion.section>
+                                </TabsContent>
                             </Tabs>
 
                         </motion.div>
@@ -360,7 +381,7 @@ export default function ClinicalDashboardPage() {
                                 FERPA/HIPAA Compliant Node Interaction • Cryptographic Session: {walletAddress?.slice(0, 16)}... • Polygon Mainnet Layer
                             </p>
                             <div className="flex items-center gap-6">
-                                <button className="text-[10px] font-black text-gray-600 hover:text-indigo-400 uppercase tracking-widest transition-colors">Clinical Support</button>
+                                <Link href="/support" className="text-[10px] font-black text-gray-600 hover:text-indigo-400 uppercase tracking-widest transition-colors">Support Center</Link>
                                 <button className="text-[10px] font-black text-gray-600 hover:text-indigo-400 uppercase tracking-widest transition-colors">Smart Contract Audit</button>
                             </div>
                         </div>

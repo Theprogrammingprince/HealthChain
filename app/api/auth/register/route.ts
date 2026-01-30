@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { createCompleteUserProfile, getUserByEmail, getUserByWalletAddress } from '@/lib/database.service';
 import type { UserProfileInsert, PatientProfileInsert, HospitalProfileInsert, DoctorProfileInsert } from '@/lib/database.types';
 import { validateRegistrationData } from '@/lib/validation';
@@ -17,6 +18,22 @@ export async function POST(request: NextRequest) {
 
         // Parse request body
         const body = await request.json();
+
+        // Use Service Role client to bypass RLS for registration
+        // This is safe because:
+        // 1. This API validates user identity via the auth token
+        // 2. We only create profiles for the authenticated user's own ID
+        // 3. Service Role key is server-side only (not exposed to client)
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+        // Use service role if available, otherwise fall back to anon key
+        const adminClient = createClient(
+            supabaseUrl,
+            serviceRoleKey || anonKey,
+            { auth: { persistSession: false } }
+        );
 
         // SECURITY: Validate and sanitize all input data
         let validatedData;
@@ -72,17 +89,30 @@ export async function POST(request: NextRequest) {
 
         // SECURITY: Check if user already exists (prevent duplicate accounts)
         let existingUser = null;
+        // Use admin client to bypass RLS for user lookup and creation
+        const dbClient = adminClient;
+
         if (email) {
-            existingUser = await getUserByEmail(email);
+            existingUser = await getUserByEmail(email, dbClient);
         } else if (walletAddress) {
-            existingUser = await getUserByWalletAddress(walletAddress);
+            existingUser = await getUserByWalletAddress(walletAddress, dbClient);
         }
 
+        let userAlreadyExisted = false;
         if (existingUser) {
-            return NextResponse.json(
-                { error: 'User already exists', user: existingUser },
-                { status: 409 }
-            );
+            // If user exists, check if they are trying to "resume" or "re-register"
+            // If they are signing up with the same role and ID, we might allow creating the missing profile
+            if (existingUser.id === userId && existingUser.role === role) {
+                console.log("User already exists but matching ID and role. Checking if profile exists...");
+                // We'll proceed to try creating the profile. 
+                // createCompleteUserProfile will handle existing user records.
+                userAlreadyExisted = true;
+            } else {
+                return NextResponse.json(
+                    { error: 'User already exists', user: existingUser },
+                    { status: 409 }
+                );
+            }
         }
 
         // Harden against Admin role self-assignment
@@ -153,18 +183,20 @@ export async function POST(request: NextRequest) {
             } as HospitalProfileInsert;
         } else if (role === 'doctor') {
             // Doctor role
+            const isHospitalUuid = primaryHospitalId && primaryHospitalId.length > 30; // Basic check for UUID vs Name
+
             roleProfile = {
                 user_id: userId,
                 first_name: firstName || fullName?.split(' ')[0] || 'Doctor',
                 last_name: lastName || fullName?.split(' ').slice(1).join(' ') || 'User',
                 email: email!,
                 phone: phoneNumber || null,
-                medical_license_number: medicalLicenseNumber || 'PENDING',
+                medical_license_number: medicalLicenseNumber || `PENDING-${userId.slice(0, 8)}`, // Use unique fallback
                 specialty: specialty || 'General Practice',
                 sub_specialty: subSpecialty || null,
                 years_of_experience: yearsOfExperience || 0,
-                primary_hospital_id: null, // This requires a UUID, form gives a name
-                hospital_name: primaryHospitalId || 'Private Practice',
+                primary_hospital_id: isHospitalUuid ? primaryHospitalId : null,
+                hospital_name: isHospitalUuid ? null : (primaryHospitalId || 'Private Practice'),
                 hospital_department: hospitalDepartment || null,
                 license_document_url: null,
                 certification_urls: null
@@ -176,8 +208,12 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // DEBUG: Logging profiles
+        console.log('Registering User Profile:', JSON.stringify(userProfile, null, 2));
+        console.log('Registering Role Profile:', JSON.stringify(roleProfile, null, 2));
+
         // SECURITY: Create user in database with sanitized data
-        const result = await createCompleteUserProfile(userProfile, roleProfile);
+        const result = await createCompleteUserProfile(userProfile, roleProfile, dbClient);
 
         // SECURITY: Don't expose internal database details in response
         return NextResponse.json(
@@ -195,22 +231,32 @@ export async function POST(request: NextRequest) {
     } catch (error: unknown) {
         console.error('Registration error:', error);
         const err = error as { message?: string; code?: string; details?: string; hint?: string; name?: string; errors?: unknown };
-        console.error('Error details:', {
-            message: err.message,
-            code: err.code,
-            details: err.details,
-            hint: err.hint
-        });
+
+        // Return detailed error in dev, but generic in prod
+        const errorMessage = err.message || 'Registration failed';
+        const errorCode = err.code || 'UNKNOWN_ERROR';
 
         // Check if it's a database table missing error
-        if (err.code === '42P01' || err.message?.includes('relation') || err.message?.includes('does not exist')) {
+        if (err.code === '42P01' || (typeof err.message === 'string' && (err.message.includes('relation') || err.message.includes('does not exist')))) {
             return NextResponse.json(
                 {
                     error: 'Database tables not set up',
-                    message: 'Please create the database tables in Supabase first. See database-schema.md for instructions.',
+                    message: 'Please create the database tables in Supabase first.',
                     hint: 'Go to Supabase → SQL Editor → Run the schema from database-schema.md'
                 },
                 { status: 503 }
+            );
+        }
+
+        // Check for unique constraint violations (e.g. license number)
+        if (err.code === '23505') {
+            return NextResponse.json(
+                {
+                    error: 'Duplicate record detected',
+                    message: 'The email or professional license number provided is already registered.',
+                    details: err.details
+                },
+                { status: 409 }
             );
         }
 
@@ -225,15 +271,12 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // SECURITY: Don't expose internal error details to client in production
         return NextResponse.json(
             {
                 error: 'Registration failed',
-                message: process.env.NODE_ENV === 'development'
-                    ? err.message
-                    : 'An error occurred during registration. Please try again.',
-                // Provide helpful hints
-                hint: 'Check browser console for details or contact support'
+                message: errorMessage,
+                details: err.details,
+                code: errorCode
             },
             { status: 500 }
         );

@@ -43,17 +43,24 @@ export default function AuthCallbackPage() {
 
                 if (profileRes.status === 404) {
                     setStatus('Creating your profile...')
+
+                    // Get doctor-specific data from user metadata (stored during signup)
+                    const userMeta = session.user.user_metadata || {};
+
                     const registrationData = {
                         userId: session.user.id,
                         email: session.user.email,
                         role: role,
                         authProvider: session.user.app_metadata?.provider || 'email',
-                        fullName: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0],
-                        avatarUrl: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
+                        fullName: userMeta.full_name || userMeta.name || session.user.email?.split('@')[0],
+                        avatarUrl: userMeta.avatar_url || userMeta.picture,
                         ...(role === 'hospital' && { hospitalName: 'Medical Facility' }),
                         ...(role === 'doctor' && {
-                            firstName: session.user.user_metadata?.full_name?.split(' ')[0] || 'Doctor',
-                            lastName: session.user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || 'User'
+                            firstName: userMeta.first_name || userMeta.full_name?.split(' ')[0] || 'Doctor',
+                            lastName: userMeta.last_name || userMeta.full_name?.split(' ').slice(1).join(' ') || 'User',
+                            medicalLicenseNumber: userMeta.medical_license || `PENDING-${session.user.id.slice(0, 8)}`,
+                            specialty: userMeta.specialty || 'General Practice',
+                            primaryHospitalId: userMeta.hospital_id || null
                         })
                     }
 
@@ -64,14 +71,42 @@ export default function AuthCallbackPage() {
                     })
 
                     if (!registerRes.ok && registerRes.status !== 409) {
-                        throw new Error('Failed to create profile')
+                        const errorData = await registerRes.json();
+                        console.error('Registration failed:', errorData);
+                        throw new Error(errorData.message || 'Failed to create profile')
                     }
                     toast.success('Account created!');
                     verificationStatus = 'pending'; // New registrations are pending
                 } else {
                     const profileData = await profileRes.json();
-                    if (profileData.success && profileData.data.profile) {
-                        verificationStatus = profileData.data.profile.verification_status;
+                    if (profileData.success) {
+                        // Check if user exists but role profile is missing
+                        if (profileData.data.user && !profileData.data.profile) {
+                            setStatus('Completing profile setup...')
+
+                            const userMeta = session.user.user_metadata || {};
+                            const registrationData = {
+                                userId: session.user.id,
+                                email: session.user.email,
+                                role: role,
+                                authProvider: 'email',
+                                ...(role === 'doctor' && {
+                                    firstName: userMeta.first_name || 'Doctor',
+                                    lastName: userMeta.last_name || 'User',
+                                    medicalLicenseNumber: userMeta.medical_license || `PENDING-${session.user.id.slice(0, 8)}`,
+                                    specialty: userMeta.specialty || 'General Practice'
+                                })
+                            };
+
+                            await fetch('/api/auth/register', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(registrationData)
+                            });
+                            verificationStatus = 'pending';
+                        } else if (profileData.data.profile) {
+                            verificationStatus = profileData.data.profile.verification_status;
+                        }
                     }
                     toast.success('Welcome back!');
                 }

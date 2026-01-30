@@ -15,7 +15,8 @@ import {
     Settings,
     FileText,
     User,
-    ShieldAlert
+    ShieldAlert,
+    LifeBuoy
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
@@ -200,8 +201,8 @@ export default function DashboardPage() {
                                 <DropdownMenuItem className="focus:bg-white/5 cursor-pointer rounded-xl p-3">
                                     <User className="w-4 h-4 mr-2" /> Private Profile
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="focus:bg-white/5 cursor-pointer rounded-xl p-3">
-                                    <Settings className="w-4 h-4 mr-2" /> Vault Settings
+                                <DropdownMenuItem className="focus:bg-white/5 cursor-pointer rounded-xl p-3" onClick={() => router.push('/support')}>
+                                    <LifeBuoy className="w-4 h-4 mr-2" /> Support Protocol
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator className="bg-white/10" />
                                 <DropdownMenuItem className="focus:bg-red-500/10 cursor-pointer rounded-xl p-3 text-red-500" onClick={handleLogout}>
@@ -415,6 +416,7 @@ export default function DashboardPage() {
                         Protocol Node: 0x92...AF10 • Latency: 42ms • Block: 68,291,203
                     </p>
                     <div className="flex items-center gap-6">
+                        <Link href="/support" className="text-[10px] font-bold text-gray-600 hover:text-[#00BFFF] uppercase tracking-widest transition-colors">Support Center</Link>
                         <button className="text-[10px] font-bold text-gray-600 hover:text-[#00BFFF] uppercase tracking-widest transition-colors">Privacy Policy</button>
                         <button className="text-[10px] font-bold text-gray-600 hover:text-[#00BFFF] uppercase tracking-widest transition-colors">Governance</button>
                     </div>
