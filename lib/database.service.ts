@@ -407,12 +407,26 @@ export async function getDoctorStatistics(doctorId: string) {
 }
 
 /**
- * Get recent submissions for a doctor
+ * Get recent submissions for a doctor (with rejection reasons)
  */
 export async function getRecentDoctorSubmissions(doctorId: string, limit = 5) {
     const { data, error } = await supabase
-        .from('recent_submissions_detailed')
-        .select('*')
+        .from('medical_record_submissions')
+        .select(`
+            id,
+            submission_code,
+            record_type,
+            record_title,
+            record_description,
+            overall_status,
+            hospital_approval_status,
+            hospital_rejection_reason,
+            patient_approval_status,
+            patient_rejection_reason,
+            created_at,
+            updated_at,
+            patient_id
+        `)
         .eq('doctor_id', doctorId)
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -422,7 +436,32 @@ export async function getRecentDoctorSubmissions(doctorId: string, limit = 5) {
         return [];
     }
 
-    return data;
+    // Enrich with patient names
+    const enrichedData = await Promise.all(
+        (data || []).map(async (sub) => {
+            let patientName = 'Unknown Patient';
+            if (sub.patient_id) {
+                const { data: patientData } = await supabase
+                    .from('users')
+                    .select('full_name')
+                    .eq('id', sub.patient_id)
+                    .single();
+                if (patientData?.full_name) {
+                    patientName = patientData.full_name;
+                }
+            }
+            return {
+                ...sub,
+                patient_name: patientName,
+                // Determine rejection reason (from either hospital or patient)
+                rejection_reason: sub.hospital_rejection_reason || sub.patient_rejection_reason || null,
+                rejected_by: sub.hospital_rejection_reason ? 'hospital' :
+                    sub.patient_rejection_reason ? 'patient' : null
+            };
+        })
+    );
+
+    return enrichedData;
 }
 
 // ==================== COMBINED OPERATIONS ====================
