@@ -21,10 +21,20 @@ export interface ActivityLog {
   id: string;
   date: string;
   actor: string;
-  action: 'Viewed' | 'Downloaded' | 'Uploaded' | 'Access Granted' | 'Access Revoked' | 'Emergency Access';
+  action: 'Viewed' | 'Downloaded' | 'Uploaded' | 'Access Granted' | 'Access Revoked' | 'Emergency Access' | 'Record Approved' | 'Record Rejected';
   details?: string;
   txHash: string;
   patientId?: string;
+}
+
+// Helper function to map record types to dashboard categories
+function mapRecordTypeToCategory(recordType: string): PatientRecord['category'] {
+  const normalizedType = recordType?.toLowerCase() || '';
+  if (normalizedType.includes('lab')) return 'Laboratory';
+  if (normalizedType.includes('imaging') || normalizedType.includes('radiology') || normalizedType.includes('x-ray') || normalizedType.includes('mri')) return 'Radiology';
+  if (normalizedType.includes('prescription') || normalizedType.includes('pharmacy') || normalizedType.includes('medication')) return 'Pharmacy';
+  if (normalizedType.includes('diagnosis')) return 'Diagnosis';
+  return 'General';
 }
 
 export interface AccessPermission {
@@ -188,10 +198,34 @@ export const useAppStore = create<AppState>()(
       if (userData && !userError) {
         // Fetch supplemental data in parallel
         const [recordsRes, permissionsRes, logsRes] = await Promise.all([
-          supabase.from('medical_records').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false }),
+          // Fetch approved medical records from medical_record_submissions table
+          supabase.from('medical_record_submissions')
+            .select('id, submission_code, record_type, record_title, record_description, ipfs_hash, overall_status, created_at, updated_at, doctor_id, hospital_id')
+            .eq('patient_id', session.user.id)
+            .eq('overall_status', 'approved')
+            .order('created_at', { ascending: false }),
           supabase.from('access_permissions').select('*').eq('user_id', session.user.id).order('granted_at', { ascending: false }),
           supabase.from('activity_logs').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false })
         ]);
+
+        // Enrich records with doctor and hospital names
+        const enrichedRecords = await Promise.all(
+          (recordsRes.data || []).map(async (r) => {
+            let doctorName = 'Unknown Doctor';
+            let hospitalName = 'Unknown Facility';
+
+            if (r.doctor_id) {
+              const { data: docData } = await supabase.from('doctor_profiles').select('first_name, last_name').eq('id', r.doctor_id).single();
+              if (docData) doctorName = `Dr. ${docData.first_name} ${docData.last_name}`;
+            }
+            if (r.hospital_id) {
+              const { data: hospData } = await supabase.from('hospital_profiles').select('hospital_name').eq('id', r.hospital_id).single();
+              if (hospData) hospitalName = hospData.hospital_name;
+            }
+
+            return { ...r, doctor_name: doctorName, hospital_name: hospitalName };
+          })
+        );
 
         set((state) => ({
           userProfile: userData,
@@ -222,16 +256,16 @@ export const useAppStore = create<AppState>()(
             country: patientData?.country || '',
             postalCode: patientData?.postal_code || '',
           },
-          records: recordsRes.data?.map(r => ({
+          records: enrichedRecords?.map(r => ({
             id: r.id,
-            name: r.name,
-            type: r.type,
+            name: r.record_title,
+            type: r.record_type as PatientRecord['type'],
             date: new Date(r.created_at).toISOString().split('T')[0],
-            facility: r.facility,
-            doctor: r.doctor,
-            notes: r.notes,
-            ipfsHash: r.ipfs_hash,
-            category: r.category
+            facility: r.hospital_name || 'Unknown Facility',
+            doctor: r.doctor_name || 'Unknown Doctor',
+            notes: r.record_description,
+            ipfsHash: r.ipfs_hash || '',
+            category: mapRecordTypeToCategory(r.record_type)
           })) || [],
           accessPermissions: permissionsRes.data?.map(p => ({
             id: p.id,

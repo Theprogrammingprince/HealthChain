@@ -294,7 +294,7 @@ export default function DoctorDashboard() {
                                                     <div className="flex justify-between items-start mb-2">
                                                         <div>
                                                             <p className="font-bold text-sm text-white group-hover:text-emerald-400 transition-colors uppercase tracking-tight">
-                                                                {sub.record_type}
+                                                                {sub.record_title || sub.record_type}
                                                             </p>
                                                             <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
                                                                 Patient: <span className="text-gray-400">{sub.patient_name || 'Anonymous'}</span>
@@ -302,6 +302,24 @@ export default function DoctorDashboard() {
                                                         </div>
                                                         <StatusBadge status={sub.overall_status} />
                                                     </div>
+
+                                                    {/* Rejection Reason Display */}
+                                                    {sub.overall_status === 'rejected' && sub.rejection_reason && (
+                                                        <div className="mt-3 p-3 rounded-xl bg-red-500/5 border border-red-500/10">
+                                                            <div className="flex items-start gap-2">
+                                                                <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                                                                <div>
+                                                                    <p className="text-[9px] font-black uppercase tracking-widest text-red-400 mb-1">
+                                                                        Rejected by {sub.rejected_by === 'hospital' ? 'Hospital Admin' : 'Patient'}
+                                                                    </p>
+                                                                    <p className="text-[11px] text-gray-400 leading-relaxed italic">
+                                                                        &quot;{sub.rejection_reason}&quot;
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
                                                     <div className="flex items-center justify-between mt-4 text-[9px] font-black uppercase tracking-[0.2em] text-gray-600">
                                                         <span>{format(new Date(sub.created_at), 'MMM dd, yyyy')}</span>
                                                         <span className="text-gray-700">TX: {sub.submission_code}</span>
