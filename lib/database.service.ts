@@ -1207,3 +1207,111 @@ export async function getActivityLogStats(userId: string) {
 
     return stats;
 }
+
+// ==================== EMERGENCY ACCESS OPERATIONS ====================
+
+/**
+ * Generate an emergency access token for a patient
+ */
+export function generateEmergencyToken(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let token = '';
+    for (let i = 0; i < 12; i++) {
+        if (i > 0 && i % 4 === 0) token += '-';
+        token += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return token;
+}
+
+/**
+ * Create an emergency access session
+ */
+export async function createEmergencyAccessSession(
+    patientId: string,
+    expiryMinutes: number = 15
+) {
+    const token = generateEmergencyToken();
+    const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000).toISOString();
+
+    // Log the emergency access creation
+    await createActivityLog(
+        patientId,
+        'System',
+        'Emergency Access',
+        `Emergency access token generated. Expires in ${expiryMinutes} minutes.`,
+        patientId
+    );
+
+    return {
+        token,
+        expiresAt,
+        patientId,
+        url: `https://healthchain.app/emergency/${token}`
+    };
+}
+
+/**
+ * Get patient emergency profile (public info for first responders)
+ */
+export async function getEmergencyProfile(patientId: string) {
+    const { data: profile, error: profileError } = await supabase
+        .from('patient_profiles')
+        .select('*')
+        .eq('user_id', patientId)
+        .single();
+
+    if (profileError) {
+        console.error('Error fetching emergency profile:', profileError);
+        return null;
+    }
+
+    const { data: user } = await supabase
+        .from('users')
+        .select('full_name')
+        .eq('id', patientId)
+        .single();
+
+    return {
+        // Patient identification
+        fullName: user?.full_name || 'Unknown',
+        dateOfBirth: profile?.date_of_birth || null,
+        gender: profile?.gender || null,
+
+        // Critical medical info
+        bloodType: profile?.blood_type || 'Unknown',
+        genotype: profile?.genotype || 'Unknown',
+        allergies: profile?.allergies || [],
+        conditions: profile?.conditions || [],
+        medications: profile?.medications || [],
+
+        // Vitals
+        bloodPressure: profile?.blood_pressure || null,
+        glucose: profile?.glucose || null,
+        weight: profile?.weight || null,
+        height: profile?.height || null,
+
+        // Emergency contact
+        emergencyContact: profile?.emergency_contact || null,
+        emergencyPhone: profile?.emergency_phone || null,
+
+        // Metadata
+        lastUpdated: profile?.updated_at || profile?.created_at
+    };
+}
+
+/**
+ * Log emergency access event
+ */
+export async function logEmergencyAccess(
+    patientId: string,
+    accessorName: string,
+    accessorRole: string
+) {
+    return createActivityLog(
+        patientId,
+        `${accessorName} (${accessorRole})`,
+        'Emergency Access',
+        `Emergency access used by ${accessorRole}`,
+        patientId
+    );
+}
