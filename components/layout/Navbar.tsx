@@ -27,26 +27,25 @@ export function Navbar() {
     return (
         <nav className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
             <div className="container flex h-16 items-center justify-between px-4">
-                <Link href="/" className="flex items-center gap-2 font-bold text-xl tracking-tighter">
+                <Link href="/" className="flex items-center gap-3 font-medium text-lg tracking-[0.2em] uppercase">
                     <Activity className={cn(
-                        "h-6 w-6 text-primary animate-pulse",
-                        isAuthenticated ? "duration-[600ms]" : "duration-[2000ms]"
+                        "h-5 w-5 text-primary opacity-80",
+                        isAuthenticated ? "animate-pulse" : ""
                     )} />
-                    <span className="bg-gradient-to-r from-blue-400 to-primary bg-clip-text text-transparent">
+                    <span className="text-foreground">
                         HealthChain
                     </span>
                 </Link>
 
-                {/* Desktop Menu */}
-                <div className="hidden md:flex items-center gap-6">
-                    <div className="flex gap-6 text-sm font-medium">
+                <div className="hidden md:flex items-center gap-10">
+                    <div className="flex gap-8 text-[11px] uppercase tracking-[0.15em] font-medium">
                         {links.map((link) => (
                             <Link
                                 key={link.href}
                                 href={link.href}
                                 className={cn(
-                                    "transition-colors hover:text-primary",
-                                    pathname === link.href ? "text-primary" : "text-muted-foreground",
+                                    "transition-all duration-300 hover:text-primary border-b border-transparent hover:border-primary/50 pb-1",
+                                    pathname === link.href ? "text-foreground border-primary" : "text-muted-foreground",
                                     link.className
                                 )}
                             >

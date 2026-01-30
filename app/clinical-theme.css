@@ -1,0 +1,53 @@
+/* Experimental Clinical Healthcare Theme */
+:root {
+    --radius: 1rem;
+
+    /* Background: A very clean, bright medical white */
+    --background: #FFFFFF;
+    --foreground: #0F172A;
+    /* Deep Navy/Slate for text */
+
+    --card: #FFFFFF;
+    --card-foreground: #0F172A;
+
+    --popover: #FFFFFF;
+    --popover-foreground: #0F172A;
+
+    /* Primary: A professional, deep medical blue */
+    --primary: #2563EB;
+    --primary-foreground: #FFFFFF;
+
+    /* Secondary: A soft, clinical mint/teal for accents */
+    --secondary: #ECFDF5;
+    --secondary-foreground: #065F46;
+
+    /* Muted: Very soft slate for backgrounds */
+    --muted: #F8FAFC;
+    --muted-foreground: #64748B;
+
+    /* Accent: A calming light blue */
+    --accent: #E0F2FE;
+    --accent-foreground: #0369A1;
+
+    --destructive: #FEE2E2;
+    --destructive-foreground: #991B1B;
+
+    --border: #E2E8F0;
+    --input: #E2E8F0;
+    --ring: #3B82F6;
+
+    /* Specific Healthcare Signals */
+    --health-green: #10B981;
+    --health-green-light: #D1FAE5;
+    --emergency-red: #EF4444;
+    --info-blue: #3B82F6;
+}
+
+/* Specific adjustments for landing components to feel more "clinical" */
+.clinical-card {
+    @apply border-border bg-white shadow-sm hover:shadow-md transition-shadow duration-300;
+}
+
+.clinical-gradient {
+    background: linear-gradient(135deg, #F0F9FF 0%, #FFFFFF 100%);
+}
