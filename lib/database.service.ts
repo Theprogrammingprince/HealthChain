@@ -1124,3 +1124,86 @@ export async function logHospitalRecordRejection(
         patientId
     );
 }
+
+/**
+ * Fetch activity logs for a user with optional filtering
+ */
+export async function getActivityLogs(
+    userId: string,
+    options?: {
+        actionFilter?: string;
+        startDate?: string;
+        endDate?: string;
+        limit?: number;
+    }
+) {
+    let query = supabase
+        .from('activity_logs')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+    // Apply action filter
+    if (options?.actionFilter && options.actionFilter !== 'all') {
+        query = query.eq('action', options.actionFilter);
+    }
+
+    // Apply date range filter
+    if (options?.startDate) {
+        query = query.gte('created_at', options.startDate);
+    }
+    if (options?.endDate) {
+        query = query.lte('created_at', options.endDate);
+    }
+
+    // Apply limit
+    if (options?.limit) {
+        query = query.limit(options.limit);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+        console.error('Error fetching activity logs:', error);
+        return [];
+    }
+
+    return data.map(log => ({
+        id: log.id,
+        date: new Date(log.created_at).toLocaleString(),
+        actor: log.actor || log.actor_name || 'Unknown',
+        action: log.action,
+        details: log.details || '',
+        txHash: log.tx_hash || '',
+        patientId: log.patient_id
+    }));
+}
+
+/**
+ * Get activity log statistics for a user
+ */
+export async function getActivityLogStats(userId: string) {
+    const { data, error } = await supabase
+        .from('activity_logs')
+        .select('action')
+        .eq('user_id', userId);
+
+    if (error) {
+        console.error('Error fetching activity log stats:', error);
+        return null;
+    }
+
+    const stats = {
+        total: data.length,
+        viewed: data.filter(l => l.action === 'Viewed').length,
+        downloaded: data.filter(l => l.action === 'Downloaded').length,
+        uploaded: data.filter(l => l.action === 'Uploaded').length,
+        accessGranted: data.filter(l => l.action === 'Access Granted').length,
+        accessRevoked: data.filter(l => l.action === 'Access Revoked').length,
+        recordApproved: data.filter(l => l.action === 'Record Approved').length,
+        recordRejected: data.filter(l => l.action === 'Record Rejected').length,
+        emergencyAccess: data.filter(l => l.action === 'Emergency Access').length
+    };
+
+    return stats;
+}

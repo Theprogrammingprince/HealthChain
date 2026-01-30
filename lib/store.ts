@@ -21,7 +21,7 @@ export interface ActivityLog {
   id: string;
   date: string;
   actor: string;
-  action: 'Viewed' | 'Downloaded' | 'Uploaded' | 'Access Granted' | 'Access Revoked' | 'Emergency Access';
+  action: 'Viewed' | 'Downloaded' | 'Uploaded' | 'Access Granted' | 'Access Revoked' | 'Emergency Access' | 'Record Approved' | 'Record Rejected';
   details?: string;
   txHash: string;
   patientId?: string;
