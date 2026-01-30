@@ -32,6 +32,8 @@ import {
     getAllHospitalSubmissions,
     approveRecordAsHospital,
     rejectRecordAsHospital,
+    logHospitalRecordApproval,
+    logHospitalRecordRejection,
 } from "@/lib/database.service";
 
 type Submission = {
@@ -51,6 +53,7 @@ export function DoctorSubmissionTable() {
     const [submissions, setSubmissions] = useState<Submission[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [hospitalId, setHospitalId] = useState<string | null>(null);
+    const [hospitalName, setHospitalName] = useState<string>('Hospital');
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -73,12 +76,13 @@ export function DoctorSubmissionTable() {
 
             const { data, error } = await supabase
                 .from("hospital_profiles")
-                .select("id")
+                .select("id, hospital_name")
                 .eq("user_id", userId)
                 .single();
 
             if (data) {
                 setHospitalId(data.id);
+                setHospitalName(data.hospital_name || 'Hospital');
                 loadSubmissions(data.id);
             }
         } catch (err) {
@@ -108,6 +112,15 @@ export function DoctorSubmissionTable() {
                 submission.id,
                 hospitalId,
                 supabaseSession.user.id
+            );
+
+            // Log activity
+            await logHospitalRecordApproval(
+                supabaseSession.user.id,
+                hospitalName,
+                submission.record_title,
+                submission.doctor_name,
+                (submission as any).patient_id || ''
             );
 
             // Update local state
@@ -148,6 +161,16 @@ export function DoctorSubmissionTable() {
                 selectedSubmission.id,
                 hospitalId,
                 supabaseSession.user.id,
+                rejectionReason
+            );
+
+            // Log activity
+            await logHospitalRecordRejection(
+                supabaseSession.user.id,
+                hospitalName,
+                selectedSubmission.record_title,
+                selectedSubmission.doctor_name,
+                (selectedSubmission as any).patient_id || '',
                 rejectionReason
             );
 

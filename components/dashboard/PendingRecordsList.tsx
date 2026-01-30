@@ -11,7 +11,9 @@ import { useAppStore } from "@/lib/store";
 import {
     getPatientPendingApprovals,
     approveRecordAsPatient,
-    rejectRecordAsPatient
+    rejectRecordAsPatient,
+    logPatientRecordApproval,
+    logPatientRecordRejection
 } from "@/lib/database.service";
 import {
     Dialog,
@@ -68,9 +70,22 @@ export function PendingRecordsList() {
     const handleApprove = async (id: string) => {
         if (!supabaseUser?.id) return;
 
+        // Find the record to get details for logging
+        const record = pendingRecords.find(r => r.id === id);
+        if (!record) return;
+
         setProcessingId(id);
         try {
             await approveRecordAsPatient(id, supabaseUser.id);
+
+            // Log activity
+            await logPatientRecordApproval(
+                supabaseUser.id,
+                supabaseUser.full_name || 'Patient',
+                record.record_title,
+                record.doctor_name
+            );
+
             setPendingRecords(prev => prev.filter(rec => rec.id !== id));
             toast.success("Record Approved", {
                 description: "The medical record has been added to your encrypted vault."
@@ -92,9 +107,23 @@ export function PendingRecordsList() {
     const handleReject = async () => {
         if (!supabaseUser?.id || !selectedRecordId) return;
 
+        // Find the record to get details for logging
+        const record = pendingRecords.find(r => r.id === selectedRecordId);
+        if (!record) return;
+
         setProcessingId(selectedRecordId);
         try {
             await rejectRecordAsPatient(selectedRecordId, supabaseUser.id, rejectionReason);
+
+            // Log activity
+            await logPatientRecordRejection(
+                supabaseUser.id,
+                supabaseUser.full_name || 'Patient',
+                record.record_title,
+                record.doctor_name,
+                rejectionReason
+            );
+
             setPendingRecords(prev => prev.filter(rec => rec.id !== selectedRecordId));
             toast.error("Record Rejected", {
                 description: "The sender has been notified of your rejection."
