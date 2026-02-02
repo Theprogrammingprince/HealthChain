@@ -34,7 +34,7 @@ import {
 import { toast } from "sonner";
 import { useAppStore } from "@/lib/store";
 import { supabase } from "@/lib/supabaseClient";
-import { getDoctorProfile } from "@/lib/database.service";
+import { getDoctorProfile, getHospitalProfile, notifyHospitalPendingSubmission } from "@/lib/database.service";
 
 const uploadSchema = z.object({
     patientId: z.string().min(1, "Patient ID is required"),
@@ -69,8 +69,8 @@ export function DoctorRecordUploadForm() {
 
             // 1. Get doctor profile to get the internal ID
             const doctorProfile = await getDoctorProfile(userId);
-            if (!doctorProfile) {
-                toast.error("Doctor profile not found");
+            if (!doctorProfile || !doctorProfile.primary_hospital_id) {
+                toast.error("Doctor profile or associated hospital not found");
                 return;
             }
 
@@ -108,13 +108,38 @@ export function DoctorRecordUploadForm() {
                 return;
             }
 
+            // 4. Trigger Notification to Hospital Admin
+            try {
+                // Fetch hospital profile to get admin user_id
+                const hospital = await getHospitalProfile(doctorProfile.primary_hospital_id);
+
+                // Fetch patient name for better notification
+                const { data: patientUser } = await supabase
+                    .from('users')
+                    .select('full_name')
+                    .eq('id', values.patientId)
+                    .single();
+
+                if (hospital?.user_id) {
+                    await notifyHospitalPendingSubmission(
+                        hospital.user_id,
+                        values.recordTitle,
+                        `Dr. ${doctorProfile.last_name}`,
+                        patientUser?.full_name || 'Anonymous Patient'
+                    );
+                }
+            } catch (notifyError) {
+                console.error("Notification warning:", notifyError);
+                // Don't fail the whole submission just because notification failed
+            }
+
             toast.success("Record Submitted for Review", {
                 description: `ID: ${data.submission_code}. Hospital admin has been notified.`,
             });
 
             form.reset();
             // Trigger a page refresh or emit event to reload submissions list
-            window.location.reload();
+            setTimeout(() => window.location.reload(), 1500);
         } catch (error) {
             console.error("Critical error in submission:", error);
             toast.error("An unexpected error occurred");

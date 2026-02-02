@@ -16,8 +16,8 @@ interface HospitalDashboardGuardProps {
 }
 
 interface HospitalProfile {
-    verification_status: "pending" | "verified" | "rejected";
-    rejection_reason?: string | null;
+    verification_status: "pending" | "verified" | "rejected" | "approved";
+    revocation_reason?: string | null;
     hospital_name?: string;
 }
 
@@ -50,8 +50,8 @@ export function HospitalDashboardGuard({
             // Check user role
             const { data: userData, error: userError } = await supabase
                 .from("users")
-                .select("role")
-                .eq("id", userId)
+                .select("id, role")
+                .eq(supabaseSession?.user?.id ? "id" : "wallet_address", userId)
                 .single();
 
             if (userError && userError.code !== 'PGRST116') {
@@ -71,8 +71,8 @@ export function HospitalDashboardGuard({
             // Check hospital profile and verification status
             const { data: hospitalData, error: hospitalError } = await supabase
                 .from("hospital_profiles")
-                .select("verification_status, rejection_reason, hospital_name")
-                .eq("user_id", userId)
+                .select("verification_status, revocation_reason, hospital_name")
+                .eq("user_id", supabaseSession?.user?.id ? userId : (userData?.id || userId))
                 .single();
 
             if (hospitalError && hospitalError.code !== 'PGRST116') {
@@ -83,7 +83,8 @@ export function HospitalDashboardGuard({
                 setHospitalProfile(hospitalData);
 
                 // If not verified and trying to access restricted content
-                if (hospitalData.verification_status !== "verified" && !allowedForUnverified) {
+                const isVerified = hospitalData.verification_status === "verified" || hospitalData.verification_status === "approved";
+                if (!isVerified && !allowedForUnverified) {
                     setIsBlocked(true);
                 } else {
                     setIsBlocked(false);
@@ -157,9 +158,9 @@ export function HospitalDashboardGuard({
                                 <p className="text-sm text-red-200/80">
                                     Your verification was rejected. Please review the reason below and resubmit your application.
                                 </p>
-                                {hospitalProfile.rejection_reason && (
+                                {hospitalProfile.revocation_reason && (
                                     <p className="text-xs text-red-300 font-medium">
-                                        Reason: {hospitalProfile.rejection_reason}
+                                        Reason: {hospitalProfile.revocation_reason}
                                     </p>
                                 )}
                             </div>
