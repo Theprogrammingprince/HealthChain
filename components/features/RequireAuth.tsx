@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { resolveRoute, VerificationStatus } from "@/lib/routing";
+import { usePathname } from "next/navigation";
 
 interface RequireAuthProps {
     children: React.ReactNode;
@@ -12,8 +13,9 @@ interface RequireAuthProps {
 }
 
 export function RequireAuth({ children, requiredRole }: RequireAuthProps) {
-    const { isAuthenticated, isConnected, userRole, supabaseSession, setUserRole } = useAppStore();
+    const { isAuthenticated, isConnected, walletAddress, userRole, supabaseSession, setUserRole } = useAppStore();
     const router = useRouter();
+    const pathname = usePathname();
     const [isChecking, setIsChecking] = useState(true);
 
     useEffect(() => {
@@ -40,13 +42,15 @@ export function RequireAuth({ children, requiredRole }: RequireAuthProps) {
             let verificationStatus: VerificationStatus | undefined;
 
             try {
-                // Only check DB role if we have a Supabase user ID (Email/Auth)
-                if (supabaseSession?.user) {
-                    // Fetch User Role
+                // Determine the User ID and lookup field (id for email, wallet_address for wallet)
+                const userId = supabaseSession?.user?.id || walletAddress;
+
+                if (userId) {
+                    // Fetch User Role from DB (Don't rely solely on store as it might be stale)
                     const { data: profile, error: roleError } = await supabase
                         .from("users")
-                        .select("role")
-                        .eq("id", supabaseSession.user.id)
+                        .select("id, role")
+                        .eq(supabaseSession?.user?.id ? "id" : "wallet_address", userId)
                         .single();
 
                     if (profile && !roleError) {
@@ -61,10 +65,21 @@ export function RequireAuth({ children, requiredRole }: RequireAuthProps) {
                         const { data: hospitalData, error: hospError } = await supabase
                             .from("hospital_profiles")
                             .select("verification_status")
-                            .eq("user_id", supabaseSession.user.id)
+                            .eq("user_id", supabaseSession?.user?.id ? userId : (profile?.id || userId)) // If wallet, find profile.id
                             .single();
 
-                        if (hospitalData && !hospError) {
+                        // Fallback: if we didn't find by user_id directly and we are a wallet user, 
+                        // the profile.id from the 'users' table lookup above is the real FK
+                        if (hospError && !supabaseSession?.user?.id && profile?.id) {
+                            const { data: retryData } = await supabase
+                                .from("hospital_profiles")
+                                .select("verification_status")
+                                .eq("user_id", profile.id)
+                                .single();
+                            if (retryData) {
+                                verificationStatus = retryData.verification_status as VerificationStatus;
+                            }
+                        } else if (hospitalData && !hospError) {
                             verificationStatus = hospitalData.verification_status as VerificationStatus;
                         }
                     }
@@ -75,7 +90,7 @@ export function RequireAuth({ children, requiredRole }: RequireAuthProps) {
 
             // Centralized Routing Rule Enforcement
             const targetPath = resolveRoute(currentRole || 'patient', verificationStatus);
-            const currentPath = window.location.pathname;
+            const currentPath = pathname;
 
             // 1. If requiredRole is specified and user has a DIFFERENT role, force redirect to THEIR correct dashboard
             if (requiredRole && currentRole !== requiredRole) {
@@ -100,9 +115,9 @@ export function RequireAuth({ children, requiredRole }: RequireAuthProps) {
         };
 
         // Allow a small delay for hydration/state restoration
-        const timer = setTimeout(checkAccess, 500);
+        const timer = setTimeout(checkAccess, 100);
         return () => clearTimeout(timer);
-    }, [isConnected, isAuthenticated, userRole, requiredRole, router, supabaseSession, setUserRole]);
+    }, [isConnected, walletAddress, isAuthenticated, userRole, requiredRole, router, pathname, supabaseSession, setUserRole]);
 
     if (isChecking) {
         return (

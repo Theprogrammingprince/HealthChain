@@ -13,7 +13,9 @@ import {
     approveRecordAsPatient,
     rejectRecordAsPatient,
     logPatientRecordApproval,
-    logPatientRecordRejection
+    logPatientRecordRejection,
+    notifyDoctorRecordApproved,
+    notifyDoctorRecordRejected
 } from "@/lib/database.service";
 import {
     Dialog,
@@ -28,6 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 type PendingRecord = {
     id: string;
     submission_code: string;
+    doctor_id: string;
     doctor_name: string;
     hospital_name: string;
     record_type: string;
@@ -44,7 +47,7 @@ export function PendingRecordsList() {
     const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
     const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
     const [rejectionReason, setRejectionReason] = useState("");
-    const { supabaseUser, userVitals } = useAppStore();
+    const { supabaseUser, userProfile } = useAppStore();
 
     useEffect(() => {
         if (supabaseUser?.id) {
@@ -78,11 +81,21 @@ export function PendingRecordsList() {
         try {
             await approveRecordAsPatient(id, supabaseUser.id);
 
+            // Log activity
+            const patientName = typeof userProfile?.full_name === 'string' ? userProfile.full_name : 'Patient';
             await logPatientRecordApproval(
                 supabaseUser.id,
-                userVitals.fullName || 'Patient',
+                patientName,
                 record.record_title,
                 record.doctor_name
+            );
+
+            // Notify doctor
+            await notifyDoctorRecordApproved(
+                record.doctor_id,
+                record.record_title,
+                'patient',
+                patientName
             );
 
             setPendingRecords(prev => prev.filter(rec => rec.id !== id));
@@ -115,11 +128,21 @@ export function PendingRecordsList() {
             await rejectRecordAsPatient(selectedRecordId, supabaseUser.id, rejectionReason);
 
             // Log activity
+            const patientName = typeof userProfile?.full_name === 'string' ? userProfile.full_name : 'Patient';
             await logPatientRecordRejection(
                 supabaseUser.id,
-                userVitals.fullName || 'Patient',
+                patientName,
                 record.record_title,
                 record.doctor_name,
+                rejectionReason
+            );
+
+            // Notify doctor
+            await notifyDoctorRecordRejected(
+                record.doctor_id,
+                record.record_title,
+                'patient',
+                patientName,
                 rejectionReason
             );
 

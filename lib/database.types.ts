@@ -44,6 +44,7 @@ export interface HospitalProfile {
     registration_number?: string | null;
     specialization?: string[] | null;
     verification_status: 'pending' | 'verified' | 'rejected';
+    revocation_reason?: string | null;
     phone_number?: string | null;
     address?: string | null;
     city?: string | null;

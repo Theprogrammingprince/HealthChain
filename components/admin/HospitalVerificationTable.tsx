@@ -67,6 +67,7 @@ interface HospitalProfile {
     created_at: string;
     updated_at: string;
     verified_at: string | null;
+    revocation_reason: string | null;
     // Joined user data
     user?: {
         wallet_address: string | null;
@@ -264,6 +265,7 @@ export function HospitalVerificationTable({ initialFilter = "all" }: HospitalVer
                 .from("hospital_profiles")
                 .update({
                     verification_status: "rejected",
+                    revocation_reason: rejectReason,
                     is_verified: false,
                     updated_at: new Date().toISOString(),
                 })
@@ -597,6 +599,9 @@ export function HospitalVerificationTable({ initialFilter = "all" }: HospitalVer
                                     </p>
                                     {viewHospital.verified_at && (
                                         <p className="text-xs text-gray-500">Verified on {formatDate(viewHospital.verified_at)}</p>
+                                    )}
+                                    {viewHospital.verification_status === "rejected" && viewHospital.revocation_reason && (
+                                        <p className="text-xs text-red-400 mt-1">Reason: {viewHospital.revocation_reason}</p>
                                     )}
                                 </div>
                             </div>
