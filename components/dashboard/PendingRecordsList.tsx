@@ -44,7 +44,7 @@ export function PendingRecordsList() {
     const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
     const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
     const [rejectionReason, setRejectionReason] = useState("");
-    const { supabaseUser } = useAppStore();
+    const { supabaseUser, userVitals } = useAppStore();
 
     useEffect(() => {
         if (supabaseUser?.id) {
@@ -78,10 +78,9 @@ export function PendingRecordsList() {
         try {
             await approveRecordAsPatient(id, supabaseUser.id);
 
-            // Log activity
             await logPatientRecordApproval(
                 supabaseUser.id,
-                supabaseUser.full_name || 'Patient',
+                userVitals.fullName || 'Patient',
                 record.record_title,
                 record.doctor_name
             );
@@ -118,7 +117,7 @@ export function PendingRecordsList() {
             // Log activity
             await logPatientRecordRejection(
                 supabaseUser.id,
-                supabaseUser.full_name || 'Patient',
+                userVitals.fullName || 'Patient',
                 record.record_title,
                 record.doctor_name,
                 rejectionReason

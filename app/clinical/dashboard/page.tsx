@@ -30,6 +30,7 @@ import { HospitalArrivalsTable } from "@/components/dashboard/HospitalArrivalsTa
 import { AccessDeniedScreen } from "@/components/dashboard/AccessDeniedScreen";
 import { HospitalDashboardGuard } from "@/components/dashboard/HospitalDashboardGuard";
 import { VerificationStatusBanner } from "@/components/dashboard/VerificationStatusBanner";
+import { AccessCodeScanner } from "@/components/dashboard/AccessCodeScanner";
 import { useRegistry } from "@/hooks/useRegistry";
 import { RequireAuth } from "@/components/features/RequireAuth";
 
@@ -54,6 +55,8 @@ export default function ClinicalDashboardPage() {
     const { checkHospitalStatus } = useRegistry();
     const [verificationStatus, setVerificationStatus] = useState<"pending" | "verified" | "rejected" | null>(null);
     const [rejectionReason, setRejectionReason] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState("patients");
+    const { setActivePatient } = useAppStore();
 
     useEffect(() => {
         const verifyHospital = async () => {
@@ -235,6 +238,7 @@ export default function ClinicalDashboardPage() {
                                     <p className="text-gray-500 text-xs font-bold uppercase tracking-[0.2em] mt-1">Provider Intelligence & Data Exchange</p>
                                 </div>
                                 <div className="flex items-center gap-4">
+                                    <AccessCodeScanner />
                                     <BreakGlassDialog />
                                     <button className="h-14 px-8 border border-[#00BFFF]/20 bg-[#00BFFF]/5 text-[#00BFFF] font-black rounded-2xl hover:bg-[#00BFFF]/10 transition-all uppercase tracking-widest text-xs">
                                         Generate Clinical Summary
@@ -242,7 +246,7 @@ export default function ClinicalDashboardPage() {
                                 </div>
                             </motion.div>
 
-                            <Tabs defaultValue="patients" className="w-full">
+                            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                                 <TabsList className="bg-white/5 p-1 rounded-2xl mb-10 border border-white/5 flex w-fit">
                                     <TabsTrigger value="patients" className="data-[state=active]:bg-[#00BFFF] data-[state=active]:text-black rounded-xl transition-all font-black px-10 py-3 uppercase text-xs tracking-widest">
                                         Patient Search
@@ -270,7 +274,10 @@ export default function ClinicalDashboardPage() {
                                 <TabsContent value="patients" className="space-y-10">
                                     <motion.section variants={itemVariants}>
                                         <Suspense fallback={<Skeleton className="w-full h-14 rounded-2xl" />}>
-                                            <PatientSearchBar />
+                                            <PatientSearchBar onPatientSelect={(id) => {
+                                                setActivePatient(id);
+                                                setActiveTab("encounter");
+                                            }} />
                                         </Suspense>
                                     </motion.section>
 

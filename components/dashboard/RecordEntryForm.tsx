@@ -32,6 +32,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { useAppStore, RecordType } from "@/lib/store";
+import { useEffect } from "react";
+import { checkAccessPermission } from "@/lib/database.service";
 
 const clinicalFormSchema = z.object({
     diagnosis: z.string().min(3, "Diagnosis is required"),
@@ -44,7 +46,21 @@ const clinicalFormSchema = z.object({
 export function RecordEntryForm() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [consentAcquired, setConsentAcquired] = useState(false);
-    const { addRecord, updateVitals } = useAppStore();
+    const { addRecord, updateVitals, activeEncounterPatientId, patients, supabaseUser } = useAppStore();
+
+    const activePatient = patients.find(p => p.id === activeEncounterPatientId);
+
+    useEffect(() => {
+        const verifyExistingConsent = async () => {
+            if (activeEncounterPatientId && supabaseUser) {
+                const hasAccess = await checkAccessPermission(activeEncounterPatientId, supabaseUser.id);
+                if (hasAccess) {
+                    setConsentAcquired(true);
+                }
+            }
+        };
+        verifyExistingConsent();
+    }, [activeEncounterPatientId, supabaseUser]);
 
     const form = useForm<z.infer<typeof clinicalFormSchema>>({
         resolver: zodResolver(clinicalFormSchema),
@@ -127,9 +143,11 @@ export function RecordEntryForm() {
                 <div>
                     <h2 className="text-2xl font-bold flex items-center gap-3">
                         <FileEdit className="text-[#00BFFF] w-6 h-6" />
-                        Clinical Encounter Entry
+                        Clinical Encounter: {activePatient?.name || "New Patient"}
                     </h2>
-                    <p className="text-gray-500 text-[10px] mt-1 uppercase tracking-[0.2em] font-bold">New Consultation Record</p>
+                    <p className="text-gray-500 text-[10px] mt-1 uppercase tracking-[0.2em] font-bold">
+                        {activePatient ? `ID: ${activePatient.id} • ${activePatient.dob}` : "New Consultation Record"}
+                    </p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Badge variant="outline" className="border-white/10 text-gray-400 gap-1.5 px-3 py-1 bg-white/5">

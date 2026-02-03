@@ -28,6 +28,9 @@ import { RecordCard } from "@/components/dashboard/RecordCard";
 import { PassportPhotoUpload } from "@/components/dashboard/PassportPhotoUpload";
 import { ProfileSetupDialog } from "@/components/dashboard/ProfileSetupDialog";
 import { PendingRecordsList } from "@/components/dashboard/PendingRecordsList";
+import { ConsentCodeGenerator } from "@/components/dashboard/ConsentCodeGenerator";
+import { AccessRequestModal } from "@/components/dashboard/AccessRequestModal";
+import { useNotifications } from "@/hooks/useNotifications";
 
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -57,6 +60,9 @@ export default function DashboardPage() {
         fetchUserProfile,
         supabaseUser
     } = useAppStore();
+
+    // Initialize real-time notifications
+    useNotifications();
 
 
     useEffect(() => {
@@ -359,6 +365,11 @@ export default function DashboardPage() {
                                 </div>
                             </motion.section>
 
+                            {/* One-Time Access Code Generator */}
+                            <motion.section variants={itemVariants}>
+                                <ConsentCodeGenerator />
+                            </motion.section>
+
                             {/* Access Control Quick Actions */}
                             <motion.section variants={itemVariants}>
                                 <div className="bg-[#0A0A0A] border border-white/10 rounded-3xl p-8 space-y-8">
@@ -404,6 +415,7 @@ export default function DashboardPage() {
                     </div>
                 </motion.div>
                 <ProfileSetupDialog isOpen={showProfileSetup} onClose={() => setShowProfileSetup(false)} />
+                <AccessRequestModal />
             </main>
 
             <footer className="border-t border-white/5 py-12 mt-20">

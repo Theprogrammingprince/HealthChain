@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from './supabaseClient';
+import { UserProfile } from './database.types';
 
 export type RecordType = 'Lab Result' | 'Prescription' | 'Imaging' | 'General' | 'Clinical Note';
 
@@ -101,10 +102,10 @@ interface AppState {
   userRole: 'Patient' | 'Hospital' | 'Doctor' | 'Admin' | null;
   supabaseSession: Session | null;
   supabaseUser: User | null;
-  userProfile: Record<string, unknown> | null; // Data from your public.users table
+  userProfile: UserProfile | null; // Data from your public.users table
 
   setSession: (session: Session | null) => void;
-  setUserProfile: (profile: Record<string, unknown> | null) => void;
+  setUserProfile: (profile: UserProfile | null) => void;
   fetchUserProfile: () => Promise<void>;
   checkAuthorization: (status: boolean) => void;
   setUserRole: (role: 'Patient' | 'Hospital' | 'Doctor' | 'Admin' | null) => void;
@@ -131,6 +132,7 @@ interface AppState {
     expiresAt: number | null;
     patientId: string | null;
   };
+  activeEncounterPatientId: string | null;
 
   // Admin State
   verificationRequests: VerificationRequest[];
@@ -153,6 +155,7 @@ interface AppState {
   revokeStaff: (id: string) => void;
   activateEmergency: (patientId: string) => void;
   clearEmergency: () => void;
+  setActivePatient: (id: string | null) => void;
 
   // Admin Actions
   verifyHospital: (id: string) => void;
@@ -343,6 +346,7 @@ export const useAppStore = create<AppState>()(
       expiresAt: null,
       patientId: null
     },
+    activeEncounterPatientId: null,
 
     // Admin Initial State
     verificationRequests: [
@@ -366,9 +370,9 @@ export const useAppStore = create<AppState>()(
     paymasterBalance: 1250.50,
     complianceScore: 98,
 
-    connectWallet: (address) => set({ walletAddress: address, isConnected: true, isAuthenticated: true }),
+    connectWallet: (address: string) => set({ walletAddress: address, isConnected: true, isAuthenticated: true }),
     disconnectWallet: () => set({ walletAddress: null, isConnected: false, isAuthenticated: false, currentStaff: null }),
-    authenticateUser: (role) => {
+    authenticateUser: (role?: StaffRole) => {
       if (role) {
         const staff = { id: 's_current', name: 'Dr. Staff User', role, walletAddress: '0xCUSTOM', status: 'Active' } as StaffMember;
         set({ isAuthenticated: true, currentStaff: staff });
@@ -376,8 +380,8 @@ export const useAppStore = create<AppState>()(
         set({ isAuthenticated: true });
       }
     },
-    setProfileImage: (image) => set({ profileImage: image }),
-    addRecord: async (record) => {
+    setProfileImage: (image: string) => set({ profileImage: image }),
+    addRecord: async (record: PatientRecord) => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
 
@@ -407,7 +411,7 @@ export const useAppStore = create<AppState>()(
         });
       }
     },
-    updateVitals: async (vitals) => {
+    updateVitals: async (vitals: Partial<Vitals>) => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
 
@@ -434,7 +438,7 @@ export const useAppStore = create<AppState>()(
         }));
       }
     },
-    grantAccess: async (permission) => {
+    grantAccess: async (permission: AccessPermission) => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
 
@@ -460,7 +464,7 @@ export const useAppStore = create<AppState>()(
         });
       }
     },
-    revokeAccess: async (id) => {
+    revokeAccess: async (id: string) => {
       const { error } = await supabase
         .from('access_permissions')
         .delete()
@@ -477,7 +481,7 @@ export const useAppStore = create<AppState>()(
         });
       }
     },
-    addActivityLog: async (log) => {
+    addActivityLog: async (log: Omit<ActivityLog, 'id' | 'date'>) => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
 
@@ -504,9 +508,9 @@ export const useAppStore = create<AppState>()(
       }
     },
 
-    addStaff: (staff) => set((state) => ({ staffMembers: [staff, ...state.staffMembers] })),
-    revokeStaff: (id) => set((state) => ({ staffMembers: state.staffMembers.filter(s => s.id !== id) })),
-    activateEmergency: (patientId) => set({
+    addStaff: (staff: StaffMember) => set((state) => ({ staffMembers: [staff, ...state.staffMembers] })),
+    revokeStaff: (id: string) => set((state) => ({ staffMembers: state.staffMembers.filter(s => s.id !== id) })),
+    activateEmergency: (patientId: string) => set({
       emergencyAccess: {
         isActive: true,
         expiresAt: Date.now() + 5 * 60 * 1000,
@@ -514,20 +518,21 @@ export const useAppStore = create<AppState>()(
       }
     }),
     clearEmergency: () => set({ emergencyAccess: { isActive: false, expiresAt: null, patientId: null } }),
-    checkAuthorization: (status) => set({ isAuthorized: status }),
+    checkAuthorization: (status: boolean) => set({ isAuthorized: status }),
+    setActivePatient: (id: string | null) => set({ activeEncounterPatientId: id }),
 
     // Admin Actions Implementation
-    verifyHospital: (id) => set((state) => ({
+    verifyHospital: (id: string) => set((state) => ({
       verificationRequests: state.verificationRequests.map(h =>
         h.id === id ? { ...h, status: 'Verified' } : h
       )
     })),
-    rejectHospital: (id) => set((state) => ({
+    rejectHospital: (id: string) => set((state) => ({
       verificationRequests: state.verificationRequests.map(req =>
         req.id === id ? { ...req, status: 'Rejected' } : req
       )
     })),
-    topUpPaymaster: (amount) => set((state) => ({
+    topUpPaymaster: (amount: number) => set((state) => ({
       paymasterBalance: state.paymasterBalance + amount
     }))
   })
