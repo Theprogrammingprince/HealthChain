@@ -91,11 +91,11 @@ export function TestimonialSlider({ role }: TestimonialSliderProps) {
     const RoleIcon = content.icon;
 
     return (
-        <div className="relative h-full w-full bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-12">
+        <div className="relative h-full w-full bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center px-6 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12 overflow-hidden">
             {/* Subtle background pattern */}
             <div className="absolute inset-0 opacity-5">
-                <div className="absolute top-20 left-20 w-64 h-64 bg-indigo-500 rounded-full blur-3xl" />
-                <div className="absolute bottom-20 right-20 w-64 h-64 bg-blue-500 rounded-full blur-3xl" />
+                <div className="absolute top-10 left-10 sm:top-20 sm:left-20 w-32 h-32 sm:w-64 sm:h-64 bg-indigo-500 rounded-full blur-3xl" />
+                <div className="absolute bottom-10 right-10 sm:bottom-20 sm:right-20 w-32 h-32 sm:w-64 sm:h-64 bg-blue-500 rounded-full blur-3xl" />
             </div>
 
             <AnimatePresence mode="wait">
@@ -105,21 +105,21 @@ export function TestimonialSlider({ role }: TestimonialSliderProps) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.5 }}
-                    className="max-w-2xl relative z-10"
+                    className="max-w-2xl w-full relative z-10"
                 >
                     {/* Role Icon */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.5 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
-                        className="mb-8 flex items-center gap-4"
+                        className="mb-6 sm:mb-8 flex items-center gap-3 sm:gap-4"
                     >
-                        <div className={`w-16 h-16 rounded-2xl ${content.iconBg} flex items-center justify-center border ${content.iconBorder}`}>
-                            <RoleIcon className={`w-8 h-8 ${content.iconColor}`} />
+                        <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl ${content.iconBg} flex items-center justify-center border ${content.iconBorder}`}>
+                            <RoleIcon className={`w-6 h-6 sm:w-8 sm:h-8 ${content.iconColor}`} />
                         </div>
                         <div>
-                            <p className="text-gray-500 text-xs uppercase tracking-widest font-semibold">For {role}s</p>
-                            <p className="text-gray-400 text-sm font-medium">Powered by HealthChain</p>
+                            <p className="text-gray-500 text-[10px] sm:text-xs uppercase tracking-widest font-semibold">For {role}s</p>
+                            <p className="text-gray-400 text-xs sm:text-sm font-medium">Powered by HealthChain</p>
                         </div>
                     </motion.div>
 
@@ -128,18 +128,18 @@ export function TestimonialSlider({ role }: TestimonialSliderProps) {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.3 }}
-                        className="space-y-6"
+                        className="space-y-4 sm:space-y-6"
                     >
-                        <h2 className="text-white text-4xl md:text-5xl font-bold leading-tight tracking-tight" style={{ fontFamily: "'Inter', 'SF Pro Display', -apple-system, system-ui, sans-serif" }}>
+                        <h2 className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tight" style={{ fontFamily: "'Inter', 'SF Pro Display', -apple-system, system-ui, sans-serif" }}>
                             {content.mainQuote}
                         </h2>
 
-                        <p className="text-gray-300 text-xl leading-relaxed font-light" style={{ fontFamily: "'Inter', 'SF Pro Text', -apple-system, system-ui, sans-serif" }}>
+                        <p className="text-gray-300 text-base sm:text-lg md:text-xl leading-relaxed font-light" style={{ fontFamily: "'Inter', 'SF Pro Text', -apple-system, system-ui, sans-serif" }}>
                             {content.description}
                         </p>
 
-                        <div className="pt-4">
-                            <p className={`text-lg font-semibold italic bg-gradient-to-r ${content.gradientFrom} ${content.gradientTo} bg-clip-text text-transparent`} style={{ fontFamily: "'Inter', 'SF Pro Display', -apple-system, system-ui, sans-serif" }}>
+                        <div className="pt-2 sm:pt-4">
+                            <p className={`text-sm sm:text-base md:text-lg font-semibold italic bg-gradient-to-r ${content.gradientFrom} ${content.gradientTo} bg-clip-text text-transparent`} style={{ fontFamily: "'Inter', 'SF Pro Display', -apple-system, system-ui, sans-serif" }}>
                                 {content.impact}
                             </p>
                         </div>
@@ -150,16 +150,16 @@ export function TestimonialSlider({ role }: TestimonialSliderProps) {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8, delay: 0.5 }}
-                        className="mt-12 grid grid-cols-3 gap-6"
+                        className="mt-8 sm:mt-12 grid grid-cols-3 gap-4 sm:gap-6"
                     >
                         {content.features.map((feature, index) => {
                             const FeatureIcon = feature.icon;
                             return (
-                                <div key={index} className="flex flex-col items-center text-center space-y-2">
-                                    <div className={`w-12 h-12 rounded-full ${colorMap[feature.color]} flex items-center justify-center border`}>
-                                        <FeatureIcon className={`w-6 h-6 ${iconColorMap[feature.color]}`} />
+                                <div key={index} className="flex flex-col items-center text-center space-y-1.5 sm:space-y-2">
+                                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full ${colorMap[feature.color]} flex items-center justify-center border`}>
+                                        <FeatureIcon className={`w-5 h-5 sm:w-6 sm:h-6 ${iconColorMap[feature.color]}`} />
                                     </div>
-                                    <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                    <p className="text-[10px] sm:text-xs font-medium text-gray-400 uppercase tracking-wider leading-tight">
                                         {feature.label}
                                     </p>
                                 </div>
@@ -172,9 +172,9 @@ export function TestimonialSlider({ role }: TestimonialSliderProps) {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.8, delay: 0.7 }}
-                        className="mt-12 pt-8 border-t border-gray-700/50"
+                        className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-gray-700/50"
                     >
-                        <p className="text-gray-500 text-sm font-medium" style={{ fontFamily: "'Inter', -apple-system, system-ui, sans-serif" }}>
+                        <p className="text-gray-500 text-xs sm:text-sm font-medium" style={{ fontFamily: "'Inter', -apple-system, system-ui, sans-serif" }}>
                             The future of healthcare is decentralized, secure, and patient-owned.
                         </p>
                     </motion.div>

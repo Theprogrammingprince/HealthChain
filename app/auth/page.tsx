@@ -23,14 +23,14 @@ export default function AuthPage() {
     }, [role]);
 
     return (
-        <div className="min-h-screen bg-white flex relative overflow-hidden">
-            <Link href="/" className="absolute top-6 left-6 flex items-center gap-2 text-gray-400 hover:text-gray-900 transition-colors group z-50">
+        <div className="min-h-screen bg-white flex flex-col lg:flex-row relative overflow-x-hidden">
+            <Link href="/" className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2 text-gray-400 hover:text-gray-900 transition-colors group z-50">
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                 <span className="text-sm font-medium">Back</span>
             </Link>
 
             {/* Left Side - Auth Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8 lg:p-16 relative z-10">
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-4 pt-16 sm:p-6 sm:pt-20 lg:p-16 relative z-10 min-h-screen lg:min-h-0">
                 <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -51,11 +51,11 @@ export default function AuthPage() {
                     <RoleSwitcher role={role} onRoleChange={setRole} />
 
                     {/* Heading */}
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    <div className="mb-6 sm:mb-8">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                             {mode === "signup" ? "Create Your Account" : "Welcome Back"}
                         </h1>
-                        <p className="text-gray-600">
+                        <p className="text-sm sm:text-base text-gray-600">
                             {mode === "signup" 
                                 ? `Join HealthChain to ${role === 'Patient' ? 'manage your health records' : role === 'Doctor' ? 'provide better care' : 'streamline operations'} with ease.`
                                 : "Sign in to access your account"}
@@ -96,7 +96,7 @@ export default function AuthPage() {
             </div>
 
             {/* Right Side - Testimonial Slider */}
-            <div className="hidden lg:block lg:w-1/2 relative">
+            <div className="hidden lg:block lg:w-1/2 relative lg:min-h-screen">
                 <TestimonialSlider role={role} />
             </div>
         </div>
