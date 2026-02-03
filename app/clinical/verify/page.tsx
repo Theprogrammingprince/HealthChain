@@ -135,18 +135,21 @@ export default function HospitalVerifyPage() {
                 setVerificationStatus(hospitalData.verification_status);
 
                 // If already verified, redirect to clinical dashboard
-                if (hospitalData.verification_status === "verified") {
+                if (hospitalData.verification_status === "verified" || hospitalData.verification_status === "approved") {
                     toast.success("You are already verified!");
                     router.push("/clinical/dashboard");
                     return;
                 }
 
-                // If pending, pre-fill form and mark as submitted
+                // If pending, check if it's a real submission or just a new account
                 if (hospitalData.verification_status === "pending") {
                     form.setValue("hospitalName", hospitalData.hospital_name || "");
                     form.setValue("cacNumber", hospitalData.registration_number || "");
                     form.setValue("mdcnLicense", hospitalData.license_number || "");
-                    setHasSubmitted(true);
+
+                    // Only lock the form if they've actually filled out the key data (license or registration)
+                    const isActuallySubmitted = !!hospitalData.license_number || !!hospitalData.registration_number;
+                    setHasSubmitted(isActuallySubmitted);
                 }
 
                 // If rejected, pre-fill form but allow resubmission

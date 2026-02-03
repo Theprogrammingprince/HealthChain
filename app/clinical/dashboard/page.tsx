@@ -75,13 +75,13 @@ export default function ClinicalDashboardPage() {
             try {
                 const { data, error } = await supabase
                     .from("hospital_profiles")
-                    .select("verification_status, rejection_reason")
+                    .select("verification_status, revocation_reason")
                     .eq("user_id", userId)
                     .single();
 
                 if (data) {
                     setVerificationStatus(data.verification_status);
-                    setRejectionReason(data.rejection_reason || null);
+                    setRejectionReason(data.revocation_reason || null);
                 }
             } catch (error) {
                 console.error("Error loading verification status:", error);

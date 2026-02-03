@@ -34,6 +34,8 @@ import {
     rejectRecordAsHospital,
     logHospitalRecordApproval,
     logHospitalRecordRejection,
+    notifyPatientPendingApproval,
+    notifyDoctorRecordRejected,
 } from "@/lib/database.service";
 
 type Submission = {
@@ -41,6 +43,8 @@ type Submission = {
     submission_code: string;
     doctor_name: string;
     patient_name: string;
+    doctor_id: string;
+    patient_id: string;
     record_type: string;
     record_title: string;
     record_description: string | null;
@@ -120,7 +124,15 @@ export function DoctorSubmissionTable() {
                 hospitalName,
                 submission.record_title,
                 submission.doctor_name,
-                (submission as any).patient_id || ''
+                submission.patient_id
+            );
+
+            // Send notification to patient
+            await notifyPatientPendingApproval(
+                submission.patient_id,
+                submission.record_title,
+                submission.doctor_name,
+                hospitalName
             );
 
             // Update local state
@@ -170,7 +182,16 @@ export function DoctorSubmissionTable() {
                 hospitalName,
                 selectedSubmission.record_title,
                 selectedSubmission.doctor_name,
-                (selectedSubmission as any).patient_id || '',
+                selectedSubmission.patient_id,
+                rejectionReason
+            );
+
+            // Notify doctor
+            await notifyDoctorRecordRejected(
+                selectedSubmission.doctor_id,
+                selectedSubmission.record_title,
+                'hospital',
+                hospitalName,
                 rejectionReason
             );
 
