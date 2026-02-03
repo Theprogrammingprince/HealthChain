@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, UserPlus, ShieldAlert, ArrowRight, Activity, Filter } from "lucide-react";
+import { Search, UserPlus, ShieldAlert, ArrowRight, Activity, Filter, Lock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -9,9 +9,15 @@ import { Badge } from "@/components/ui/badge";
 import { useAppStore } from "@/lib/store";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "next/navigation";
+import { checkAccessPermission } from "@/lib/database.service";
+import { toast } from "sonner";
 
-export function PatientSearchBar() {
-    const { patients } = useAppStore();
+interface PatientSearchBarProps {
+    onPatientSelect?: (patientId: string) => void;
+}
+
+export function PatientSearchBar({ onPatientSelect }: PatientSearchBarProps) {
+    const { patients, supabaseUser } = useAppStore();
     const searchParams = useSearchParams();
 
     // Initialize state based on emergency params to avoid setState in effect
@@ -20,7 +26,6 @@ export function PatientSearchBar() {
 
     const [query, setQuery] = useState(emergencyPatient ? emergencyPatient.id : "");
     const [results, setResults] = useState(emergencyPatient ? [emergencyPatient] : patients);
-
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
@@ -36,6 +41,46 @@ export function PatientSearchBar() {
         );
         setResults(filtered);
     };
+
+    const handleOpenRecord = async (patientId: string) => {
+        if (!supabaseUser) return;
+
+        setIsChecking(patientId);
+        try {
+            const hasAccess = await checkAccessPermission(patientId, supabaseUser.id);
+            if (hasAccess) {
+                toast.success("Access Verified", { description: "Opening patient clinical record..." });
+                if (onPatientSelect) onPatientSelect(patientId);
+            } else {
+                toast.error("Access Denied", {
+                    description: "You do not have permission to view this record. Please request consent using the patient's 6-digit code."
+                });
+            }
+        } catch (error) {
+            console.error("Permission check failed:", error);
+            toast.error("Verification Error");
+        } finally {
+            setIsChecking(null);
+        }
+    };
+
+    const [isChecking, setIsChecking] = useState<string | null>(null);
+    const [permissions, setPermissions] = useState<Record<string, boolean>>({});
+
+    useEffect(() => {
+        const checkVisiblePermissions = async () => {
+            if (!supabaseUser) return;
+            const newPermissions: Record<string, boolean> = { ...permissions };
+            const toCheck = results.filter(p => permissions[p.id] === undefined);
+
+            for (const p of toCheck) {
+                const hasAccess = await checkAccessPermission(p.id, supabaseUser.id);
+                newPermissions[p.id] = hasAccess;
+            }
+            setPermissions(newPermissions);
+        };
+        checkVisiblePermissions();
+    }, [results, supabaseUser]);
 
     return (
         <div className="space-y-6">
@@ -97,18 +142,41 @@ export function PatientSearchBar() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                                            <span className="text-xs text-emerald-500 font-bold uppercase tracking-wider">CONSENT ACTIVE</span>
-                                        </div>
+                                        {permissions[patient.id] ? (
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                                                <span className="text-xs text-emerald-500 font-bold uppercase tracking-wider">CONSENT ACTIVE</span>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 bg-gray-500 rounded-full" />
+                                                <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">NO ACTIVE CONSENT</span>
+                                            </div>
+                                        )}
                                     </TableCell>
                                     <TableCell className="text-gray-400 text-xs">
                                         {patient.lastVisit}
                                     </TableCell>
                                     <TableCell className="text-right pr-8">
-                                        <Button variant="ghost" className="text-indigo-400 hover:text-white hover:bg-indigo-500/10 rounded-xl font-bold p-2 px-4 flex items-center gap-2 ml-auto group/btn">
-                                            Open Record
-                                            <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() => handleOpenRecord(patient.id)}
+                                            disabled={isChecking === patient.id}
+                                            className={`text-indigo-400 hover:text-white hover:bg-indigo-500/10 rounded-xl font-bold p-2 px-4 flex items-center gap-2 ml-auto group/btn ${!permissions[patient.id] && 'opacity-50'}`}
+                                        >
+                                            {isChecking === patient.id ? (
+                                                <Activity className="w-4 h-4 animate-spin text-white" />
+                                            ) : permissions[patient.id] ? (
+                                                <>
+                                                    Open Record
+                                                    <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Access Blocked
+                                                    <Lock size={12} className="opacity-50" />
+                                                </>
+                                            )}
                                         </Button>
                                     </TableCell>
                                 </motion.tr>

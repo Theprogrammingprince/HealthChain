@@ -81,6 +81,27 @@ export interface DoctorProfile {
     updated_at: string;
 }
 
+export interface PatientAccessCode {
+    id: string;
+    patient_id: string;
+    code: string;
+    status: 'active' | 'used' | 'expired';
+    expires_at: string;
+    created_at: string;
+}
+
+export interface PatientAccessPermission {
+    id: string;
+    patient_id: string;
+    accessor_id: string;
+    accessor_type: 'hospital' | 'doctor';
+    scope: 'full' | 'partial';
+    status: 'active' | 'revoked' | 'expired';
+    expires_at: string;
+    created_at: string;
+    updated_at: string;
+}
+
 // Insert types (without auto-generated fields)
 export type UserProfileInsert = Omit<UserProfile, 'created_at' | 'updated_at' | 'last_sign_in'>;
 export type PatientProfileInsert = Omit<PatientProfile, 'id' | 'created_at' | 'updated_at'>;
@@ -92,3 +113,9 @@ export type UserProfileUpdate = Partial<Omit<UserProfile, 'id' | 'created_at'>>;
 export type PatientProfileUpdate = Partial<Omit<PatientProfile, 'id' | 'user_id' | 'created_at'>>;
 export type HospitalProfileUpdate = Partial<Omit<HospitalProfile, 'id' | 'user_id' | 'created_at'>>;
 export type DoctorProfileUpdate = Partial<Omit<DoctorProfile, 'id' | 'user_id' | 'created_at'>>;
+
+export type PatientAccessCodeInsert = Omit<PatientAccessCode, 'id' | 'created_at'>;
+export type PatientAccessCodeUpdate = Partial<Omit<PatientAccessCode, 'id' | 'patient_id' | 'created_at'>>;
+
+export type PatientAccessPermissionInsert = Omit<PatientAccessPermission, 'id' | 'created_at' | 'updated_at'>;
+export type PatientAccessPermissionUpdate = Partial<Omit<PatientAccessPermission, 'id' | 'patient_id' | 'accessor_id' | 'created_at'>>;

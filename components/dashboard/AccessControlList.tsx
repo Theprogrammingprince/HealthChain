@@ -31,20 +31,63 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { GrantAccessDialog } from "./GrantAccessDialog";
+import { getActivePatientPermissions, revokeAccessPermission } from "@/lib/database.service";
+import { PatientAccessPermission } from "@/lib/database.types";
+import { useEffect } from "react";
+import { Clock } from "lucide-react";
 
 export function AccessControlList() {
-    const { accessPermissions, revokeAccess } = useAppStore();
+    const { accessPermissions, revokeAccess, supabaseUser } = useAppStore();
     const [revokingId, setRevokingId] = useState<string | null>(null);
     const [isGrantDialogOpen, setIsGrantDialogOpen] = useState(false);
+    const [tempPermissions, setTempPermissions] = useState<PatientAccessPermission[]>([]);
+    const [isRevokingTemp, setIsRevokingTemp] = useState(false);
 
-    const handleRevoke = () => {
+    const fetchTempPermissions = async () => {
+        if (supabaseUser) {
+            try {
+                const data = await getActivePatientPermissions(supabaseUser.id);
+                setTempPermissions(data);
+            } catch (error) {
+                console.error("Failed to fetch temp permissions:", error);
+            }
+        }
+    };
+
+    useEffect(() => {
+        fetchTempPermissions();
+        // Refresh every minute
+        const interval = setInterval(fetchTempPermissions, 60000);
+        return () => clearInterval(interval);
+    }, [supabaseUser]);
+
+    const handleRevoke = async () => {
         if (revokingId) {
-            revokeAccess(revokingId);
+            // Check if it's a temp permission
+            const tempPerm = tempPermissions.find(p => p.id === revokingId);
+            if (tempPerm) {
+                setIsRevokingTemp(true);
+                try {
+                    if (!supabaseUser) throw new Error("User not authenticated");
+                    await revokeAccessPermission(revokingId, supabaseUser.id);
+                    toast.error("Temporary Access Revoked", {
+                        description: "The clinical entity's temporary access has been terminated.",
+                        icon: <ShieldAlert className="text-red-500" />
+                    });
+                    fetchTempPermissions();
+                } catch (error) {
+                    toast.error("Revocation Failed");
+                } finally {
+                    setIsRevokingTemp(false);
+                }
+            } else {
+                revokeAccess(revokingId);
+                toast.error("Access Revoked", {
+                    description: "The entity can no longer decrypt your clinical data.",
+                    icon: <ShieldAlert className="text-red-500" />
+                });
+            }
             setRevokingId(null);
-            toast.error("Access Revoked", {
-                description: "The entity can no longer decrypt your clinical data.",
-                icon: <ShieldAlert className="text-red-500" />
-            });
         }
     };
 
@@ -132,13 +175,55 @@ export function AccessControlList() {
                             ))}
                         </AnimatePresence>
 
-                        {accessPermissions.length === 0 && (
+                        {accessPermissions.length === 0 && tempPermissions.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={5} className="h-32 text-center text-gray-500 italic">
                                     No one has access yet – your data is private.
                                 </TableCell>
                             </TableRow>
                         )}
+
+                        {/* Temporary Permissions */}
+                        <AnimatePresence mode="popLayout">
+                            {tempPermissions.map((permission: PatientAccessPermission) => (
+                                <motion.tr
+                                    key={permission.id}
+                                    layout
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    className="group hover:bg-emerald-500/5 transition-colors border-b border-white/5 last:border-0"
+                                >
+                                    <TableCell className="font-semibold text-emerald-400">
+                                        Clinical Provider (Via Request)
+                                    </TableCell>
+                                    <TableCell className="text-gray-500 font-mono text-[10px]">
+                                        {permission.accessor_id.slice(0, 16)}...
+                                    </TableCell>
+                                    <TableCell className="text-gray-400 text-xs uppercase tracking-tighter">
+                                        Ends: {new Date(permission.expires_at).toLocaleTimeString()}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge
+                                            variant="outline"
+                                            className="text-[10px] h-5 rounded-full px-2 border-emerald-500/20 text-emerald-500 bg-emerald-500/5 flex items-center gap-1 w-fit"
+                                        >
+                                            <Clock size={8} /> {permission.scope === 'full' ? 'FULL' : 'PARTIAL'}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-gray-600 hover:text-red-500 hover:bg-red-500/10"
+                                            onClick={() => setRevokingId(permission.id)}
+                                        >
+                                            <ShieldX size={14} />
+                                        </Button>
+                                    </TableCell>
+                                </motion.tr>
+                            ))}
+                        </AnimatePresence>
                     </TableBody>
                 </Table>
             </div>

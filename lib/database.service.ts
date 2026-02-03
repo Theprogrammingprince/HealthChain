@@ -13,7 +13,13 @@ import type {
     DoctorProfileInsert,
     DoctorProfileUpdate,
     UserRole,
-    AuthProvider
+    AuthProvider,
+    PatientAccessCode,
+    PatientAccessCodeInsert,
+    PatientAccessCodeUpdate,
+    PatientAccessPermission,
+    PatientAccessPermissionInsert,
+    PatientAccessPermissionUpdate
 } from './database.types';
 
 // ==================== USER PROFILE OPERATIONS ====================
@@ -1325,6 +1331,7 @@ export type NotificationType =
     | "hospital_verified"
     | "access_granted"
     | "access_revoked"
+    | "access_request"
     | "emergency_alert"
     | "system";
 
@@ -1535,4 +1542,197 @@ export async function markAllNotificationsAsRead(userId: string) {
         .eq('is_read', false);
 
     return !error;
+}
+
+// ==================== PATIENT ACCESS CONTROL OPERATIONS ====================
+
+/**
+ * Generate a random 6-digit alphanumeric code
+ */
+function generateRandomCode(length: number = 6): string {
+    const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
+/**
+ * Generate a one-time access code for a patient
+ */
+export async function createPatientAccessCode(patientId: string, expiryMinutes: number = 10) {
+    const code = generateRandomCode(6);
+    const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000).toISOString();
+
+    const { data, error } = await supabase
+        .from('patient_access_codes')
+        .insert({
+            patient_id: patientId,
+            code: code,
+            status: 'active',
+            expires_at: expiresAt
+        })
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error creating patient access code:', error);
+        throw error;
+    }
+
+    return data as PatientAccessCode;
+}
+
+/**
+ * Validate an access code and return the patient ID
+ */
+export async function validateAccessCode(code: string) {
+    const { data, error } = await supabase
+        .from('patient_access_codes')
+        .select('*')
+        .eq('code', code.toUpperCase())
+        .eq('status', 'active')
+        .gt('expires_at', new Date().toISOString())
+        .single();
+
+    if (error) {
+        if (error.code === 'PGRST116') {
+            return { error: 'Invalid or expired code' };
+        }
+        console.error('Error validating access code:', error);
+        throw error;
+    }
+
+    return { patientId: data.patient_id, codeId: data.id };
+}
+
+/**
+ * Request access using a code (Hospital/Doctor side)
+ */
+export async function requestAccessByCode(code: string, accessorId: string, accessorName: string) {
+    const validation = await validateAccessCode(code);
+    if ('error' in validation) return { error: validation.error };
+
+    const { patientId } = validation;
+
+    // Create a notification for the patient
+    await createNotification(
+        patientId,
+        'access_request',
+        'Access Requested',
+        `${accessorName} is requesting temporary access to your medical records using a code.`,
+        `/patient/dashboard?action=approve_access&accessorId=${accessorId}`
+    );
+
+    return { patientId, success: true };
+}
+
+/**
+ * Grant time-limited access to a doctor or hospital
+ */
+export async function grantAccessPermission(
+    patientId: string,
+    accessorId: string,
+    accessorType: 'hospital' | 'doctor',
+    expiryHours: number = 24,
+    scope: 'full' | 'partial' = 'full'
+) {
+    const expiresAt = new Date(Date.now() + expiryHours * 60 * 60 * 1000).toISOString();
+
+    const { data, error } = await supabase
+        .from('patient_access_permissions')
+        .insert({
+            patient_id: patientId,
+            accessor_id: accessorId,
+            accessor_type: accessorType,
+            scope: scope,
+            status: 'active',
+            expires_at: expiresAt
+        })
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error granting access permission:', error);
+        throw error;
+    }
+
+    // Log the event
+    await createActivityLog(
+        patientId,
+        'System',
+        'Access Granted',
+        `Access granted to ${accessorType} for ${expiryHours} hours. Scope: ${scope}`,
+        patientId
+    );
+
+    return data as PatientAccessPermission;
+}
+
+/**
+ * Check if an accessor has active permission for a patient
+ */
+export async function checkAccessPermission(patientId: string, accessorId: string) {
+    const { data, error } = await supabase
+        .from('patient_access_permissions')
+        .select('*')
+        .eq('patient_id', patientId)
+        .eq('accessor_id', accessorId)
+        .eq('status', 'active')
+        .gt('expires_at', new Date().toISOString())
+        .limit(1);
+
+    if (error) {
+        console.error('Error checking access permission:', error);
+        return false;
+    }
+
+    return data && data.length > 0;
+}
+
+/**
+ * Revoke an active access permission
+ */
+export async function revokeAccessPermission(permissionId: string, patientId: string) {
+    const { error } = await supabase
+        .from('patient_access_permissions')
+        .update({
+            status: 'revoked',
+            updated_at: new Date().toISOString()
+        })
+        .eq('id', permissionId)
+        .eq('patient_id', patientId);
+
+    if (error) {
+        console.error('Error revoking access permission:', error);
+        throw error;
+    }
+
+    return true;
+}
+
+/**
+ * Get all active permissions for a patient
+ */
+export async function getActivePatientPermissions(patientId: string) {
+    const { data, error } = await supabase
+        .from('patient_access_permissions')
+        .select(`
+            *,
+            accessor:accessor_id (
+                id,
+                full_name
+            )
+        `)
+        .eq('patient_id', patientId)
+        .eq('status', 'active')
+        .gt('expires_at', new Date().toISOString());
+
+    if (error) {
+        console.error('Error fetching active permissions:', error);
+        return [];
+    }
+
+    return data;
 }
