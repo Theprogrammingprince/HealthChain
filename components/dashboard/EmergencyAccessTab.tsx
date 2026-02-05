@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     QrCode,
@@ -13,16 +13,18 @@ import {
     Activity,
     Loader2,
     X,
-    KeyRound
+    KeyRound,
+    Copy
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabaseClient";
-import { getEmergencyProfile, logEmergencyAccess } from "@/lib/database.service";
+import { getEmergencyProfile, logEmergencyAccess, createActivityLog } from "@/lib/database.service";
 import { useRouter } from "next/navigation";
 
 interface EmergencyPatientData {
+    userId: string;
     fullName: string;
     dateOfBirth: string | null;
     gender: string | null;
@@ -50,6 +52,46 @@ export function EmergencyAccessTab() {
     const [accessGrantedAt, setAccessGrantedAt] = useState<Date | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isScanning, setIsScanning] = useState(false);
+    const [accessLocation, setAccessLocation] = useState<string>('');
+
+    // Get geolocation when component mounts
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setAccessLocation(`${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`);
+                },
+                () => {
+                    setAccessLocation('Location unavailable');
+                }
+            );
+        }
+    }, []);
+
+    // Log detailed doctor actions
+    const logDetailedAction = async (action: string, details: string, patientId: string) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        const { data: doctorProfile } = await supabase
+            .from('doctor_profiles')
+            .select('first_name, last_name')
+            .eq('user_id', user?.id)
+            .single();
+
+        const doctorName = doctorProfile 
+            ? `Dr. ${doctorProfile.first_name} ${doctorProfile.last_name}`
+            : 'Emergency Doctor';
+
+        const timestamp = new Date().toLocaleString();
+        const detailedLog = `${details} | Time: ${timestamp} | Location: ${accessLocation || 'Unknown'}`;
+
+        await createActivityLog(
+            patientId,
+            doctorName,
+            'Emergency Access',
+            detailedLog,
+            patientId
+        );
+    };
 
     const handleOTPVerification = async () => {
         if (!otpCode || otpCode.length < 6) {
@@ -115,7 +157,9 @@ export function EmergencyAccessTab() {
                 : 'Emergency Doctor';
 
             // Log emergency access
-            await logEmergencyAccess(tokenData.patient_id, doctorName, 'Doctor');
+            console.log("Logging emergency access for patient:", tokenData.patient_id, "by", doctorName);
+            const logResult = await logEmergencyAccess(tokenData.patient_id, doctorName, 'Doctor');
+            console.log("Log result:", logResult);
 
             // Mark token as used
             await supabase
@@ -129,6 +173,24 @@ export function EmergencyAccessTab() {
 
             setPatientData(profile);
             setAccessGrantedAt(new Date());
+            
+            // Log detailed initial access with what data is being viewed
+            const dataAccessed = [
+                'Full Name',
+                'Blood Type: ' + profile.bloodType,
+                'Genotype: ' + profile.genotype,
+                profile.allergies?.length ? `Allergies (${profile.allergies.length} items)` : 'No allergies',
+                profile.medications?.length ? `Medications (${profile.medications.length} items)` : 'No medications',
+                profile.conditions?.length ? `Medical Conditions (${profile.conditions.length} items)` : 'No conditions',
+                'Emergency Contact Info'
+            ].join(', ');
+            
+            await logDetailedAction(
+                'Initial Access',
+                `Accessed emergency profile - Viewed: ${dataAccessed}`,
+                tokenData.patient_id
+            );
+            
             toast.success("Emergency Access Granted", { 
                 description: `Accessing ${profile.fullName}'s critical medical data` 
             });
@@ -184,11 +246,31 @@ export function EmergencyAccessTab() {
         setMode('select');
     };
 
-    const closeAccess = () => {
+    const closeAccess = async () => {
+        if (patientData) {
+            await logDetailedAction(
+                'Session Closed',
+                'Emergency access session ended',
+                patientData.userId
+            );
+        }
         setPatientData(null);
         setAccessGrantedAt(null);
         setOtpCode('');
         setMode('select');
+    };
+
+    // Track copy actions
+    const handleCopyData = async (dataType: string, value: string) => {
+        if (patientData) {
+            await navigator.clipboard.writeText(value);
+            await logDetailedAction(
+                'Data Copied',
+                `Copied ${dataType}: ${value}`,
+                patientData.userId
+            );
+            toast.success('Copied to clipboard', { description: `${dataType} copied` });
+        }
     };
 
     if (patientData && accessGrantedAt) {
@@ -237,19 +319,43 @@ export function EmergencyAccessTab() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-4">
-                            <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                            <div className="p-4 bg-white/5 rounded-xl border border-white/5 relative group">
                                 <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mb-1">Full Name</p>
                                 <p className="text-lg font-bold text-white">{patientData.fullName}</p>
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={() => handleCopyData('Full Name', patientData.fullName)}
+                                >
+                                    <Copy className="w-3 h-3" />
+                                </Button>
                             </div>
                             
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                                <div className="p-4 bg-white/5 rounded-xl border border-white/5 relative group">
                                     <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mb-1">Blood Type</p>
                                     <p className="text-2xl font-black text-red-400">{patientData.bloodType}</p>
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        onClick={() => handleCopyData('Blood Type', patientData.bloodType)}
+                                    >
+                                        <Copy className="w-3 h-3" />
+                                    </Button>
                                 </div>
-                                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                                <div className="p-4 bg-white/5 rounded-xl border border-white/5 relative group">
                                     <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mb-1">Genotype</p>
                                     <p className="text-2xl font-black text-purple-400">{patientData.genotype}</p>
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        onClick={() => handleCopyData('Genotype', patientData.genotype)}
+                                    >
+                                        <Copy className="w-3 h-3" />
+                                    </Button>
                                 </div>
                             </div>
 
