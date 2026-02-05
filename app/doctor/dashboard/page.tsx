@@ -17,7 +17,8 @@ import {
     Filter,
     LifeBuoy,
     AlertCircle,
-    ArrowRight
+    ArrowRight,
+    Siren
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
@@ -37,6 +38,9 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabaseClient";
 import { getDoctorProfile, getDoctorStatistics, getRecentDoctorSubmissions } from "@/lib/database.service";
 import { format } from "date-fns";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EmergencyAccessTab } from "@/components/dashboard/EmergencyAccessTab";
+import { EmergencyAccessTabTest } from "@/components/dashboard/EmergencyAccessTabTest";
 
 export default function DoctorDashboard() {
     const router = useRouter();
@@ -47,6 +51,7 @@ export default function DoctorDashboard() {
     const [stats, setStats] = useState<any>(null);
     const [submissions, setSubmissions] = useState<any[]>([]);
     const [statsLoading, setStatsLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState("overview");
 
     useEffect(() => {
         loadDashboardData();
@@ -68,13 +73,20 @@ export default function DoctorDashboard() {
                 setProfile(doctorProfile);
 
                 // 2. Fetch Stats & Submissions using doctor table ID
-                const [statsData, submissionsData] = await Promise.all([
-                    getDoctorStatistics(doctorProfile.id),
-                    getRecentDoctorSubmissions(doctorProfile.id, 5)
-                ]);
+                try {
+                    const [statsData, submissionsData] = await Promise.all([
+                        getDoctorStatistics(doctorProfile.id),
+                        getRecentDoctorSubmissions(doctorProfile.id, 5)
+                    ]);
 
-                setStats(statsData);
-                setSubmissions(submissionsData);
+                    setStats(statsData || {});
+                    setSubmissions(submissionsData || []);
+                } catch (dataError) {
+                    console.error("Error loading stats/submissions:", dataError);
+                    // Set default values to prevent UI breaking
+                    setStats({});
+                    setSubmissions([]);
+                }
             }
         } catch (error) {
             console.error("Error loading dashboard data:", error);
@@ -261,7 +273,20 @@ export default function DoctorDashboard() {
                         ))}
                     </motion.div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                    {/* Tabs Navigation */}
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                        <TabsList className="bg-white/5 p-1 rounded-2xl mb-10 border border-white/5 flex w-fit">
+                            <TabsTrigger value="overview" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white rounded-xl transition-all font-black px-10 py-3 uppercase text-xs tracking-widest">
+                                Overview
+                            </TabsTrigger>
+                            <TabsTrigger value="emergency" className="data-[state=active]:bg-red-500 data-[state=active]:text-white rounded-xl transition-all font-black px-10 py-3 uppercase text-xs tracking-widest">
+                                <Siren className="w-4 h-4 mr-2" />
+                                Emergency Access
+                            </TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="overview" className="space-y-10">
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                         {/* Left Column: Upload Form */}
                         <div className="lg:col-span-7">
                             <motion.section variants={itemVariants}>
@@ -353,6 +378,12 @@ export default function DoctorDashboard() {
                             </motion.section>
                         </div>
                     </div>
+                        </TabsContent>
+
+                        <TabsContent value="emergency" className="space-y-10">
+                            <EmergencyAccessTab />
+                        </TabsContent>
+                    </Tabs>
                 </motion.div>
             </main>
         </div>

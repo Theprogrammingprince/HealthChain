@@ -175,6 +175,9 @@ export default function DashboardPage() {
                             <Link href="/patient/dashboard/permissions" className="text-sm font-bold text-gray-500 hover:text-white uppercase tracking-wider transition-colors">
                                 Permissions
                             </Link>
+                            <Link href="/patient/dashboard/emergency" className="text-sm font-bold text-gray-500 hover:text-white uppercase tracking-wider transition-colors">
+                                Emergency
+                            </Link>
                             <Link href="/patient/dashboard/history" className="text-sm font-bold text-gray-500 hover:text-white uppercase tracking-wider transition-colors">
                                 History
                             </Link>
