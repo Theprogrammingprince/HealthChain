@@ -1217,13 +1217,12 @@ export async function getActivityLogStats(userId: string) {
 // ==================== EMERGENCY ACCESS OPERATIONS ====================
 
 /**
- * Generate an emergency access token for a patient
+ * Generate an emergency access token for a patient (6 characters)
  */
 export function generateEmergencyToken(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let token = '';
-    for (let i = 0; i < 12; i++) {
-        if (i > 0 && i % 4 === 0) token += '-';
+    for (let i = 0; i < 6; i++) {
         token += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return token;
