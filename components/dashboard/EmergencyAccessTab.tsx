@@ -275,21 +275,21 @@ export function EmergencyAccessTab() {
 
     if (patientData && accessGrantedAt) {
         return (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
                 {/* Access Header */}
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-r from-red-500/10 via-orange-500/10 to-red-500/10 border border-red-500/20 rounded-2xl p-6"
+                    className="bg-gradient-to-r from-red-500/10 via-orange-500/10 to-red-500/10 border border-red-500/20 rounded-xl sm:rounded-2xl p-4 sm:p-6"
                 >
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 bg-red-500/20 rounded-xl flex items-center justify-center border border-red-500/30">
-                                <Shield className="w-7 h-7 text-red-400 animate-pulse" />
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div className="flex items-center gap-3 sm:gap-4">
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-red-500/20 rounded-xl flex items-center justify-center border border-red-500/30">
+                                <Shield className="w-6 h-6 sm:w-7 sm:h-7 text-red-400 animate-pulse" />
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-white uppercase tracking-tight">Emergency Access Active</h3>
-                                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">
+                                <h3 className="text-base sm:text-xl font-bold text-white uppercase tracking-tight">Emergency Access Active</h3>
+                                <p className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">
                                     Granted: {accessGrantedAt.toLocaleTimeString()}
                                 </p>
                             </div>
@@ -297,9 +297,9 @@ export function EmergencyAccessTab() {
                         <Button
                             onClick={closeAccess}
                             variant="ghost"
-                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10 text-xs sm:text-sm w-full sm:w-auto"
                         >
-                            <X className="w-5 h-5 mr-2" />
+                            <X className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                             Close Access
                         </Button>
                     </div>
@@ -310,18 +310,18 @@ export function EmergencyAccessTab() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="bg-white/5 border border-white/10 rounded-2xl p-8"
+                    className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8"
                 >
-                    <div className="flex items-center gap-3 mb-6">
-                        <User className="w-6 h-6 text-emerald-400" />
-                        <h3 className="text-2xl font-bold text-white uppercase tracking-tight">Patient Information</h3>
+                    <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                        <User className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400" />
+                        <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white uppercase tracking-tight">Patient Information</h3>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                            <div className="p-4 bg-white/5 rounded-xl border border-white/5 relative group">
-                                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mb-1">Full Name</p>
-                                <p className="text-lg font-bold text-white">{patientData.fullName}</p>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                        <div className="space-y-3 sm:space-y-4">
+                            <div className="p-3 sm:p-4 bg-white/5 rounded-xl border border-white/5 relative group">
+                                <p className="text-[10px] sm:text-xs text-gray-500 font-bold uppercase tracking-widest mb-1">Full Name</p>
+                                <p className="text-base sm:text-lg font-bold text-white">{patientData.fullName}</p>
                                 <Button
                                     size="sm"
                                     variant="ghost"
@@ -332,10 +332,10 @@ export function EmergencyAccessTab() {
                                 </Button>
                             </div>
                             
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 bg-white/5 rounded-xl border border-white/5 relative group">
-                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mb-1">Blood Type</p>
-                                    <p className="text-2xl font-black text-red-400">{patientData.bloodType}</p>
+                            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                                <div className="p-3 sm:p-4 bg-white/5 rounded-xl border border-white/5 relative group">
+                                    <p className="text-[10px] sm:text-xs text-gray-500 font-bold uppercase tracking-widest mb-1">Blood Type</p>
+                                    <p className="text-xl sm:text-2xl font-black text-red-400">{patientData.bloodType}</p>
                                     <Button
                                         size="sm"
                                         variant="ghost"
@@ -345,9 +345,9 @@ export function EmergencyAccessTab() {
                                         <Copy className="w-3 h-3" />
                                     </Button>
                                 </div>
-                                <div className="p-4 bg-white/5 rounded-xl border border-white/5 relative group">
-                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mb-1">Genotype</p>
-                                    <p className="text-2xl font-black text-purple-400">{patientData.genotype}</p>
+                                <div className="p-3 sm:p-4 bg-white/5 rounded-xl border border-white/5 relative group">
+                                    <p className="text-[10px] sm:text-xs text-gray-500 font-bold uppercase tracking-widest mb-1">Genotype</p>
+                                    <p className="text-xl sm:text-2xl font-black text-purple-400">{patientData.genotype}</p>
                                     <Button
                                         size="sm"
                                         variant="ghost"
@@ -360,23 +360,23 @@ export function EmergencyAccessTab() {
                             </div>
 
                             {patientData.dateOfBirth && (
-                                <div className="p-4 bg-white/5 rounded-xl border border-white/5">
-                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mb-1">Date of Birth</p>
-                                    <p className="text-base font-bold text-white">{new Date(patientData.dateOfBirth).toLocaleDateString()}</p>
+                                <div className="p-3 sm:p-4 bg-white/5 rounded-xl border border-white/5">
+                                    <p className="text-[10px] sm:text-xs text-gray-500 font-bold uppercase tracking-widest mb-1">Date of Birth</p>
+                                    <p className="text-sm sm:text-base font-bold text-white">{new Date(patientData.dateOfBirth).toLocaleDateString()}</p>
                                 </div>
                             )}
                         </div>
 
-                        <div className="space-y-4">
-                            <div className="p-4 bg-red-500/5 rounded-xl border border-red-500/20">
-                                <p className="text-xs text-red-400 font-bold uppercase tracking-widest mb-2 flex items-center gap-2">
-                                    <AlertCircle className="w-4 h-4" />
+                        <div className="space-y-3 sm:space-y-4">
+                            <div className="p-3 sm:p-4 bg-red-500/5 rounded-xl border border-red-500/20">
+                                <p className="text-[10px] sm:text-xs text-red-400 font-bold uppercase tracking-widest mb-2 flex items-center gap-2">
+                                    <AlertCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                     Allergies
                                 </p>
                                 {patientData.allergies && patientData.allergies.length > 0 ? (
                                     <div className="flex flex-wrap gap-2">
                                         {patientData.allergies.map((allergy, i) => (
-                                            <span key={i} className="px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full text-xs font-bold text-red-300">
+                                            <span key={i} className="px-2 sm:px-3 py-0.5 sm:py-1 bg-red-500/10 border border-red-500/20 rounded-full text-[10px] sm:text-xs font-bold text-red-300">
                                                 {allergy}
                                             </span>
                                         ))}
@@ -386,7 +386,7 @@ export function EmergencyAccessTab() {
                                 )}
                             </div>
 
-                            <div className="p-4 bg-amber-500/5 rounded-xl border border-amber-500/20">
+                            <div className="p-3 sm:p-4 bg-amber-500/5 rounded-xl border border-amber-500/20">
                                 <p className="text-xs text-amber-400 font-bold uppercase tracking-widest mb-2">Current Medications</p>
                                 {patientData.medications && patientData.medications.length > 0 ? (
                                     <ul className="space-y-1">
