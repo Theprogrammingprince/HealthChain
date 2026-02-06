@@ -17,7 +17,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
-import { Loader2, Mail, Lock, CheckCircle2, ArrowRight, Stethoscope, ShieldCheck, Activity, RefreshCw } from "lucide-react";
+import { Loader2, Mail, Lock, CheckCircle2, ArrowRight, Stethoscope, ShieldCheck, Activity, RefreshCw, Eye, EyeOff, User } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
@@ -33,6 +33,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 
 const authSchema = z.object({
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
     email: z.string().email("Invalid email address"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     consent: z.boolean(),
@@ -55,12 +57,15 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
     const [showSuccess, setShowSuccess] = useState(false);
     const [resendCooldown, setResendCooldown] = useState(0);
     const [isResending, setIsResending] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
     const { setUserRole } = useAppStore();
 
     const form = useForm<AuthFormData>({
         resolver: zodResolver(authSchema),
         defaultValues: {
+            firstName: "",
+            lastName: "",
             email: "",
             password: "",
             consent: false,
@@ -157,8 +162,8 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
 
                 // Add doctor-specific metadata
                 if (role === "Doctor") {
-                    userMetadata.first_name = data.email.split('@')[0];
-                    userMetadata.last_name = "MD";
+                    userMetadata.first_name = data.firstName;
+                    userMetadata.last_name = data.lastName;
                     userMetadata.medical_license = data.medicalLicense;
                     userMetadata.specialty = data.specialty || "General Practice";
                     userMetadata.hospital_id = data.hospitalAffiliation;
@@ -183,15 +188,15 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                         email: data.email,
                         role: role.toLowerCase(),
                         authProvider: "email",
-                        fullName: data.email.split('@')[0], // Default name
+                        fullName: `${data.firstName} ${data.lastName}`, // Default name
                         consent_at: new Date().toISOString(),
                         ...(role === "Hospital" && { hospitalName: "New Medical Facility" }),
                         ...(role === "Doctor" && {
                             medicalLicenseNumber: data.medicalLicense,
                             primaryHospitalId: data.hospitalAffiliation,
                             specialty: data.specialty,
-                            firstName: data.email.split('@')[0],
-                            lastName: "MD"
+                            firstName: data.firstName,
+                            lastName: data.lastName
                         })
                     };
 
@@ -350,22 +355,75 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                {mode === "signup" && (
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                            control={form.control as any}
+                            name="firstName"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-sm font-medium text-gray-700">First name*</FormLabel>
+                                    <FormControl>
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.3 }}
+                                        >
+                                            <Input
+                                                placeholder="Mike"
+                                                className="h-11 border-gray-300 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all"
+                                                {...field}
+                                            />
+                                        </motion.div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control as any}
+                            name="lastName"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-sm font-medium text-gray-700">Last name*</FormLabel>
+                                    <FormControl>
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.3, delay: 0.05 }}
+                                        >
+                                            <Input
+                                                placeholder="Jonath"
+                                                className="h-11 border-gray-300 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all"
+                                                {...field}
+                                            />
+                                        </motion.div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                )}
                 <FormField
                     control={form.control as any}
                     name="email"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel className="text-gray-400">Email</FormLabel>
+                            <FormLabel className="text-sm font-medium text-gray-700">Email Address*</FormLabel>
                             <FormControl>
-                                <div className="relative">
-                                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                                <motion.div
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.3, delay: mode === "signup" ? 0.1 : 0 }}
+                                >
                                     <Input
                                         placeholder="name@example.com"
-                                        className="bg-white/5 border-white/10 pl-10 focus:border-indigo-500"
+                                        className="h-11 border-gray-300 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all"
                                         {...field}
                                     />
-                                </div>
+                                </motion.div>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -376,17 +434,32 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                     name="password"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel className="text-gray-400">Password</FormLabel>
+                            <FormLabel className="text-sm font-medium text-gray-700">Create Password*</FormLabel>
                             <FormControl>
-                                <div className="relative">
-                                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                                <motion.div
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.3, delay: mode === "signup" ? 0.15 : 0.05 }}
+                                    className="relative"
+                                >
                                     <Input
-                                        type="password"
+                                        type={showPassword ? "text" : "password"}
                                         placeholder="••••••••"
-                                        className="bg-white/5 border-white/10 pl-10 focus:border-indigo-500"
+                                        className="h-11 border-gray-300 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all pr-10"
                                         {...field}
                                     />
-                                </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="h-4 w-4" />
+                                        ) : (
+                                            <Eye className="h-4 w-4" />
+                                        )}
+                                    </button>
+                                </motion.div>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -397,37 +470,40 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                     <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
-                        className="space-y-4 pt-2"
+                        transition={{ duration: 0.3, delay: 0.2 }}
                     >
                         <FormField
                             control={form.control as any}
                             name="hospitalAffiliation"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Hospital Affiliation</FormLabel>
-                                    <Select
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                    >
-                                        <FormControl>
-                                            <div className="relative">
-                                                <Stethoscope className="absolute left-3 top-3 h-4 w-4 z-10 text-gray-500" />
-                                                <SelectTrigger className="bg-white/5 border-white/10 pl-10 focus:border-indigo-500 h-10 w-full">
+                                    <FormLabel className="text-sm font-medium text-gray-700">Hospital Affiliation*</FormLabel>
+                                    <FormControl>
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.3, delay: 0.25 }}
+                                        >
+                                            <Select
+                                                onValueChange={field.onChange}
+                                                defaultValue={field.value}
+                                            >
+                                                <SelectTrigger className="h-11 border-gray-300 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all">
                                                     <SelectValue placeholder="Select Hospital" />
                                                 </SelectTrigger>
-                                            </div>
-                                        </FormControl>
-                                        <SelectContent className="bg-[#0A0A0A] border-white/10 text-white">
-                                            {hospitals.map((hospital) => (
-                                                <SelectItem key={hospital.id} value={hospital.id} className="focus:bg-white/5 cursor-pointer">
-                                                    {hospital.hospital_name}
-                                                </SelectItem>
-                                            ))}
-                                            {hospitals.length === 0 && (
-                                                <div className="p-2 text-xs text-gray-500 italic">No hospitals found</div>
-                                            )}
-                                        </SelectContent>
-                                    </Select>
+                                                <SelectContent className="bg-white border-gray-300 text-gray-700">
+                                                    {hospitals.map((hospital) => (
+                                                        <SelectItem key={hospital.id} value={hospital.id} className="focus:bg-gray-100 cursor-pointer">
+                                                            {hospital.hospital_name}
+                                                        </SelectItem>
+                                                    ))}
+                                                    {hospitals.length === 0 && (
+                                                        <div className="p-2 text-xs text-gray-500 italic">No hospitals found</div>
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        </motion.div>
+                                    </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -437,16 +513,19 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                             name="medicalLicense"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Medical License Number</FormLabel>
+                                    <FormLabel className="text-sm font-medium text-gray-700">Medical License Number*</FormLabel>
                                     <FormControl>
-                                        <div className="relative">
-                                            <ShieldCheck className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.3, delay: 0.3 }}
+                                        >
                                             <Input
                                                 placeholder="License ID (e.g. MED-123)"
-                                                className="bg-white/5 border-white/10 pl-10 focus:border-indigo-500"
+                                                className="h-11 border-gray-300 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all"
                                                 {...field}
                                             />
-                                        </div>
+                                        </motion.div>
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -457,27 +536,30 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                             name="specialty"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Area of Specialty</FormLabel>
-                                    <Select
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                    >
-                                        <FormControl>
-                                            <div className="relative">
-                                                <Activity className="absolute left-3 top-3 h-4 w-4 z-10 text-gray-500" />
-                                                <SelectTrigger className="bg-white/5 border-white/10 pl-10 focus:border-indigo-500 h-10 w-full">
+                                    <FormLabel className="text-sm font-medium text-gray-700">Area of Specialty*</FormLabel>
+                                    <FormControl>
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.3, delay: 0.35 }}
+                                        >
+                                            <Select
+                                                onValueChange={field.onChange}
+                                                defaultValue={field.value}
+                                            >
+                                                <SelectTrigger className="h-11 border-gray-300 focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all">
                                                     <SelectValue placeholder="Select Specialty" />
                                                 </SelectTrigger>
-                                            </div>
-                                        </FormControl>
-                                        <SelectContent className="bg-[#0A0A0A] border-white/10 text-white">
-                                            {["General Practice", "Cardiology", "Neurology", "Pediatrics", "Oncology", "Surgery", "Radiology", "Dermatology", "Psychiatry", "Other"].map((spec) => (
-                                                <SelectItem key={spec} value={spec} className="focus:bg-white/5 cursor-pointer">
-                                                    {spec}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                                <SelectContent className="bg-white border-gray-300 text-gray-700">
+                                                    {["General Practice", "Cardiology", "Neurology", "Pediatrics", "Oncology", "Surgery", "Radiology", "Dermatology", "Psychiatry", "Other"].map((spec) => (
+                                                        <SelectItem key={spec} value={spec} className="focus:bg-gray-100 cursor-pointer">
+                                                            {spec}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </motion.div>
+                                    </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -490,16 +572,40 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                         control={form.control as any}
                         name="consent"
                         render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-white/5 bg-white/5 p-4">
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                                 <FormControl>
                                     <Checkbox
                                         checked={field.value}
                                         onCheckedChange={field.onChange}
+                                        className="mt-0.5"
                                     />
                                 </FormControl>
-                                <div className="space-y-1 leading-none">
-                                    <FormLabel className="text-[11px] font-medium text-gray-400 leading-relaxed">
-                                        I agree to HealthChain&apos;s <span className="text-indigo-400 cursor-pointer">Privacy Policy</span> and <span className="text-indigo-400 cursor-pointer">Data Usage Terms</span>, including the storage of my encrypted health records on decentralized channels.
+                                <div className="space-y-1 leading-none flex-1">
+                                    <FormLabel className="text-sm font-normal text-gray-600 leading-[1.6] cursor-pointer">
+                                        I understand and agree to the{' '}
+                                        <Link 
+                                            href="/terms" 
+                                            className="text-gray-900 font-medium underline hover:text-gray-700 transition-colors"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            Terms & Conditions
+                                        </Link>
+                                        ,{' '}
+                                        <Link 
+                                            href="/user-agreement" 
+                                            className="text-gray-900 font-medium underline hover:text-gray-700 transition-colors"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            User Agreement
+                                        </Link>
+                                        , and{' '}
+                                        <Link 
+                                            href="/privacy" 
+                                            className="text-gray-900 font-medium underline hover:text-gray-700 transition-colors"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            Privacy Policy
+                                        </Link>
                                     </FormLabel>
                                     <FormMessage />
                                 </div>
@@ -508,21 +614,23 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                     />
                 )}
 
-                <Button
-                    type="submit"
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 rounded-xl transition-all"
-                    disabled={isLoading}
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: mode === "signup" ? 0.2 : 0.1 }}
                 >
-                    {isLoading ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                        mode === "signup" ? "Create Account" : "Sign In"
-                    )}
-                </Button>
-
-                <p className="text-center text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-4">
-                    Need assistance? <Link href="/support" className="text-indigo-400 hover:text-indigo-300">Contact Protocol Support</Link>
-                </p>
+                    <Button
+                        type="submit"
+                        className="w-full bg-black hover:bg-gray-800 text-white h-12 rounded-lg transition-all font-medium"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                            mode === "signup" ? "Create Account" : "Sign In"
+                        )}
+                    </Button>
+                </motion.div>
             </form>
         </Form>
     );

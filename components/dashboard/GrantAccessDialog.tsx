@@ -34,6 +34,8 @@ interface UserResult {
     email: string;
     avatar_url?: string;
     role?: string;
+    hospital_name?: string;
+    hospital_id?: string;
 }
 
 const PERMISSION_LEVELS = [
@@ -92,7 +94,7 @@ export function GrantAccessDialog({ isOpen, onClose }: { isOpen: boolean; onClos
         try {
             if (searchType === 'users') {
                 // Search users by email or name
-                const { data, error } = await supabase
+                const { data: usersData, error } = await supabase
                     .from('users')
                     .select('id, full_name, email, avatar_url, role')
                     .or(`email.ilike.%${searchQuery}%, full_name.ilike.%${searchQuery}%`)
@@ -100,7 +102,36 @@ export function GrantAccessDialog({ isOpen, onClose }: { isOpen: boolean; onClos
                     .limit(10);
 
                 if (error) throw error;
-                setUserResults(data || []);
+                
+                // Fetch hospital affiliation for doctors
+                const enrichedUsers = await Promise.all(
+                    (usersData || []).map(async (user) => {
+                        if (user.role === 'Doctor') {
+                            const { data: doctorProfile } = await supabase
+                                .from('doctor_profiles')
+                                .select('hospital_id')
+                                .eq('user_id', user.id)
+                                .single();
+                            
+                            if (doctorProfile?.hospital_id) {
+                                const { data: hospitalData } = await supabase
+                                    .from('hospital_profiles')
+                                    .select('hospital_name')
+                                    .eq('id', doctorProfile.hospital_id)
+                                    .single();
+                                
+                                return {
+                                    ...user,
+                                    hospital_name: hospitalData?.hospital_name,
+                                    hospital_id: doctorProfile.hospital_id
+                                };
+                            }
+                        }
+                        return user;
+                    })
+                );
+                
+                setUserResults(enrichedUsers);
             } else {
                 // Search hospitals by name
                 const { data, error } = await supabase
@@ -140,31 +171,42 @@ export function GrantAccessDialog({ isOpen, onClose }: { isOpen: boolean; onClos
         setIsLoading(true);
 
         try {
-            const granteeId = entityType === 'hospital' ? (selectedEntity as HospitalResult).user_id : (selectedEntity as UserResult).id;
             const entityName = entityType === 'hospital'
                 ? (selectedEntity as HospitalResult).hospital_name
                 : ((selectedEntity as UserResult).full_name || (selectedEntity as UserResult).email);
 
+            // Get the grantee user ID
+            const granteeId = entityType === 'hospital' 
+                ? (selectedEntity as HospitalResult).user_id 
+                : (selectedEntity as UserResult).id;
+
+            // Prepare insert data
+            const insertData = {
+                user_id: supabaseUser.id,
+                grantee_id: granteeId,
+                level: permissionLevel,
+                entity_name: entityName,
+                entity_address: granteeId,
+                entity_type: entityType,
+                granted_at: new Date().toISOString()
+            };
+
             // 1. Grant Permission
             const { error: grantError } = await supabase
                 .from('access_permissions')
-                .insert({
-                    user_id: supabaseUser.id,
-                    grantee_id: granteeId,
-                    level: permissionLevel,
-                    entity_name: entityName,
-                    entity_address: granteeId,
-                    entity_type: entityType,
-                    granted_at: new Date().toISOString()
-                });
+                .insert(insertData);
 
             if (grantError) throw grantError;
 
-            // 2. Send Notification
+            // 2. Send Notification - get the user_id to notify
+            const notifyUserId = entityType === 'hospital' 
+                ? (selectedEntity as HospitalResult).user_id 
+                : (selectedEntity as UserResult).id;
+
             const { error: notifError } = await supabase
                 .from('notifications')
                 .insert({
-                    user_id: granteeId,
+                    user_id: notifyUserId,
                     sender_id: supabaseUser.id,
                     type: 'permission_granted',
                     title: 'New Patient Access Granted',
@@ -338,17 +380,31 @@ export function GrantAccessDialog({ isOpen, onClose }: { isOpen: boolean; onClos
                                 <div
                                     key={user.id}
                                     onClick={() => selectUser(user)}
-                                    className="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors"
+                                    className="p-4 bg-white/5 border border-white/10 rounded-xl cursor-pointer hover:bg-white/10 hover:border-[#00BFFF]/30 transition-all group"
                                 >
-                                    <Avatar className="h-10 w-10 border border-white/10">
-                                        <AvatarImage src={user.avatar_url} />
-                                        <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-1">
-                                        <p className="font-bold text-sm">{user.full_name || 'Unnamed User'}</p>
-                                        <p className="text-xs text-gray-400">{user.email}</p>
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="flex items-start gap-3">
+                                            <Avatar className="h-10 w-10 border border-white/10">
+                                                <AvatarImage src={user.avatar_url} />
+                                                <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1 space-y-1">
+                                                <p className="font-bold text-sm">{user.full_name || 'Unnamed User'}</p>
+                                                <p className="text-xs text-gray-400">{user.email}</p>
+                                                {user.hospital_name && (
+                                                    <p className="text-xs text-blue-400 flex items-center gap-1">
+                                                        <Building2 className="w-3 h-3" /> {user.hospital_name}
+                                                    </p>
+                                                )}
+                                                {user.role && (
+                                                    <span className="inline-block px-2 py-0.5 bg-purple-500/20 text-purple-400 text-[9px] font-bold uppercase tracking-wider rounded-full">
+                                                        {user.role}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <Plus className="w-5 h-5 text-[#00BFFF] opacity-0 group-hover:opacity-100 transition-opacity" />
                                     </div>
-                                    <Plus className="w-4 h-4 text-[#00BFFF]" />
                                 </div>
                             ))}
                         </div>

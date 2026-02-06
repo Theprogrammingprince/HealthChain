@@ -208,8 +208,15 @@ export const useAppStore = create<AppState>()(
             .eq('overall_status', 'approved')
             .order('created_at', { ascending: false }),
           supabase.from('access_permissions').select('*').eq('user_id', session.user.id).order('granted_at', { ascending: false }),
-          supabase.from('activity_logs').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false })
+          supabase.from('activity_logs').select('*').or(`user_id.eq.${session.user.id},patient_id.eq.${session.user.id}`).order('created_at', { ascending: false })
         ]);
+
+        console.log('🔍 Activity logs query result:', {
+          data: logsRes.data,
+          error: logsRes.error,
+          count: logsRes.data?.length || 0,
+          userId: session.user.id
+        });
 
         // Enrich records with doctor and hospital names
         const enrichedRecords = await Promise.all(
@@ -278,14 +285,18 @@ export const useAppStore = create<AppState>()(
             level: p.level,
             entityType: p.entity_type || 'user'
           })) || [],
-          activityLogs: logsRes.data?.map(l => ({
-            id: l.id,
-            date: new Date(l.created_at).toLocaleString(),
-            actor: l.actor_name || l.actor || 'Unknown System',
-            action: l.action,
-            details: l.details || '',
-            txHash: l.tx_hash || ''
-          })) || []
+          activityLogs: (() => {
+            const mappedLogs = logsRes.data?.map(l => ({
+              id: l.id,
+              date: new Date(l.created_at).toLocaleString(),
+              actor: l.actor_name || l.actor || 'Unknown System',
+              action: l.action,
+              details: l.details || '',
+              txHash: l.tx_hash || ''
+            })) || [];
+            console.log('📊 Mapped activity logs for state:', mappedLogs);
+            return mappedLogs;
+          })()
         }));
       } else {
         // No profile found or error - reset to defaults but keep user info

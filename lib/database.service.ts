@@ -1030,28 +1030,40 @@ export async function createActivityLog(
     details?: string,
     patientId?: string
 ) {
+    console.log('📝 Creating activity log:', {
+        userId,
+        patientId: patientId || userId,
+        actor,
+        action,
+        details
+    });
+
     // Generate a mock transaction hash (in production, this would be a real blockchain tx)
     const txHash = '0x' + [...Array(40)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
 
+    const logData = {
+        user_id: userId,
+        patient_id: patientId || userId,
+        actor_name: actor,
+        action: action,
+        details: details || '',
+        tx_hash: txHash
+    };
+
+    console.log('📝 Inserting log data:', logData);
+
     const { data, error } = await supabase
         .from('activity_logs')
-        .insert({
-            user_id: userId,
-            patient_id: patientId || userId,
-            actor_name: actor,
-            actor: actor,
-            action: action,
-            details: details || '',
-            tx_hash: txHash
-        })
+        .insert(logData)
         .select()
         .single();
 
     if (error) {
-        console.error('Error creating activity log:', error);
+        console.error('❌ Error creating activity log:', error);
         return null;
     }
 
+    console.log('✅ Activity log created successfully:', data);
     return data;
 }
 
@@ -1217,13 +1229,12 @@ export async function getActivityLogStats(userId: string) {
 // ==================== EMERGENCY ACCESS OPERATIONS ====================
 
 /**
- * Generate an emergency access token for a patient
+ * Generate an emergency access token for a patient (6 characters)
  */
 export function generateEmergencyToken(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let token = '';
-    for (let i = 0; i < 12; i++) {
-        if (i > 0 && i % 4 === 0) token += '-';
+    for (let i = 0; i < 6; i++) {
         token += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return token;
@@ -1278,6 +1289,9 @@ export async function getEmergencyProfile(patientId: string) {
         .single();
 
     return {
+        // Patient ID for logging
+        userId: patientId,
+        
         // Patient identification
         fullName: user?.full_name || 'Unknown',
         dateOfBirth: profile?.date_of_birth || null,

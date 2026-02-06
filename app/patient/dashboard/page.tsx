@@ -153,14 +153,14 @@ export default function DashboardPage() {
 
             {/* Vault Sticky Header */}
             <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-[#0A0A0A]/60 backdrop-blur-2xl">
-                <div className="max-w-[1400px] mx-auto px-6 h-20 flex items-center justify-between">
+                <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
                     <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-3 group cursor-pointer" onClick={() => router.push('/')}>
-                            <div className="w-10 h-10 bg-[#00BFFF]/20 rounded-xl flex items-center justify-center border border-[#00BFFF]/20 group-hover:bg-[#00BFFF]/30 transition-all">
-                                <ShieldCheck className="w-6 h-6 text-[#00BFFF]" />
+                        <div className="flex items-center gap-2 sm:gap-3 group cursor-pointer" onClick={() => router.push('/')}>
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#00BFFF]/20 rounded-xl flex items-center justify-center border border-[#00BFFF]/20 group-hover:bg-[#00BFFF]/30 transition-all">
+                                <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 text-[#00BFFF]" />
                             </div>
                             <div className="hidden sm:block">
-                                <span className="text-xl font-black tracking-tighter uppercase block leading-none">HealthChain</span>
+                                <span className="text-lg sm:text-xl font-black tracking-tighter uppercase block leading-none">HealthChain</span>
                                 <span className="text-[10px] font-bold text-[#00BFFF] uppercase tracking-[0.2em]">Vault v2.5</span>
                             </div>
                         </div>
@@ -175,25 +175,28 @@ export default function DashboardPage() {
                             <Link href="/patient/dashboard/permissions" className="text-sm font-bold text-gray-500 hover:text-white uppercase tracking-wider transition-colors">
                                 Permissions
                             </Link>
+                            <Link href="/patient/dashboard/emergency" className="text-sm font-bold text-gray-500 hover:text-white uppercase tracking-wider transition-colors">
+                                Emergency
+                            </Link>
                             <Link href="/patient/dashboard/history" className="text-sm font-bold text-gray-500 hover:text-white uppercase tracking-wider transition-colors">
                                 History
                             </Link>
                         </nav>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <div className="hidden md:flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 rounded-full">
+                    <div className="flex items-center gap-2 sm:gap-4">
+                        <div className="hidden md:flex items-center gap-3 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/5 border border-white/10 rounded-full">
                             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                            <code className="text-[11px] text-gray-400 font-mono">{displayAddress}</code>
+                            <code className="text-[10px] sm:text-[11px] text-gray-400 font-mono">{displayAddress}</code>
                         </div>
 
-                        <Link href="/dashboard/notifications" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 hover:bg-white/10 transition-colors">
-                            <Bell className="w-4 h-4 text-gray-400" />
+                        <Link href="/dashboard/notifications" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 hover:bg-white/10 transition-colors">
+                            <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
                         </Link>
 
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Avatar className="cursor-pointer border-2 border-white/5 hover:border-[#00BFFF]/50 transition-all w-10 h-10">
+                                <Avatar className="cursor-pointer border-2 border-white/5 hover:border-[#00BFFF]/50 transition-all w-8 h-8 sm:w-10 sm:h-10">
                                     <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${walletAddress}`} />
                                     <AvatarFallback className="bg-white/5"><User /></AvatarFallback>
                                 </Avatar>
@@ -220,12 +223,12 @@ export default function DashboardPage() {
                 </div>
             </header>
 
-            <main className="max-w-[1400px] mx-auto px-6 py-10">
+            <main className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 sm:py-10">
                 <motion.div
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
-                    className="space-y-12"
+                    className="space-y-6 sm:space-y-8 lg:space-y-12"
                 >
                     {/* Hero: Health Summary */}
                     <motion.section variants={itemVariants}>
@@ -236,10 +239,10 @@ export default function DashboardPage() {
                         )}
                     </motion.section>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-12">
 
                         {/* Left Content (8 cols) */}
-                        <div className="lg:col-span-8 space-y-12">
+                        <div className="lg:col-span-8 space-y-6 sm:space-y-8 lg:space-y-12">
 
                             {/* Pending Approvals Section */}
                             <motion.section variants={itemVariants}>
@@ -248,24 +251,24 @@ export default function DashboardPage() {
 
                             {/* Document Manager */}
                             <motion.section variants={itemVariants} className="space-y-6">
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                     <div>
-                                        <h2 className="text-2xl font-bold flex items-center gap-3">
-                                            <FileText className="text-[#00BFFF] w-6 h-6" />
+                                        <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2 sm:gap-3">
+                                            <FileText className="text-[#00BFFF] w-5 h-5 sm:w-6 sm:h-6" />
                                             Medical Documents
                                         </h2>
-                                        <p className="text-gray-500 text-sm mt-1">SECURELY STORED ON DECENTRALIZED IPFS CHANNELS</p>
+                                        <p className="text-gray-500 text-xs sm:text-sm mt-1">SECURELY STORED ON DECENTRALIZED IPFS CHANNELS</p>
                                     </div>
                                     <DocumentUploadDialog />
                                 </div>
 
                                 <Tabs defaultValue="Laboratory" className="w-full">
-                                    <TabsList className="bg-white/5 p-1 rounded-xl mb-6 border border-white/5">
+                                    <TabsList className="bg-white/5 p-1 rounded-xl mb-4 sm:mb-6 border border-white/5 grid grid-cols-2 sm:flex sm:flex-row gap-1">
                                         {['Laboratory', 'Radiology', 'Pharmacy', 'General'].map(cat => (
                                             <TabsTrigger
                                                 key={cat}
                                                 value={cat}
-                                                className="data-[state=active]:bg-[#00BFFF] data-[state=active]:text-black rounded-lg transition-all font-bold px-6"
+                                                className="data-[state=active]:bg-[#00BFFF] data-[state=active]:text-black rounded-lg transition-all font-bold px-3 sm:px-6 text-xs sm:text-sm"
                                             >
                                                 {cat}
                                             </TabsTrigger>
@@ -299,53 +302,53 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Right Sidebar (4 cols) */}
-                        <div className="lg:col-span-4 space-y-12">
+                        <div className="lg:col-span-4 space-y-6 sm:space-y-8 lg:space-y-12">
 
                             {/* Verified Identity */}
-                            <motion.section variants={itemVariants} className="bg-white/5 border border-white/10 rounded-3xl p-8 relative overflow-hidden">
+                            <motion.section variants={itemVariants} className="bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-4 opacity-5">
                                     <ShieldCheck size={100} />
                                 </div>
-                                <div className="flex items-center gap-3 mb-8">
+                                <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 lg:mb-8">
                                     <div className="p-2 rounded-lg bg-[#00BFFF]/10 text-[#00BFFF]">
                                         <User size={20} />
                                     </div>
-                                    <h3 className="font-bold text-lg">Verified Identity</h3>
+                                    <h3 className="font-bold text-base sm:text-lg">Verified Identity</h3>
                                 </div>
 
-                                <div className="flex justify-center mb-8">
+                                <div className="flex justify-center mb-4 sm:mb-6 lg:mb-8">
                                     <PassportPhotoUpload />
                                 </div>
 
                                 <div className="text-center space-y-4">
                                     <div>
-                                        <p className="text-sm font-bold text-white uppercase tracking-[0.2em]">
+                                        <p className="text-xs sm:text-sm font-bold text-white uppercase tracking-[0.1em] sm:tracking-[0.2em]">
                                             {userVitals.fullName || "IDENTIFYING..."}
                                         </p>
                                         <div className="flex items-center justify-center gap-2 mt-1">
                                             <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                                            <code className="text-[9px] text-gray-500 font-mono break-all">
-                                                {walletAddress ? `${walletAddress.slice(0, 12)}...${walletAddress.slice(-8)}` : "0x..."}
+                                            <code className="text-[8px] sm:text-[9px] text-gray-500 font-mono break-all">
+                                                {walletAddress ? `${walletAddress.slice(0, 8)}...${walletAddress.slice(-6)}` : "0x..."}
                                             </code>
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-3 pt-2">
-                                        <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-left">
+                                    <div className="grid grid-cols-2 gap-2 sm:gap-3 pt-2">
+                                        <div className="bg-white/5 p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-white/5 text-left">
                                             <span className="text-[10px] text-gray-500 block mb-1 uppercase font-black">Genotype</span>
-                                            <span className="text-sm font-bold text-primary">{userVitals.genotype}</span>
+                                            <span className="text-xs sm:text-sm font-bold text-primary">{userVitals.genotype}</span>
                                         </div>
-                                        <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-left">
+                                        <div className="bg-white/5 p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-white/5 text-left">
                                             <span className="text-[10px] text-gray-500 block mb-1 uppercase font-black">Blood Group</span>
-                                            <span className="text-sm font-bold text-red-400">{userVitals.bloodType}</span>
+                                            <span className="text-xs sm:text-sm font-bold text-red-400">{userVitals.bloodType}</span>
                                         </div>
-                                        <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-left">
+                                        <div className="bg-white/5 p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-white/5 text-left">
                                             <span className="text-[10px] text-gray-500 block mb-1 uppercase font-black">Weight</span>
-                                            <span className="text-sm font-bold text-white">{userVitals.weight} <span className="text-[10px] text-gray-500">kg</span></span>
+                                            <span className="text-xs sm:text-sm font-bold text-white">{userVitals.weight} <span className="text-[10px] text-gray-500">kg</span></span>
                                         </div>
-                                        <div className="bg-white/5 p-3 rounded-2xl border border-white/5 text-left">
+                                        <div className="bg-white/5 p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-white/5 text-left">
                                             <span className="text-[10px] text-gray-500 block mb-1 uppercase font-black">Height</span>
-                                            <span className="text-sm font-bold text-white">{userVitals.height} <span className="text-[10px] text-gray-500">cm</span></span>
+                                            <span className="text-xs sm:text-sm font-bold text-white">{userVitals.height} <span className="text-[10px] text-gray-500">cm</span></span>
                                         </div>
                                     </div>
 
@@ -372,24 +375,24 @@ export default function DashboardPage() {
 
                             {/* Access Control Quick Actions */}
                             <motion.section variants={itemVariants}>
-                                <div className="bg-[#0A0A0A] border border-white/10 rounded-3xl p-8 space-y-8">
-                                    <div className="flex items-center gap-3">
+                                <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 lg:space-y-8">
+                                    <div className="flex items-center gap-2 sm:gap-3">
                                         <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
                                             <Lock size={20} />
                                         </div>
-                                        <h3 className="font-bold text-lg">Access Governance</h3>
+                                        <h3 className="font-bold text-base sm:text-lg">Access Governance</h3>
                                     </div>
 
                                     <AccessControlList />
 
-                                    <div className="pt-8 border-t border-white/5">
-                                        <div onClick={handleEmergencySOS} className="p-4 rounded-xl bg-red-500/5 border border-red-500/10 flex items-center gap-4 group cursor-pointer hover:bg-red-500/10 transition-colors">
+                                    <div className="pt-4 sm:pt-6 lg:pt-8 border-t border-white/5">
+                                        <div onClick={handleEmergencySOS} className="p-3 sm:p-4 rounded-xl bg-red-500/5 border border-red-500/10 flex items-center gap-3 sm:gap-4 group cursor-pointer hover:bg-red-500/10 transition-colors">
                                             <div className="p-2 rounded-lg bg-red-500/10 text-red-500">
                                                 <ShieldAlert size={18} />
                                             </div>
                                             <div className="flex-1">
-                                                <p className="text-xs font-bold text-white uppercase">Emergency Mode</p>
-                                                <p className="text-[10px] text-gray-500">Enable one-time rescue access</p>
+                                                <p className="text-[11px] sm:text-xs font-bold text-white uppercase">Emergency Mode</p>
+                                                <p className="text-[9px] sm:text-[10px] text-gray-500">Enable one-time rescue access</p>
                                             </div>
                                             <ArrowRight size={14} className="text-gray-700 group-hover:text-white" />
                                         </div>
@@ -398,10 +401,10 @@ export default function DashboardPage() {
                             </motion.section>
 
                             {/* Privacy Tip Card */}
-                            <motion.section variants={itemVariants} className="bg-gradient-to-br from-[#00BFFF]/10 to-transparent border border-[#00BFFF]/20 rounded-3xl p-8 text-center space-y-4">
-                                <Lock className="w-10 h-10 text-[#00BFFF] mx-auto mb-2 opacity-60" />
-                                <h4 className="font-bold text-white uppercase tracking-wider text-sm">Self-Sovereign Data</h4>
-                                <p className="text-[11px] text-gray-400 leading-relaxed font-medium">
+                            <motion.section variants={itemVariants} className="bg-gradient-to-br from-[#00BFFF]/10 to-transparent border border-[#00BFFF]/20 rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 text-center space-y-3 sm:space-y-4">
+                                <Lock className="w-8 h-8 sm:w-10 sm:h-10 text-[#00BFFF] mx-auto mb-2 opacity-60" />
+                                <h4 className="font-bold text-white uppercase tracking-wider text-xs sm:text-sm">Self-Sovereign Data</h4>
+                                <p className="text-[10px] sm:text-[11px] text-gray-400 leading-relaxed font-medium">
                                     Your medical records are encrypted with AES-256 before being fragmented and stored on IPFS. Only your private keys can reconstruct the clinical data.
                                 </p>
                                 <div className="flex items-center justify-center gap-3 pt-4">
@@ -418,19 +421,19 @@ export default function DashboardPage() {
                 <AccessRequestModal />
             </main>
 
-            <footer className="border-t border-white/5 py-12 mt-20">
-                <div className="max-w-[1400px] mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8">
+            <footer className="border-t border-white/5 py-8 sm:py-12 mt-12 sm:mt-20">
+                <div className="max-w-[1400px] mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-8">
                     <div className="flex items-center gap-3 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all cursor-crosshair">
                         <ShieldCheck className="w-5 h-5" />
-                        <span className="text-xs font-bold uppercase tracking-[0.2em]">HealthChain Resilience Network</span>
+                        <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.1em] sm:tracking-[0.2em]">HealthChain Resilience Network</span>
                     </div>
-                    <p className="text-[11px] font-bold text-gray-7(00 uppercase tracking-widest">
+                    <p className="text-[9px] sm:text-[11px] font-bold text-gray-700 uppercase tracking-widest text-center">
                         Protocol Node: 0x92...AF10 • Latency: 42ms • Block: 68,291,203
                     </p>
-                    <div className="flex items-center gap-6">
-                        <Link href="/support" className="text-[10px] font-bold text-gray-600 hover:text-[#00BFFF] uppercase tracking-widest transition-colors">Support Center</Link>
-                        <button className="text-[10px] font-bold text-gray-600 hover:text-[#00BFFF] uppercase tracking-widest transition-colors">Privacy Policy</button>
-                        <button className="text-[10px] font-bold text-gray-600 hover:text-[#00BFFF] uppercase tracking-widest transition-colors">Governance</button>
+                    <div className="flex items-center gap-3 sm:gap-6 flex-wrap justify-center">
+                        <Link href="/support" className="text-[9px] sm:text-[10px] font-bold text-gray-600 hover:text-[#00BFFF] uppercase tracking-widest transition-colors">Support Center</Link>
+                        <button className="text-[9px] sm:text-[10px] font-bold text-gray-600 hover:text-[#00BFFF] uppercase tracking-widest transition-colors">Privacy Policy</button>
+                        <button className="text-[9px] sm:text-[10px] font-bold text-gray-600 hover:text-[#00BFFF] uppercase tracking-widest transition-colors">Governance</button>
                     </div>
                 </div>
             </footer>
