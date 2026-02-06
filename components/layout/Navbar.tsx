@@ -15,10 +15,8 @@ export function Navbar() {
     const { isAuthenticated } = useAppStore();
 
     const links = [
-        { href: "/", label: "Network" },
-        { href: "/patient/dashboard", label: "Dashboard" },
-        { href: "/clinical/dashboard", label: "Hospital", className: "text-indigo-400 hover:text-indigo-300" },
-        { href: "/admin/dashboard", label: "Admin", className: "text-blue-400 hover:text-blue-300" },
+        { href: "/", label: "Home" },
+        { href: "/about", label: "About" },
         { href: "/emergency", label: "Emergency", className: "text-red-500 hover:text-red-400" },
         { href: "/support", label: "Support", className: "text-emerald-400 hover:text-emerald-300" },
     ];
