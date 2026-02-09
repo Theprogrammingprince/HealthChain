@@ -9,35 +9,59 @@ import {
     Mail,
     Search,
     ChevronDown,
-    ExternalLink,
     Shield,
     FileText,
-    ArrowRight,
     Loader2,
-    CheckCircle2
+    CheckCircle2,
+    Phone,
+    Clock,
+    HelpCircle,
+    Zap,
+    Lock,
+    ChevronRight,
+    Video,
+    FileQuestion
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { Navbar } from "@/components/layout/Navbar";
+import Link from "next/link";
 
 const faqs = [
     {
         question: "How do I access my medical records in an emergency?",
-        answer: "Every HealthChain user is assigned a unique Emergency Access ID. In an emergency, first responders can enter this ID on our Emergency Portal to gain temporary, audited access to your critical data (allergies, blood type, etc.) without needing your private key."
+        answer: "Every HealthChain user receives a unique Emergency Access Code. In emergencies, first responders can enter this code on our Emergency Portal to gain temporary, audited access to your critical health information (allergies, blood type, medications, etc.). All access is logged and you're notified immediately."
     },
     {
-        question: "Is my data actually stored on the blockchain?",
-        answer: "Your clinical data is stored in encrypted shards on IPFS (InterPlanetary File System). Only the IPFS hashes and metadata (like approval status and timestamps) are stored on the Polygon blockchain to ensure tamper-proof integrity."
+        question: "Is my health data secure on HealthChain?",
+        answer: "Absolutely. Your data is protected with military-grade AES-256 encryption and stored using blockchain technology. Only you control who can access your records, and all access is logged and auditable. We're fully HIPAA compliant and never sell your data."
     },
     {
-        question: "How can I revoke access for a doctor?",
-        answer: "Go to your Patient Dashboard, navigate to 'Record Access' or 'Permissions', and you can instantly revoke access for any individual practitioner or hospital. This takes effect immediately on-chain."
+        question: "How can I grant or revoke access to my records?",
+        answer: "Simply go to your Patient Dashboard and navigate to the Permissions section. You can grant access to specific doctors or hospitals, set permission levels (view only, full access, etc.), and revoke access instantly at any time. Changes take effect immediately."
     },
     {
-        question: "I lost my recovery phrase, what should I do?",
-        answer: "Since HealthChain is decentralized, we do not store your recovery phrase. If you lose it, we cannot recover your account. We strongly recommend keeping multiple physical backups in secure locations."
+        question: "What happens if I forget my password?",
+        answer: "You can reset your password using the email associated with your account. For security reasons, we recommend enabling two-factor authentication. If you need additional help, our support team is available 24/7 to assist you."
     },
+    {
+        question: "Can I upload my existing medical records?",
+        answer: "Yes! You can upload medical records in various formats (PDF, images, etc.) directly to your dashboard. Our system will organize them chronologically and make them accessible to authorized healthcare providers."
+    },
+    {
+        question: "How do doctors access my records?",
+        answer: "Doctors can request access to your records through the HealthChain platform. You'll receive a notification and can approve or deny the request. Once approved, they can view your records according to the permission level you set."
+    },
+    {
+        question: "Is HealthChain available internationally?",
+        answer: "Yes! HealthChain is designed for global accessibility. Your medical records travel with you wherever you go, ensuring continuity of care across borders. The platform supports multiple languages and complies with international healthcare data standards."
+    },
+    {
+        question: "What if I need help setting up my account?",
+        answer: "We offer comprehensive onboarding support including video tutorials, step-by-step guides, and live chat assistance. Our support team is available 24/7 to help you get started and answer any questions you may have."
+    }
 ];
 
 export default function SupportPage() {
@@ -50,8 +74,8 @@ export default function SupportPage() {
         setIsSubmitting(true);
         setTimeout(() => {
             setIsSubmitting(false);
-            toast.success("Support ticket created!", {
-                description: "Our dedicated team will review your request and get back to you via email within 24 hours."
+            toast.success("Support request submitted!", {
+                description: "Our team will review your request and respond within 24 hours."
             });
             (e.target as HTMLFormElement).reset();
         }, 1500);
@@ -63,204 +87,399 @@ export default function SupportPage() {
     );
 
     return (
-        <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-blue-500/30 font-sans">
-            {/* Background Grid */}
-            <div className="fixed inset-0 pointer-events-none opacity-20"
-                style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #333 1px, transparent 0)', backgroundSize: '40px 40px' }} />
+        <>
+            <Navbar />
+            <div className="min-h-screen bg-white">
+                {/* Hero Section */}
+                <section className="relative min-h-[60vh] flex items-center pt-32 pb-20 overflow-hidden bg-white">
+                    {/* Background */}
+                    <div className="absolute inset-0 z-0">
+                        <div className="absolute inset-0 bg-gradient-to-b from-white via-primary/5 to-white" />
+                    </div>
 
-            <main className="relative z-10 pt-32 pb-20 px-6">
-                <div className="max-w-7xl mx-auto">
-                    {/* Hero Section */}
-                    <div className="text-center mb-20">
+                    {/* Floating Icons */}
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-black uppercase tracking-widest mb-6"
+                            animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }}
+                            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+                            className="absolute top-1/4 left-10 text-primary/30"
                         >
-                            <LifeBuoy className="w-4 h-4" />
-                            HealthChain Support Hub
+                            <LifeBuoy size={100} />
                         </motion.div>
-                        <motion.h1
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="text-5xl md:text-7xl font-black tracking-tighter uppercase mb-6"
+                        <motion.div
+                            animate={{ y: [0, 20, 0], rotate: [0, -5, 0] }}
+                            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                            className="absolute bottom-1/4 right-10 text-primary/30"
                         >
-                            How can we <span className="text-blue-500">help you?</span>
-                        </motion.h1>
-                        <motion.p
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
-                            className="text-gray-500 text-lg max-w-2xl mx-auto"
-                        >
-                            Search our clinical knowledge base, explore frequently asked questions, or connect with our support protocol specialists.
-                        </motion.p>
+                            <HelpCircle size={140} />
+                        </motion.div>
                     </div>
 
-                    {/* Search Bar */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="max-w-3xl mx-auto mb-20 relative"
-                    >
-                        <div className="relative group">
-                            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-hover:text-blue-400 transition-colors" />
-                            <Input
-                                type="text"
-                                placeholder="Search the documentation..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="h-16 bg-white/5 border-white/10 rounded-2xl pl-16 text-lg focus:border-blue-500 focus:ring-blue-500/20 transition-all placeholder:text-gray-600 shadow-2xl"
-                            />
+                    <div className="container px-4 mx-auto relative z-10">
+                        <div className="max-w-4xl mx-auto text-center">
+                            {/* Badge */}
+                            <motion.div
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 text-primary text-sm font-semibold mb-8 border border-primary/10 tracking-wide uppercase"
+                            >
+                                <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
+                                24/7 Support Available
+                            </motion.div>
+
+                            {/* Headline */}
+                            <motion.h1
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.1 }}
+                                className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-foreground mb-8 leading-[1.05]"
+                            >
+                                How can we <br />
+                                <span className="text-primary italic font-serif">help you today?</span>
+                            </motion.h1>
+
+                            {/* Subheadline */}
+                            <motion.p
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.2 }}
+                                className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed font-medium"
+                            >
+                                Search our knowledge base, explore FAQs, or connect with our support team. We're here to ensure your HealthChain experience is seamless.
+                            </motion.p>
+
+                            {/* Search Bar */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6, delay: 0.3 }}
+                                className="max-w-2xl mx-auto relative"
+                            >
+                                <div className="relative group">
+                                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground group-hover:text-primary transition-colors" />
+                                    <Input
+                                        type="text"
+                                        placeholder="Search for help..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="h-16 rounded-full pl-16 text-lg border-2 focus:border-primary shadow-lg"
+                                    />
+                                </div>
+                            </motion.div>
                         </div>
-                    </motion.div>
+                    </div>
+                </section>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                        {/* Help Categories */}
-                        <div className="lg:col-span-2 space-y-10">
-                            <section>
-                                <div className="flex items-center justify-between mb-8">
-                                    <h2 className="text-2xl font-black uppercase tracking-tight">Clinical Knowledge Base</h2>
-                                    <Button variant="ghost" className="text-blue-500 hover:bg-blue-500/10 uppercase tracking-widest text-[10px] font-black">
-                                        View All Docs <ArrowRight className="w-3 h-3 ml-2" />
-                                    </Button>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {[
-                                        { title: "Getting Started", desc: "Setting up your digital identity and wallet.", icon: Book, color: "text-blue-400" },
-                                        { title: "On-Chain Privacy", desc: "Understanding the Guardian protocol encryption.", icon: Shield, color: "text-emerald-400" },
-                                        { title: "Record Management", desc: "How to upload, verify, and approve records.", icon: FileText, color: "text-purple-400" },
-                                        { title: "Emergency Protocols", desc: "Managing your emergency access IDs.", icon: LifeBuoy, color: "text-red-400" },
-                                    ].map((cat, i) => (
-                                        <motion.div
-                                            key={i}
-                                            whileHover={{ y: -5, backgroundColor: 'rgba(255,255,255,0.05)' }}
-                                            className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl cursor-pointer group transition-all"
-                                        >
-                                            <div className={`w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-4 group-hover:bg-white/10 transition-colors`}>
-                                                <cat.icon className={`w-6 h-6 ${cat.color}`} />
-                                            </div>
-                                            <h3 className="text-lg font-bold mb-2 group-hover:text-blue-400 transition-colors">{cat.title}</h3>
-                                            <p className="text-gray-500 text-sm leading-relaxed">{cat.desc}</p>
-                                        </motion.div>
-                                    ))}
-                                </div>
-                            </section>
+                {/* Quick Help Cards */}
+                <section className="py-20 bg-slate-50">
+                    <div className="container px-4 mx-auto">
+                        <div className="max-w-6xl mx-auto">
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                className="text-center mb-16"
+                            >
+                                <h2 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 mb-4">
+                                    Quick Help Resources
+                                </h2>
+                                <p className="text-lg text-slate-600 font-medium">
+                                    Find answers and get started quickly with these resources
+                                </p>
+                            </motion.div>
 
-                            <section>
-                                <h2 className="text-2xl font-black uppercase tracking-tight mb-8">Protocol FAQs</h2>
-                                <div className="space-y-4">
-                                    {filteredFaqs.map((faq, i) => (
-                                        <div
-                                            key={i}
-                                            className="bg-white/5 border border-white/5 rounded-2xl overflow-hidden transition-all"
-                                        >
-                                            <button
-                                                onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                                                className="w-full flex items-center justify-between p-6 text-left hover:bg-white/[0.02] transition-colors"
-                                            >
-                                                <span className="font-bold text-white uppercase tracking-tight text-sm">{faq.question}</span>
-                                                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${openFaq === i ? 'rotate-180' : ''}`} />
-                                            </button>
-                                            <AnimatePresence>
-                                                {openFaq === i && (
-                                                    <motion.div
-                                                        initial={{ height: 0, opacity: 0 }}
-                                                        animate={{ height: 'auto', opacity: 1 }}
-                                                        exit={{ height: 0, opacity: 0 }}
-                                                        className="px-6 pb-6"
-                                                    >
-                                                        <div className="pt-2 text-gray-400 text-sm leading-relaxed border-t border-white/5">
-                                                            {faq.answer}
-                                                        </div>
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                {[
+                                    { 
+                                        title: "Getting Started", 
+                                        desc: "Learn the basics of HealthChain", 
+                                        icon: Book, 
+                                        color: "text-blue-600",
+                                        bg: "bg-blue-50"
+                                    },
+                                    { 
+                                        title: "Security & Privacy", 
+                                        desc: "Understanding data protection", 
+                                        icon: Shield, 
+                                        color: "text-emerald-600",
+                                        bg: "bg-emerald-50"
+                                    },
+                                    { 
+                                        title: "Record Management", 
+                                        desc: "Upload and manage records", 
+                                        icon: FileText, 
+                                        color: "text-purple-600",
+                                        bg: "bg-purple-50"
+                                    },
+                                    { 
+                                        title: "Emergency Access", 
+                                        desc: "Set up emergency protocols", 
+                                        icon: LifeBuoy, 
+                                        color: "text-red-600",
+                                        bg: "bg-red-50"
+                                    },
+                                ].map((cat, i) => (
+                                    <motion.div
+                                        key={i}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: i * 0.1 }}
+                                        className="bg-white p-6 rounded-3xl border border-slate-200 hover:shadow-xl hover:border-primary/30 transition-all duration-300 cursor-pointer group"
+                                    >
+                                        <div className={`${cat.bg} p-4 rounded-2xl w-fit mb-4 group-hover:scale-110 transition-transform`}>
+                                            <cat.icon className={`w-6 h-6 ${cat.color}`} />
                                         </div>
-                                    ))}
-                                    {filteredFaqs.length === 0 && (
-                                        <div className="text-center py-10 text-gray-600 italic">No matching results found...</div>
-                                    )}
-                                </div>
-                            </section>
+                                        <h3 className="text-lg font-black text-slate-900 mb-2">{cat.title}</h3>
+                                        <p className="text-slate-600 text-sm leading-relaxed">{cat.desc}</p>
+                                    </motion.div>
+                                ))}
+                            </div>
                         </div>
+                    </div>
+                </section>
 
-                        {/* Contact Form */}
-                        <div className="lg:col-span-1">
-                            <Card className="bg-white/5 border-white/10 rounded-3xl sticky top-32 backdrop-blur-sm overflow-hidden border-t-2 border-t-blue-500/50 shadow-2xl">
-                                <CardHeader className="p-8 border-b border-white/5">
-                                    <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-4">
-                                        <MessageSquare className="w-6 h-6 text-blue-400" />
+                {/* FAQs Section */}
+                <section className="py-32 bg-white">
+                    <div className="container px-4 mx-auto">
+                        <div className="max-w-4xl mx-auto">
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                className="text-center mb-16"
+                            >
+                                <div className="flex justify-center mb-6">
+                                    <div className="p-3 bg-primary/10 rounded-2xl">
+                                        <FileQuestion className="h-8 w-8 text-primary" />
                                     </div>
-                                    <CardTitle className="text-2xl font-black uppercase tracking-tight">Open a Ticket</CardTitle>
-                                    <CardDescription className="text-gray-500 font-medium italic mt-2">
-                                        Can't find what you need? Reach out to our human operators.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="p-8">
-                                    <form onSubmit={handleSubmitTicket} className="space-y-6">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 px-1">Subject</label>
-                                            <Input
-                                                required
-                                                placeholder="e.g. Account Recovery"
-                                                className="bg-white/5 border-white/10 h-12 focus:border-blue-500"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 px-1">Email Address</label>
-                                            <Input
-                                                required
-                                                type="email"
-                                                placeholder="your@email.com"
-                                                className="bg-white/5 border-white/10 h-12 focus:border-blue-500"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 px-1">Detailed Message</label>
-                                            <textarea
-                                                required
-                                                rows={4}
-                                                placeholder="Describe the clinical issue..."
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:border-blue-500 outline-none transition-all resize-none"
-                                            />
-                                        </div>
-                                        <Button
-                                            type="submit"
-                                            disabled={isSubmitting}
-                                            className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest text-[10px] rounded-2xl transition-all shadow-xl shadow-blue-600/20"
+                                </div>
+                                <h2 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 mb-6">
+                                    Frequently Asked Questions
+                                </h2>
+                                <p className="text-xl text-slate-600 font-medium">
+                                    Find quick answers to common questions
+                                </p>
+                            </motion.div>
+
+                            <div className="space-y-4">
+                                {filteredFaqs.map((faq, i) => (
+                                    <motion.div
+                                        key={i}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: i * 0.05 }}
+                                        className="bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden hover:border-primary/30 transition-all"
+                                    >
+                                        <button
+                                            onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                                            className="w-full flex items-center justify-between p-6 text-left hover:bg-slate-100 transition-colors"
                                         >
-                                            {isSubmitting ? (
-                                                <div className="flex items-center gap-2">
-                                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                                    Broadcasting...
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center gap-2">
-                                                    <Mail className="w-4 h-4" />
-                                                    Submit Request
-                                                </div>
+                                            <span className="font-bold text-slate-900 text-lg pr-4">{faq.question}</span>
+                                            <ChevronDown className={`w-5 h-5 text-primary shrink-0 transition-transform ${openFaq === i ? 'rotate-180' : ''}`} />
+                                        </button>
+                                        <AnimatePresence>
+                                            {openFaq === i && (
+                                                <motion.div
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: 'auto', opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    className="overflow-hidden"
+                                                >
+                                                    <div className="px-6 pb-6 pt-2 text-slate-600 leading-relaxed border-t border-slate-200">
+                                                        {faq.answer}
+                                                    </div>
+                                                </motion.div>
                                             )}
-                                        </Button>
-                                    </form>
-
-                                    <div className="mt-8 pt-6 border-t border-white/5 flex flex-col gap-4">
-                                        <div className="flex items-center gap-3 text-xs text-gray-500 font-medium">
-                                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                                            <span>Typical Response: <strong className="text-gray-300">&lt; 12 hours</strong></span>
-                                        </div>
-                                        <div className="flex items-center gap-3 text-xs text-gray-500 font-medium">
-                                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                                            <span>24/7 Security Hotline Available</span>
-                                        </div>
+                                        </AnimatePresence>
+                                    </motion.div>
+                                ))}
+                                {filteredFaqs.length === 0 && (
+                                    <div className="text-center py-16 text-slate-500">
+                                        <FileQuestion className="h-16 w-16 mx-auto mb-4 opacity-20" />
+                                        <p className="text-lg font-medium">No matching results found</p>
+                                        <p className="text-sm">Try adjusting your search terms</p>
                                     </div>
-                                </CardContent>
-                            </Card>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            </main>
-        </div>
+                </section>
+
+                {/* Contact Section */}
+                <section className="py-32 bg-slate-50">
+                    <div className="container px-4 mx-auto">
+                        <div className="max-w-6xl mx-auto">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                                {/* Contact Info */}
+                                <motion.div
+                                    initial={{ opacity: 0, x: -50 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.8 }}
+                                >
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="p-3 bg-primary/10 rounded-2xl">
+                                            <MessageSquare className="h-8 w-8 text-primary" />
+                                        </div>
+                                        <h2 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900">Get in Touch</h2>
+                                    </div>
+                                    <p className="text-xl text-slate-600 leading-relaxed mb-8 font-medium">
+                                        Can't find what you're looking for? Our support team is here to help you 24/7.
+                                    </p>
+
+                                    <div className="space-y-6">
+                                        <div className="flex items-start gap-4">
+                                            <div className="bg-blue-50 p-3 rounded-xl shrink-0">
+                                                <Mail className="h-6 w-6 text-blue-600" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-slate-900 mb-1">Email Support</h4>
+                                                <p className="text-slate-600 text-sm mb-2">Get detailed help via email</p>
+                                                <a href="mailto:support@healthchain.com" className="text-primary font-semibold hover:underline">
+                                                    support@healthchain.com
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-start gap-4">
+                                            <div className="bg-emerald-50 p-3 rounded-xl shrink-0">
+                                                <Phone className="h-6 w-6 text-emerald-600" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-slate-900 mb-1">Phone Support</h4>
+                                                <p className="text-slate-600 text-sm mb-2">Speak with our team directly</p>
+                                                <a href="tel:+1-800-HEALTH" className="text-primary font-semibold hover:underline">
+                                                    +1 (800) HEALTH-1
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-start gap-4">
+                                            <div className="bg-purple-50 p-3 rounded-xl shrink-0">
+                                                <Clock className="h-6 w-6 text-purple-600" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-slate-900 mb-1">Response Time</h4>
+                                                <p className="text-slate-600 text-sm">Average response within 12 hours</p>
+                                                <p className="text-slate-600 text-sm">Emergency support available 24/7</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+
+                                {/* Contact Form */}
+                                <motion.div
+                                    initial={{ opacity: 0, x: 50 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ duration: 0.8 }}
+                                >
+                                    <div className="bg-white p-8 rounded-3xl border-2 border-slate-200 shadow-xl">
+                                        <h3 className="text-2xl font-black text-slate-900 mb-6">Send us a message</h3>
+                                        <form onSubmit={handleSubmitTicket} className="space-y-6">
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-bold text-slate-700">Your Name</label>
+                                                <Input
+                                                    required
+                                                    placeholder="John Doe"
+                                                    className="h-12 border-2 focus:border-primary"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-bold text-slate-700">Email Address</label>
+                                                <Input
+                                                    required
+                                                    type="email"
+                                                    placeholder="john@example.com"
+                                                    className="h-12 border-2 focus:border-primary"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-bold text-slate-700">Subject</label>
+                                                <Input
+                                                    required
+                                                    placeholder="How can we help?"
+                                                    className="h-12 border-2 focus:border-primary"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-bold text-slate-700">Message</label>
+                                                <Textarea
+                                                    required
+                                                    rows={5}
+                                                    placeholder="Describe your question or issue..."
+                                                    className="border-2 focus:border-primary resize-none"
+                                                />
+                                            </div>
+                                            <Button
+                                                type="submit"
+                                                disabled={isSubmitting}
+                                                className="w-full h-14 rounded-full text-lg font-bold shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90"
+                                            >
+                                                {isSubmitting ? (
+                                                    <div className="flex items-center gap-2">
+                                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                                        Sending...
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center gap-2">
+                                                        <Mail className="w-5 h-5" />
+                                                        Send Message
+                                                    </div>
+                                                )}
+                                            </Button>
+                                        </form>
+
+                                        <div className="mt-6 pt-6 border-t border-slate-200 flex items-center gap-3 text-sm text-slate-600">
+                                            <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                                            <span>We typically respond within 24 hours</span>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* CTA Section */}
+                <section className="py-32 bg-white">
+                    <div className="container px-4 mx-auto">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            className="max-w-4xl mx-auto text-center bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-12 md:p-16 rounded-[3rem] border border-primary/20"
+                        >
+                            <div className="flex justify-center mb-6">
+                                <div className="p-4 bg-primary/10 rounded-2xl">
+                                    <LifeBuoy className="h-12 w-12 text-primary" />
+                                </div>
+                            </div>
+                            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 mb-6">
+                                Still Need Help?
+                            </h2>
+                            <p className="text-xl text-slate-600 mb-10 leading-relaxed font-medium">
+                                Our dedicated support team is ready to assist you with any questions or concerns.
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                <Link href="/signup">
+                                    <Button size="lg" className="rounded-full px-10 h-16 text-lg font-bold group shadow-xl shadow-primary/20 bg-primary hover:bg-primary/90">
+                                        Get Started
+                                        <ChevronRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                                    </Button>
+                                </Link>
+                                <Link href="/about">
+                                    <Button size="lg" variant="outline" className="rounded-full px-10 h-16 text-lg font-bold border-2">
+                                        Learn More
+                                    </Button>
+                                </Link>
+                            </div>
+                        </motion.div>
+                    </div>
+                </section>
+            </div>
+        </>
     );
 }
