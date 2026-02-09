@@ -14,14 +14,14 @@ CREATE TABLE IF NOT EXISTS public.contact_messages (
 -- Enable Row Level Security
 ALTER TABLE public.contact_messages ENABLE ROW LEVEL SECURITY;
 
--- Admins can do anything
+-- Admins can manage messages
 CREATE POLICY "Admins can manage messages"
     ON public.contact_messages
     FOR ALL
     USING (
         EXISTS (
             SELECT 1 FROM public.users 
-            WHERE users.id = auth.uid() 
+            WHERE users.id::uuid = auth.uid() 
             AND users.role = 'admin'
         )
     );
