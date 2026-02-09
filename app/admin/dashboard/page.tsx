@@ -12,7 +12,8 @@ import {
     ChevronRight,
     Search,
     Bell,
-    Clock
+    Clock,
+    Mail
 } from "lucide-react";
 import Link from "next/link";
 import { HospitalVerificationTable } from "@/components/admin/HospitalVerificationTable";
@@ -30,6 +31,7 @@ interface Stats {
     pendingVerifications: number;
     verifiedHospitals: number;
     totalPatients: number;
+    unreadMessages: number;
 }
 
 export default function AdminPage() {
@@ -40,6 +42,7 @@ export default function AdminPage() {
         pendingVerifications: 0,
         verifiedHospitals: 0,
         totalPatients: 0,
+        unreadMessages: 0,
     });
     const [statsLoading, setStatsLoading] = useState(true);
 
@@ -73,6 +76,19 @@ export default function AdminPage() {
                     setStats(prev => ({
                         ...prev,
                         totalPatients: patientCount,
+                    }));
+                }
+
+                // Fetch unread messages count
+                const { count: unreadCount, error: msgError } = await supabase
+                    .from("contact_messages")
+                    .select("*", { count: "exact", head: true })
+                    .eq("status", "unread");
+
+                if (!msgError && unreadCount !== null) {
+                    setStats(prev => ({
+                        ...prev,
+                        unreadMessages: unreadCount,
                     }));
                 }
             } catch (error) {
@@ -119,6 +135,14 @@ export default function AdminPage() {
                                     {stats.pendingVerifications > 0 && (
                                         <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center">
                                             {stats.pendingVerifications}
+                                        </span>
+                                    )}
+                                </Link>
+                                <Link href="/admin/messages" className="p-2 text-gray-400 hover:text-white transition-colors relative hover:bg-white/5 rounded-full">
+                                    <Mail size={18} />
+                                    {stats.unreadMessages > 0 && (
+                                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full text-[10px] font-bold flex items-center justify-center">
+                                            {stats.unreadMessages}
                                         </span>
                                     )}
                                 </Link>
@@ -250,8 +274,8 @@ export default function AdminPage() {
                         </Tabs>
                     </div>
                 </main>
-            </div>
-        </RequireAuth>
+            </div >
+        </RequireAuth >
     );
 }
 
