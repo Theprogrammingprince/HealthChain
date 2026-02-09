@@ -56,29 +56,59 @@ export default function ContactPage() {
                 >
                     <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none" />
 
-                    <form className="relative z-10 space-y-6">
+                    <form
+                        className="relative z-10 space-y-6"
+                        onSubmit={async (e) => {
+                            e.preventDefault();
+                            const formData = new FormData(e.currentTarget);
+                            const data = {
+                                first_name: formData.get('first_name'),
+                                last_name: formData.get('last_name'),
+                                email: formData.get('email'),
+                                message: formData.get('message'),
+                            };
+
+                            try {
+                                const response = await fetch('/api/contact', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(data),
+                                });
+
+                                if (response.ok) {
+                                    alert('Message sent successfully!');
+                                    (e.target as HTMLFormElement).reset();
+                                } else {
+                                    alert('Failed to send message.');
+                                }
+                            } catch (error) {
+                                console.error('Error:', error);
+                                alert('An error occurred.');
+                            }
+                        }}
+                    >
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-300">First name</label>
-                                <Input placeholder="John" className="bg-black/50 border-white/10 focus:border-blue-500/50" />
+                                <Input name="first_name" placeholder="John" className="bg-black/50 border-white/10 focus:border-blue-500/50" required />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-300">Last name</label>
-                                <Input placeholder="Doe" className="bg-black/50 border-white/10 focus:border-blue-500/50" />
+                                <Input name="last_name" placeholder="Doe" className="bg-black/50 border-white/10 focus:border-blue-500/50" required />
                             </div>
                         </div>
 
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-300">Email</label>
-                            <Input placeholder="john@example.com" type="email" className="bg-black/50 border-white/10 focus:border-blue-500/50" />
+                            <Input name="email" placeholder="john@example.com" type="email" className="bg-black/50 border-white/10 focus:border-blue-500/50" required />
                         </div>
 
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-300">Message</label>
-                            <Textarea placeholder="How can we help you?" className="min-h-[150px] bg-black/50 border-white/10 focus:border-blue-500/50" />
+                            <Textarea name="message" placeholder="How can we help you?" className="min-h-[150px] bg-black/50 border-white/10 focus:border-blue-500/50" required />
                         </div>
 
-                        <Button className="w-full bg-blue-600 hover:bg-blue-500 text-white h-12 rounded-lg font-medium shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)] transition-all">
+                        <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white h-12 rounded-lg font-medium shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)] transition-all">
                             Send Message
                         </Button>
                     </form>
