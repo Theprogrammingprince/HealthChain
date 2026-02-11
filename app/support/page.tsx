@@ -74,16 +74,21 @@ export default function SupportPage() {
         setIsSubmitting(true);
 
         const formData = new FormData(e.target as HTMLFormElement);
-        const name = formData.get('name') as string;
+        const fullName = (formData.get('name') as string).trim();
         const email = formData.get('email') as string;
         const subject = formData.get('subject') as string;
-        const message = formData.get('message') as string;
+        const messageBody = formData.get('message') as string;
+
+        const nameParts = fullName.split(' ');
+        const first_name = nameParts[0] || fullName;
+        const last_name = nameParts.slice(1).join(' ') || '-';
+        const message = subject ? `[${subject}] ${messageBody}` : messageBody;
 
         try {
             const res = await fetch('/api/contact', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, subject, message }),
+                body: JSON.stringify({ first_name, last_name, email, message }),
             });
 
             if (!res.ok) {
