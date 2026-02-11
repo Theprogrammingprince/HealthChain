@@ -10,21 +10,56 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://healthchain.io';
+
 export const metadata: Metadata = {
-  title: "HealthChain | Your Patient Identity, Globalized",
-  description: "The world's first secure, patient-owned emergency medical gateway. Access your records anywhere, instantly, with total privacy.",
-  keywords: ["medical records", "health identity", "emergency medical data", "digital health", "private healthcare"],
+  metadataBase: new URL(baseUrl),
+  title: {
+    default: "HealthChain | Secure Health Records & Patient Identity Platform",
+    template: "%s | HealthChain",
+  },
+  description: "HealthChain is the world's first secure, patient-owned health records platform. Access your medical data anywhere with blockchain-powered privacy. Emergency medical gateway for hospitals, doctors, and patients.",
+  keywords: [
+    "health", "healthchain", "health chain", "health records", "medical records",
+    "patient identity", "digital health", "health platform", "healthcare technology",
+    "emergency medical data", "secure health data", "blockchain health",
+    "electronic health records", "EHR", "patient portal", "health management",
+    "medical history", "health information exchange", "telemedicine platform",
+    "HIPAA compliant", "patient privacy", "health data security",
+    "hospital management", "doctor portal", "clinical dashboard",
+  ],
+  authors: [{ name: "HealthChain", url: baseUrl }],
+  creator: "HealthChain",
+  publisher: "HealthChain",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   openGraph: {
-    title: "HealthChain - Your Health, Your Identity",
-    description: "Secure, patient-owned medical gateway for global emergency access.",
+    title: "HealthChain — Your Health, Your Identity, Globally Accessible",
+    description: "Secure, patient-owned medical gateway. Access health records globally with blockchain-powered encryption. Built for patients, doctors, and hospitals.",
     type: "website",
     locale: "en_US",
+    url: baseUrl,
+    siteName: "HealthChain",
   },
   twitter: {
     card: "summary_large_image",
-    title: "HealthChain",
-    description: "Instant access to your medical history in emergencies, anywhere in the world.",
-  }
+    title: "HealthChain | Secure Health Records Platform",
+    description: "Access your medical history anywhere, instantly, with total privacy. The future of health data management.",
+    creator: "@healthchain",
+  },
+  alternates: {
+    canonical: baseUrl,
+  },
+  category: "Health & Technology",
 };
 
 export default function RootLayout({
