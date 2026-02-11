@@ -69,16 +69,38 @@ export default function SupportPage() {
     const [openFaq, setOpenFaq] = useState<number | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmitTicket = (e: React.FormEvent) => {
+    const handleSubmitTicket = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
-        setTimeout(() => {
-            setIsSubmitting(false);
-            toast.success("Support request submitted!", {
-                description: "Our team will review your request and respond within 24 hours."
+
+        const formData = new FormData(e.target as HTMLFormElement);
+        const name = formData.get('name') as string;
+        const email = formData.get('email') as string;
+        const subject = formData.get('subject') as string;
+        const message = formData.get('message') as string;
+
+        try {
+            const res = await fetch('/api/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, subject, message }),
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || 'Failed to send message');
+            }
+
+            toast.success("Message sent successfully!", {
+                description: "Our team will review your message and respond within 24 hours."
             });
             (e.target as HTMLFormElement).reset();
-        }, 1500);
+        } catch (error: unknown) {
+            const msg = (error as { message?: string }).message || 'Something went wrong';
+            toast.error("Failed to send message", { description: msg });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const filteredFaqs = faqs.filter(faq =>
@@ -190,31 +212,31 @@ export default function SupportPage() {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 {[
-                                    { 
-                                        title: "Getting Started", 
-                                        desc: "Learn the basics of HealthChain", 
-                                        icon: Book, 
+                                    {
+                                        title: "Getting Started",
+                                        desc: "Learn the basics of HealthChain",
+                                        icon: Book,
                                         color: "text-blue-600",
                                         bg: "bg-blue-50"
                                     },
-                                    { 
-                                        title: "Security & Privacy", 
-                                        desc: "Understanding data protection", 
-                                        icon: Shield, 
+                                    {
+                                        title: "Security & Privacy",
+                                        desc: "Understanding data protection",
+                                        icon: Shield,
                                         color: "text-emerald-600",
                                         bg: "bg-emerald-50"
                                     },
-                                    { 
-                                        title: "Record Management", 
-                                        desc: "Upload and manage records", 
-                                        icon: FileText, 
+                                    {
+                                        title: "Record Management",
+                                        desc: "Upload and manage records",
+                                        icon: FileText,
                                         color: "text-purple-600",
                                         bg: "bg-purple-50"
                                     },
-                                    { 
-                                        title: "Emergency Access", 
-                                        desc: "Set up emergency protocols", 
-                                        icon: LifeBuoy, 
+                                    {
+                                        title: "Emergency Access",
+                                        desc: "Set up emergency protocols",
+                                        icon: LifeBuoy,
                                         color: "text-red-600",
                                         bg: "bg-red-50"
                                     },
@@ -382,6 +404,7 @@ export default function SupportPage() {
                                             <div className="space-y-2">
                                                 <label className="text-sm font-bold text-slate-700">Your Name</label>
                                                 <Input
+                                                    name="name"
                                                     required
                                                     placeholder="John Doe"
                                                     className="h-12 border-2 focus:border-primary"
@@ -390,6 +413,7 @@ export default function SupportPage() {
                                             <div className="space-y-2">
                                                 <label className="text-sm font-bold text-slate-700">Email Address</label>
                                                 <Input
+                                                    name="email"
                                                     required
                                                     type="email"
                                                     placeholder="john@example.com"
@@ -399,6 +423,7 @@ export default function SupportPage() {
                                             <div className="space-y-2">
                                                 <label className="text-sm font-bold text-slate-700">Subject</label>
                                                 <Input
+                                                    name="subject"
                                                     required
                                                     placeholder="How can we help?"
                                                     className="h-12 border-2 focus:border-primary"
@@ -407,6 +432,7 @@ export default function SupportPage() {
                                             <div className="space-y-2">
                                                 <label className="text-sm font-bold text-slate-700">Message</label>
                                                 <Textarea
+                                                    name="message"
                                                     required
                                                     rows={5}
                                                     placeholder="Describe your question or issue..."
