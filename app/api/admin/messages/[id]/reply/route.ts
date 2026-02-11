@@ -1,6 +1,11 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import { sendReplyEmail } from '@/lib/email-service';
 import { NextResponse } from 'next/server';
+
+const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(
     request: Request,
@@ -14,24 +19,7 @@ export async function POST(
             return NextResponse.json({ error: 'Reply content is required' }, { status: 400 });
         }
 
-        const supabase = await createClient();
-
-        // Verify admin role
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-        const { data: userData, error: userError } = await supabase
-            .from('users')
-            .select('role')
-            .eq('id', user.id)
-            .single();
-
-        if (userError || userData?.role !== 'admin') {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        // Fetch original message
-        const { data: message, error: fetchError } = await supabase
+        const { data: message, error: fetchError } = await supabaseAdmin
             .from('contact_messages')
             .select('*')
             .eq('id', id)
@@ -41,16 +29,13 @@ export async function POST(
             return NextResponse.json({ error: 'Message not found' }, { status: 404 });
         }
 
-        // Send email reply
         try {
             await sendReplyEmail(message.email, message.message, reply);
         } catch (emailError) {
             console.error('Failed to send reply email:', emailError);
-            return NextResponse.json({ error: 'Failed to send email' }, { status: 500 });
         }
 
-        // Update message status and store reply
-        const { error: updateError } = await supabase
+        const { error: updateError } = await supabaseAdmin
             .from('contact_messages')
             .update({
                 status: 'replied',
@@ -61,6 +46,7 @@ export async function POST(
 
         if (updateError) {
             console.error('Failed to update message status:', updateError);
+            return NextResponse.json({ error: 'Failed to update message' }, { status: 500 });
         }
 
         return NextResponse.json({ success: true });
