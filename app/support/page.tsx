@@ -28,6 +28,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Navbar } from "@/components/layout/Navbar";
 import Link from "next/link";
+import { FAQPageJsonLd } from "@/components/seo/JsonLd";
 
 const faqs = [
     {
@@ -115,6 +116,7 @@ export default function SupportPage() {
 
     return (
         <>
+            <FAQPageJsonLd faqs={faqs} />
             <Navbar />
             <div className="min-h-screen bg-white">
                 {/* Hero Section */}

@@ -3,6 +3,13 @@ import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { Footer } from "@/components/layout/Footer";
 import { Providers } from "@/components/providers";
+import {
+  OrganizationJsonLd,
+  WebSiteJsonLd,
+  WebApplicationJsonLd,
+  MedicalOrganizationJsonLd,
+  SoftwareApplicationJsonLd,
+} from "@/components/seo/JsonLd";
 import "./globals.css";
 
 const inter = Inter({
@@ -74,6 +81,11 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <Providers>
+          <OrganizationJsonLd />
+          <WebSiteJsonLd />
+          <WebApplicationJsonLd />
+          <MedicalOrganizationJsonLd />
+          <SoftwareApplicationJsonLd />
           <main className="flex-1 flex flex-col">{children}</main>
           <Footer />
           <Toaster />
