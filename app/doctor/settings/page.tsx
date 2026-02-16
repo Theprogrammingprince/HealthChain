@@ -44,6 +44,7 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
+import { ChangePasswordSection } from "@/components/dashboard/ChangePasswordSection";
 
 const doctorSettingsSchema = z.object({
     firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -693,6 +694,9 @@ export default function DoctorSettingsPage() {
                             </CardContent>
                         </Card>
                     )}
+
+                    {/* Change Password Section */}
+                    <ChangePasswordSection variant="dark" />
                 </motion.div>
             </main>
         </div>

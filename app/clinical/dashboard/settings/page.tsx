@@ -35,6 +35,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
+import { ChangePasswordSection } from "@/components/dashboard/ChangePasswordSection";
 
 const hospitalSettingsSchema = z.object({
     hospitalName: z.string().min(3, "Hospital name must be at least 3 characters"),
@@ -452,6 +453,11 @@ export default function HospitalSettingsPage() {
                                 </Form>
                             </CardContent>
                         </Card>
+
+                        {/* Change Password Section */}
+                        <div className="mt-10">
+                            <ChangePasswordSection variant="dark" />
+                        </div>
                     </motion.div>
                 </main>
             </div>

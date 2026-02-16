@@ -2,6 +2,7 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { HelpCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { FAQPageJsonLd } from "@/components/seo/JsonLd";
 
 const faqs = [
     {
@@ -29,6 +30,7 @@ const faqs = [
 export default function FAQPage() {
     return (
         <div className="min-h-screen bg-black text-white pt-32 pb-20 px-4">
+            <FAQPageJsonLd faqs={faqs} />
             <div className="max-w-3xl mx-auto">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
