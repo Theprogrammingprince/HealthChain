@@ -102,21 +102,21 @@ export function Footer() {
                 >
                     <div className="flex flex-col gap-3 text-sm">
                         <Link
-                            href="https://twitter.com"
+                            href="https://x.com/healthchainorg"
                             target="_blank"
                             className="flex items-center justify-between gap-8 text-gray-500 hover:text-blue-400 transition-colors group"
                         >
-                            <span>Twitter</span>
+                            <span>X (Twitter)</span>
                             <Twitter className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </Link>
-                        <Link
+                        {/* <Link
                             href="https://github.com"
                             target="_blank"
                             className="flex items-center justify-between gap-8 text-gray-500 hover:text-white transition-colors group"
                         >
                             <span>GitHub</span>
                             <Github className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </Link>
+                        </Link> */}
                         <Link
                             href="https://linkedin.com"
                             target="_blank"
@@ -136,38 +136,28 @@ export function Footer() {
                     viewport={{ once: true }}
                     variants={fadeInUp}
                 >
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-8 mb-8">
                         <div>
                             <h3 className="font-semibold text-white mb-4">Platform</h3>
                             <ul className="space-y-2 text-sm">
-                                <li><Link href="/patient/dashboard" className="text-gray-500 hover:text-blue-400 transition-colors">Medical Records</Link></li>
                                 <li><Link href="/emergency" className="text-gray-500 hover:text-blue-400 transition-colors">Emergency Access</Link></li>
-                                <li><Link href="/providers" className="text-gray-500 hover:text-blue-400 transition-colors">For Providers</Link></li>
+                                <li><Link href="/" className="text-gray-500 hover:text-blue-400 transition-colors">Home</Link></li>
                             </ul>
                         </div>
                         <div>
                             <h3 className="font-semibold text-white mb-4">Support</h3>
                             <ul className="space-y-2 text-sm">
                                 <li><Link href="/support" className="text-gray-500 hover:text-blue-400 transition-colors">Support Center</Link></li>
-                                <li><Link href="/support" className="text-gray-500 hover:text-blue-400 transition-colors">FAQ</Link></li>
-                                <li><Link href="/support" className="text-gray-500 hover:text-blue-400 transition-colors">Documentation</Link></li>
+                                <li><Link href="/faq" className="text-gray-500 hover:text-blue-400 transition-colors">FAQ</Link></li>
+                                <li><Link href="/contact" className="text-gray-500 hover:text-blue-400 transition-colors">Contact Us</Link></li>
                             </ul>
                         </div>
                         <div>
                             <h3 className="font-semibold text-white mb-4">Company</h3>
                             <ul className="space-y-2 text-sm">
                                 <li><Link href="/about" className="text-gray-500 hover:text-blue-400 transition-colors">About Us</Link></li>
-                                <li><Link href="/careers" className="text-gray-500 hover:text-blue-400 transition-colors">Careers</Link></li>
                                 <li><Link href="/privacy" className="text-gray-500 hover:text-blue-400 transition-colors">Privacy Policy</Link></li>
                                 <li><Link href="/terms" className="text-gray-500 hover:text-blue-400 transition-colors">Terms of Service</Link></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-white mb-4">Connect</h3>
-                            <ul className="space-y-2 text-sm">
-                                <li><Link href="/signin" className="text-gray-500 hover:text-blue-400 transition-colors">Sign In</Link></li>
-                                <li><Link href="/signup" className="text-gray-500 hover:text-blue-400 transition-colors">Sign Up</Link></li>
-                                <li><Link href="/blog" className="text-gray-500 hover:text-blue-400 transition-colors">Blog</Link></li>
                             </ul>
                         </div>
                     </div>
