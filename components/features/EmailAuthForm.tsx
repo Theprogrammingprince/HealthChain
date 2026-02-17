@@ -434,7 +434,7 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                     name="password"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel className="text-sm font-medium text-gray-700">Create Password*</FormLabel>
+                            <FormLabel className="text-sm font-medium text-gray-700">{mode === "signup" ? "Create Password*" : "Password*"}</FormLabel>
                             <FormControl>
                                 <motion.div
                                     initial={{ opacity: 0, y: -10 }}
@@ -462,6 +462,13 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                                 </motion.div>
                             </FormControl>
                             <FormMessage />
+                            {mode === "login" && (
+                                <div className="flex justify-end pt-1">
+                                    <Link href="/forgot-password" className="text-xs text-gray-500 hover:text-gray-900 transition-colors">
+                                        Forgot password?
+                                    </Link>
+                                </div>
+                            )}
                         </FormItem>
                     )}
                 />
@@ -583,24 +590,24 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                                 <div className="space-y-1 leading-none flex-1">
                                     <FormLabel className="text-sm font-normal text-gray-600 leading-[1.6] cursor-pointer">
                                         I understand and agree to the{' '}
-                                        <Link 
-                                            href="/terms" 
+                                        <Link
+                                            href="/terms"
                                             className="text-gray-900 font-medium underline hover:text-gray-700 transition-colors"
                                             onClick={(e) => e.stopPropagation()}
                                         >
                                             Terms & Conditions
                                         </Link>
                                         ,{' '}
-                                        <Link 
-                                            href="/user-agreement" 
+                                        <Link
+                                            href="/user-agreement"
                                             className="text-gray-900 font-medium underline hover:text-gray-700 transition-colors"
                                             onClick={(e) => e.stopPropagation()}
                                         >
                                             User Agreement
                                         </Link>
                                         , and{' '}
-                                        <Link 
-                                            href="/privacy" 
+                                        <Link
+                                            href="/privacy"
                                             className="text-gray-900 font-medium underline hover:text-gray-700 transition-colors"
                                             onClick={(e) => e.stopPropagation()}
                                         >
