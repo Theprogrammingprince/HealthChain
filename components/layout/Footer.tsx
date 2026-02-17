@@ -102,7 +102,7 @@ export function Footer() {
                 >
                     <div className="flex flex-col gap-3 text-sm">
                         <Link
-                            href="https://twitter.com"
+                            href="https://x.com/Healthchainorg"
                             target="_blank"
                             className="flex items-center justify-between gap-8 text-gray-500 hover:text-blue-400 transition-colors group"
                         >
@@ -150,14 +150,12 @@ export function Footer() {
                             <ul className="space-y-2 text-sm">
                                 <li><Link href="/support" className="text-gray-500 hover:text-blue-400 transition-colors">Support Center</Link></li>
                                 <li><Link href="/support" className="text-gray-500 hover:text-blue-400 transition-colors">FAQ</Link></li>
-                                <li><Link href="/support" className="text-gray-500 hover:text-blue-400 transition-colors">Documentation</Link></li>
                             </ul>
                         </div>
                         <div>
                             <h3 className="font-semibold text-white mb-4">Company</h3>
                             <ul className="space-y-2 text-sm">
                                 <li><Link href="/about" className="text-gray-500 hover:text-blue-400 transition-colors">About Us</Link></li>
-                                <li><Link href="/careers" className="text-gray-500 hover:text-blue-400 transition-colors">Careers</Link></li>
                                 <li><Link href="/privacy" className="text-gray-500 hover:text-blue-400 transition-colors">Privacy Policy</Link></li>
                                 <li><Link href="/terms" className="text-gray-500 hover:text-blue-400 transition-colors">Terms of Service</Link></li>
                             </ul>
