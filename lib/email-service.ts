@@ -2,7 +2,7 @@ import { resend } from './resend';
 
 // Use Resend test domain for development. For production, verify your domain at https://resend.com/domains
 // and change to 'notifications@yourdomain.com'
-const FROM_EMAIL = 'HealthChain <onboarding@resend.dev>';
+const FROM_EMAIL = process.env.EMAIL_FROM || 'HealthChain <onboarding@healthchainofficial.com>';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@healthchain.io';
 
 export async function sendVerificationEmail(email: string, token: string) {
