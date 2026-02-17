@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { ChevronRight, Shield, Activity, Lock } from "lucide-react";
+import { ChevronRight, Shield, Lock } from "lucide-react";
 
 export function HeroSection() {
     return (
@@ -27,7 +27,7 @@ export function HeroSection() {
                     transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
                     className="absolute top-1/4 left-10 text-primary/30"
                 >
-                    <Activity size={120} />
+                    <Image src="/logo.svg" alt="" width={120} height={120} className="opacity-30" />
                 </motion.div>
                 <motion.div
                     animate={{ y: [0, 20, 0], rotate: [0, -5, 0] }}
@@ -111,7 +111,7 @@ export function HeroSection() {
                                 <div className="absolute bottom-8 left-8 right-8 text-white">
                                     <div className="flex items-center gap-3 mb-4">
                                         <div className="bg-primary p-2 rounded-lg">
-                                            <Activity className="h-6 w-6" />
+                                            <Image src="/logo.svg" alt="HealthChain" width={24} height={24} className="w-6 h-6" />
                                         </div>
                                         <div>
                                             <h4 className="font-bold text-lg">Live Health Vitals</h4>

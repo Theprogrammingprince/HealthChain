@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#1E40AF"/>
+    </linearGradient>
+    <linearGradient id="pulseGrad" x1="6" y1="24" x2="42" y2="24" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.7"/>
+      <stop offset="40%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.7"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon Mark -->
+  <rect x="2" y="2" width="44" height="44" rx="12" fill="url(#bgGrad)"/>
+  <rect x="2" y="2" width="44" height="44" rx="12" fill="white" opacity="0.08"/>
+  <polyline
+    points="7,26 14,26 17,26 20,16 23,34 26,12 29,30 32,22 35,26 41,26"
+    stroke="url(#pulseGrad)"
+    stroke-width="2.8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+  <circle cx="7" cy="26" r="1.5" fill="white" opacity="0.5"/>
+  <circle cx="41" cy="26" r="1.5" fill="white" opacity="0.5"/>
+
+  <!-- Wordmark -->
+  <text x="58" y="30" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="22" font-weight="700" letter-spacing="-0.5" fill="#0F172A">
+    Health<tspan fill="#1E40AF">Chain</tspan>
+  </text>
+</svg>

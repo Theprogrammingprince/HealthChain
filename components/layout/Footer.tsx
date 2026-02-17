@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Twitter, Linkedin, Github } from 'lucide-react';
@@ -37,6 +38,10 @@ export function Footer() {
                 >
                     {/* Tagline */}
                     <div className="max-w-md">
+                        <div className="flex items-center gap-3 mb-3">
+                            <Image src="/logo.svg" alt="HealthChain" width={32} height={32} className="w-8 h-8" />
+                            <span className="text-lg font-bold text-white tracking-tight">Health<span className="text-blue-400">Chain</span></span>
+                        </div>
                         <p className="text-gray-400 text-base leading-relaxed">
                             HealthChain secures your medical history on-chain. {' '}
                             <span className="italic font-medium text-blue-400">Save lives. Own your data.</span>
