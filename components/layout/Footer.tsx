@@ -45,8 +45,8 @@ export function Footer() {
 
                     {/* Quick Links */}
                     <div className="flex items-center gap-3">
-                        <Link href="/patient/dashboard" className="text-gray-400 hover:text-white transition-colors">
-                            Dashboard
+                        <Link href="/" className="text-gray-400 hover:text-white transition-colors">
+                            Home
                         </Link>
                         <Link href="/emergency" className="text-gray-400 hover:text-white transition-colors">
                             Emergency Access
