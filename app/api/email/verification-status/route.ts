@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    from: process.env.EMAIL_FROM || "HealthChain <noreply@healthchain.io>",
+                    from: process.env.EMAIL_FROM || "HealthChain <onboarding@healthchainofficial.com>",
                     to: [to],
                     subject: emailContent.subject,
                     html: emailContent.html,

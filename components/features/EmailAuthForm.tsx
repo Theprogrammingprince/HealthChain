@@ -58,6 +58,8 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
     const [resendCooldown, setResendCooldown] = useState(0);
     const [isResending, setIsResending] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [otpCode, setOtpCode] = useState("");
+    const [isVerifying, setIsVerifying] = useState(false);
     const router = useRouter();
     const { setUserRole } = useAppStore();
 
@@ -118,24 +120,94 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
             const { error } = await supabase.auth.resend({
                 type: 'signup',
                 email: email,
-                options: {
-                    emailRedirectTo: `${window.location.origin}/auth/callback`,
-                }
             });
 
             if (error) throw error;
 
-            toast.success("Verification email sent!", {
+            toast.success("Verification code sent!", {
                 description: "Please check your inbox and spam folder."
             });
             setResendCooldown(60); // Reset cooldown after successful resend
         } catch (error: any) {
             console.error("Resend error:", error);
-            toast.error("Failed to resend email", {
+            toast.error("Failed to resend code", {
                 description: error.message || "Please try again later."
             });
         } finally {
             setIsResending(false);
+        }
+    };
+
+    const handleVerifyOtp = async () => {
+        if (otpCode.length !== 6) {
+            toast.error("Please enter a 6-digit verification code.");
+            return;
+        }
+
+        setIsVerifying(true);
+        try {
+            const rawEmail = form.getValues("email");
+            const email = rawEmail.trim().toLowerCase();
+
+            console.log("Verifying OTP for:", email, "with code:", otpCode);
+
+            // CRITICAL: Clear any existing session that might be interfering with verification
+            const { data: { session: existingSession } } = await supabase.auth.getSession();
+            if (existingSession) {
+                console.log("Session exists before verification, signing out to clear state...");
+                await supabase.auth.signOut();
+            }
+
+            let { data: authData, error } = await supabase.auth.verifyOtp({
+                email,
+                token: otpCode,
+                type: 'signup',
+            });
+
+            // Fallback for some Supabase configurations that use 'email' type for signup
+            if (error && (error.message.includes('expired') || error.status === 403 || error.status === 422)) {
+                console.warn("Verify with 'signup' failed, trying 'email' type fallback...");
+                const fallbackResult = await supabase.auth.verifyOtp({
+                    email,
+                    token: otpCode,
+                    type: 'email',
+                });
+
+                if (!fallbackResult.error) {
+                    authData = fallbackResult.data;
+                    error = null;
+                }
+            }
+
+            if (error) {
+                console.error("Supabase OTP Error Details:", {
+                    message: error.message,
+                    status: error.status,
+                    name: error.name,
+                    error: error
+                });
+                throw error;
+            }
+
+            console.log("OTP Verification Success:", authData);
+
+            toast.success("Email verified!", {
+                description: "Welcome to HealthChain."
+            });
+
+            // Centralized Routing logic
+            const userRole = authData.user?.user_metadata?.role || role.toLowerCase();
+            const targetPath = resolveRoute(userRole, 'pending');
+            router.push(targetPath);
+            onSuccess?.();
+
+        } catch (error: any) {
+            console.error("Verification error:", error);
+            toast.error("Verification failed", {
+                description: error.message || "Invalid or expired code."
+            });
+        } finally {
+            setIsVerifying(false);
         }
     };
 
@@ -169,11 +241,11 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                     userMetadata.hospital_id = data.hospitalAffiliation;
                 }
 
+                const normalizedEmail = data.email.trim().toLowerCase();
                 const { data: authData, error: authError } = await supabase.auth.signUp({
-                    email: data.email,
+                    email: normalizedEmail,
                     password: data.password,
                     options: {
-                        emailRedirectTo: `${window.location.origin}/auth/callback`,
                         data: userMetadata,
                     },
                 });
@@ -181,6 +253,15 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                 if (authError) throw authError;
 
                 if (authData.user) {
+                    // Check if already confirmed (e.g. if 'Confirm Email' is OFF in Supabase)
+                    if (authData.session || authData.user.confirmed_at) {
+                        console.log("User already confirmed or session started, skipping OTP.");
+                        setUserRole(role);
+                        const targetPath = resolveRoute(role.toLowerCase(), 'pending');
+                        router.push(targetPath);
+                        onSuccess?.();
+                        return;
+                    }
                     // Call registration API to create profile
                     const session = authData.session;
                     const registrationData = {
@@ -220,16 +301,22 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                     setUserRole(role);
                     console.log("Signup complete. Role set in store:", role);
 
-                    // Redirect if we have a session (auto-confirm enabled)
-                    console.log("AuthData session status:", !!authData.session);
-                    if (authData.session) {
+                    // 2. Double check if we actually have a session or if confirmed_at was set
+                    // (Happens if link scanners verify the link before the UI updates)
+                    const { data: { user: freshUser } } = await supabase.auth.getUser();
+                    const { data: { session: currentSession } } = await supabase.auth.getSession();
+
+                    if (currentSession || (freshUser && freshUser.confirmed_at)) {
+                        console.log("On-the-fly verification detected. Skipping success screen.");
+                        setUserRole(role);
                         const targetPath = resolveRoute(role.toLowerCase(), 'pending');
-                        console.log("Attempting redirect to:", targetPath);
                         router.push(targetPath);
-                    } else {
-                        console.log("No session found after signup. Showing success screen.");
-                        setShowSuccess(true);
+                        onSuccess?.();
+                        return;
                     }
+
+                    console.log("No session found after signup. Showing success screen.");
+                    setShowSuccess(true);
 
                     if (role === 'Doctor') {
                         setShowSuccess(true);
@@ -284,39 +371,44 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                         <Mail className="w-10 h-10 text-indigo-400" />
                     </div>
                 </div>
-                <div className="space-y-2">
-                    <h3 className="text-2xl font-black tracking-tighter uppercase">Check your email</h3>
-                    <p className="text-gray-500 text-sm font-medium">
-                        We&apos;ve sent a verification link to <span className="text-white">{form.getValues('email')}</span>.
-                    </p>
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                        <h3 className="text-2xl font-black tracking-tighter uppercase">Enter Code</h3>
+                        <p className="text-gray-500 text-sm font-medium">
+                            Enter the 6-digit code sent to <span className="text-white">{form.getValues('email')}</span>
+                        </p>
+                    </div>
+
+                    <div className="flex flex-col items-center gap-4">
+                        <Input
+                            type="text"
+                            maxLength={6}
+                            placeholder="000000"
+                            value={otpCode}
+                            onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
+                            className="text-center text-3xl h-16 font-bold tracking-[0.5em] bg-white/5 border-white/10 text-white focus:border-indigo-500/50"
+                        />
+                        <Button
+                            onClick={handleVerifyOtp}
+                            disabled={otpCode.length !== 6 || isVerifying}
+                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 rounded-xl font-bold uppercase tracking-widest text-[10px]"
+                        >
+                            {isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify Identity"}
+                        </Button>
+                    </div>
                 </div>
-                {role === 'Doctor' ? (
-                    <>
-                        <h3 className="text-2xl font-black tracking-tighter uppercase">Application Received</h3>
-                        <p className="text-gray-500 text-sm font-medium">
-                            Your professional application is <span className="text-emerald-400">Under Review</span>.
-                        </p>
-                    </>
-                ) : (
-                    <>
-                        <h3 className="text-2xl font-black tracking-tighter uppercase">Check your email</h3>
-                        <p className="text-gray-500 text-sm font-medium">
-                            We've sent a verification link to <span className="text-white">{form.getValues('email')}</span>.
-                        </p>
-                    </>
-                )}
+
                 <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-left">
                     <div className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-indigo-400 mt-0.5" />
                         <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                            {role === 'Doctor' ? 'Credential Verification in Progress' : 'Protocol Step: Verify Identity'}
+                            {role === 'Doctor' ? 'Manual Verification Required' : 'Protocol Step: OTP Verification'}
                         </p>
                     </div>
                     <p className="text-xs text-gray-500 mt-2 ml-8">
-                        Once you click the link in your email, you&apos;ll be automatically routed to the {role} {role === 'Hospital' ? 'Verification' : 'Dashboard'}.
                         {role === 'Doctor'
-                            ? "Your medical license and hospital affiliation are being verified by the hospital administration. You will receive access once approved."
-                            : `Once you click the link in your email, you'll be automatically routed to the ${role} ${role === 'Hospital' ? 'Verification' : 'Dashboard'}.`
+                            ? "Once you verify your email, your medical credentials will be reviewed by the administration. You will gain full access upon approval."
+                            : "Enter the code from your inbox to establish a secure connection to your dashboard."
                         }
                     </p>
                 </div>
