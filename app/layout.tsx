@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "HealthChain | Secure Health Records Platform",
     description: "Access your medical history anywhere, instantly, with total privacy. The future of health data management.",
-    creator: "@healthchain",
+    creator: "@healthchainorg",
   },
   alternates: {
     canonical: baseUrl,
