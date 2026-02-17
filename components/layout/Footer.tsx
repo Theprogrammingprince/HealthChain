@@ -164,7 +164,7 @@ export function Footer() {
 
                     <div className="flex flex-col md:flex-row items-center justify-between text-xs text-gray-600 border-t border-white/5 pt-8">
                         <p>
-                            © 2025 HealthChain. Built on Polygon. Encrypted & Patient-Owned.
+                            © 2026 HealthChain. Built on Polygon. Encrypted & Patient-Owned.
                         </p>
                         <div className="flex items-center gap-2 mt-4 md:mt-0">
                             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
