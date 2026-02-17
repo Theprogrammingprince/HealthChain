@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { AuthButton } from "@/components/features/AuthButton";
-import { Activity, Menu, X, ChevronRight } from "lucide-react";
+import { Menu, X, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -54,17 +55,16 @@ export function Navbar() {
 
                         {/* Logo */}
                         <Link href="/" className="flex items-center gap-3 group">
-                            <div className={cn(
-                                "relative flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-300 group-hover:scale-110",
-                                hasScrolled
-                                    ? "bg-primary/10"
-                                    : "bg-primary/10"
-                            )}>
-                                <Activity className={cn(
-                                    "h-[18px] w-[18px] text-primary transition-all duration-300",
-                                    isAuthenticated ? "animate-pulse" : ""
-                                )} />
-                                <div className="absolute inset-0 rounded-xl bg-primary/5 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            <div className="relative w-9 h-9 transition-all duration-300 group-hover:scale-110">
+                                <Image
+                                    src="/logo.svg"
+                                    alt="HealthChain Logo"
+                                    width={36}
+                                    height={36}
+                                    className="w-9 h-9"
+                                    priority
+                                />
+                                <div className="absolute inset-0 rounded-full bg-primary/10 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                             </div>
                             <span className={cn(
                                 "text-lg font-bold tracking-tight transition-colors duration-300",
@@ -106,18 +106,9 @@ export function Navbar() {
                             })}
                         </div>
 
-                        {/* Desktop Auth + CTA */}
+                        {/* Desktop Auth */}
                         <div className="hidden lg:flex items-center gap-3">
                             <AuthButton />
-                            <Link href="/signup">
-                                <Button
-                                    size="sm"
-                                    className="rounded-full px-5 h-9 text-xs font-semibold bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 group"
-                                >
-                                    Get Started
-                                    <ChevronRight className="ml-1 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                                </Button>
-                            </Link>
                         </div>
 
                         {/* Mobile Controls */}

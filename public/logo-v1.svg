@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <!-- V1: Rounded Square with Heartbeat Line -->
+  <defs>
+    <linearGradient id="v1bg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#1E40AF"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="44" height="44" rx="12" fill="url(#v1bg)"/>
+  <rect x="2" y="2" width="44" height="44" rx="12" fill="white" opacity="0.06"/>
+  <polyline
+    points="7,26 13,26 17,26 20,16 23,34 26,12 29,30 32,22 35,26 41,26"
+    stroke="white"
+    stroke-width="2.8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+  <circle cx="7" cy="26" r="1.8" fill="white" opacity="0.4"/>
+  <circle cx="41" cy="26" r="1.8" fill="white" opacity="0.4"/>
+</svg>

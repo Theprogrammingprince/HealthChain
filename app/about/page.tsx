@@ -3,10 +3,9 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { 
-    ChevronRight, 
-    Shield, 
-    Activity, 
+import {
+    ChevronRight,
+    Shield,
     Heart,
     Users,
     Globe,
@@ -170,7 +169,7 @@ export default function AboutPage() {
                                     <div className="relative z-10 rounded-[2.5rem] overflow-hidden border-8 border-slate-200 shadow-2xl">
                                         <div className="aspect-[4/5] relative bg-gradient-to-br from-primary/20 to-primary/5">
                                             <div className="absolute inset-0 flex items-center justify-center">
-                                                <Activity className="h-32 w-32 text-primary/30" />
+                                                <Image src="/logo.svg" alt="HealthChain" width={128} height={128} className="opacity-30" />
                                             </div>
                                         </div>
                                     </div>
@@ -341,7 +340,7 @@ export default function AboutPage() {
                         >
                             <div className="flex justify-center mb-6">
                                 <div className="p-4 bg-primary/10 rounded-2xl">
-                                    <Activity className="h-12 w-12 text-primary" />
+                                    <Image src="/logo.svg" alt="HealthChain" width={48} height={48} />
                                 </div>
                             </div>
                             <h2 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 mb-6">
