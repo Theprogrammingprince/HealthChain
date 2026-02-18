@@ -20,7 +20,7 @@ import Link from "next/link";
 
 export default function PatientEmergencyPage() {
     const router = useRouter();
-    const { walletAddress, disconnectWallet } = useAppStore();
+    const { walletAddress, profileImage, disconnectWallet } = useAppStore();
 
     const handleLogout = () => {
         disconnectWallet();
@@ -86,14 +86,14 @@ export default function PatientEmergencyPage() {
                             <code className="text-[11px] text-gray-400 font-mono">{displayAddress}</code>
                         </div>
 
-                        <Link href="/dashboard/notifications" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 hover:bg-white/10 transition-colors">
+                        <Link href="/patient/dashboard/notifications" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 hover:bg-white/10 transition-colors">
                             <Bell className="w-4 h-4 text-gray-400" />
                         </Link>
 
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Avatar className="cursor-pointer border-2 border-white/5 hover:border-[#00BFFF]/50 transition-all w-10 h-10">
-                                    <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${walletAddress}`} />
+                                    <AvatarImage src={profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${walletAddress}`} />
                                     <AvatarFallback className="bg-white/5"><User /></AvatarFallback>
                                 </Avatar>
                             </DropdownMenuTrigger>
@@ -106,7 +106,7 @@ export default function PatientEmergencyPage() {
                                 <DropdownMenuItem className="focus:bg-white/5 cursor-pointer rounded-xl p-3">
                                     <User className="w-4 h-4 mr-2" /> Private Profile
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="focus:bg-white/5 cursor-pointer rounded-xl p-3" onClick={() => router.push('/support')}>
+                                <DropdownMenuItem className="focus:bg-white/5 cursor-pointer rounded-xl p-3" onClick={() => router.push('/patient/dashboard/support')}>
                                     <LifeBuoy className="w-4 h-4 mr-2" /> Support Protocol
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator className="bg-white/10" />

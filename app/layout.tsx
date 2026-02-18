@@ -10,6 +10,7 @@ import {
   MedicalOrganizationJsonLd,
   SoftwareApplicationJsonLd,
 } from "@/components/seo/JsonLd";
+import { ChatbotWidget } from "@/components/features/ChatbotWidget";
 import "./globals.css";
 
 const inter = Inter({
@@ -88,6 +89,7 @@ export default function RootLayout({
           <SoftwareApplicationJsonLd />
           <main className="flex-1 flex flex-col">{children}</main>
           <Footer />
+          <ChatbotWidget />
           <Toaster />
         </Providers>
       </body>

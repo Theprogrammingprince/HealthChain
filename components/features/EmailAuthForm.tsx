@@ -671,41 +671,47 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                         control={form.control as any}
                         name="consent"
                         render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                                <FormControl>
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                        className="mt-0.5"
-                                    />
-                                </FormControl>
-                                <div className="space-y-1 leading-none flex-1">
-                                    <FormLabel className="text-sm font-normal text-gray-600 leading-[1.6] cursor-pointer">
-                                        I understand and agree to the{' '}
+                            <FormItem className="space-y-0">
+                                <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 space-y-4">
+                                    {/* Checkbox + Agreement text */}
+                                    <div className="flex items-center gap-3">
+                                        <FormControl>
+                                            <Checkbox
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                                className="h-5 w-5 rounded border-gray-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                            />
+                                        </FormControl>
+                                        <FormLabel className="text-sm font-medium text-gray-700 cursor-pointer leading-none">
+                                            I understand and agree to the following
+                                        </FormLabel>
+                                    </div>
+
+                                    {/* Policy links in grid */}
+                                    <div className="grid grid-cols-3 gap-2">
                                         <Link
                                             href="/terms"
-                                            className="text-gray-900 font-medium underline hover:text-gray-700 transition-colors"
+                                            className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:border-primary/30 hover:text-primary hover:bg-primary/5 transition-all duration-200 text-center"
                                             onClick={(e) => e.stopPropagation()}
                                         >
                                             Terms & Conditions
                                         </Link>
-                                        ,{' '}
                                         <Link
                                             href="/user-agreement"
-                                            className="text-gray-900 font-medium underline hover:text-gray-700 transition-colors"
+                                            className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:border-primary/30 hover:text-primary hover:bg-primary/5 transition-all duration-200 text-center"
                                             onClick={(e) => e.stopPropagation()}
                                         >
                                             User Agreement
                                         </Link>
-                                        , and{' '}
                                         <Link
                                             href="/privacy"
-                                            className="text-gray-900 font-medium underline hover:text-gray-700 transition-colors"
+                                            className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-700 hover:border-primary/30 hover:text-primary hover:bg-primary/5 transition-all duration-200 text-center"
                                             onClick={(e) => e.stopPropagation()}
                                         >
                                             Privacy Policy
                                         </Link>
-                                    </FormLabel>
+                                    </div>
+
                                     <FormMessage />
                                 </div>
                             </FormItem>

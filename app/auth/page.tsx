@@ -6,6 +6,7 @@ import { GoogleLoginButton } from "@/components/features/GoogleLoginButton";
 import { EmailAuthForm } from "@/components/features/EmailAuthForm";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import { TestimonialSlider } from "@/components/features/TestimonialSlider";
@@ -39,11 +40,7 @@ export default function AuthPage() {
                 >
                     {/* Logo */}
                     <div className="flex items-center gap-2 mb-8">
-                        <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-                            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
-                            </svg>
-                        </div>
+                        <Image src="/logo.svg" alt="HealthChain" width={32} height={32} className="w-8 h-8" />
                         <span className="text-xl font-bold text-black">HealthChain</span>
                     </div>
 
@@ -56,7 +53,7 @@ export default function AuthPage() {
                             {mode === "signup" ? "Create Your Account" : "Welcome Back"}
                         </h1>
                         <p className="text-sm sm:text-base text-gray-600">
-                            {mode === "signup" 
+                            {mode === "signup"
                                 ? `Join HealthChain to ${role === 'Patient' ? 'manage your health records' : role === 'Doctor' ? 'provide better care' : 'streamline operations'} with ease.`
                                 : "Sign in to access your account"}
                         </p>
@@ -81,15 +78,15 @@ export default function AuthPage() {
                     <EmailAuthForm mode={mode} role={role} />
 
                     {/* Toggle Mode */}
-                    <div className="mt-6 text-center">
+                    <div className="mt-8 text-center space-y-3">
+                        <p className="text-sm text-gray-500">
+                            {mode === "login" ? "Don't have an account?" : "Already have an account?"}
+                        </p>
                         <button
                             onClick={() => setMode(mode === "login" ? "signup" : "login")}
-                            className="text-sm text-gray-600 hover:text-gray-900"
+                            className="w-full py-3 px-6 rounded-xl border-2 border-primary text-primary font-semibold text-sm hover:bg-primary hover:text-white transition-all duration-300 shadow-sm hover:shadow-md"
                         >
-                            {mode === "login" ? "Don't have an account? " : "Already have an account? "}
-                            <span className="font-semibold underline">
-                                {mode === "login" ? "Sign Up" : "Log In"}
-                            </span>
+                            {mode === "login" ? "Create an Account" : "Log In Instead"}
                         </button>
                     </div>
                 </motion.div>
