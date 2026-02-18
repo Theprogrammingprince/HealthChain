@@ -57,7 +57,7 @@ const KNOWLEDGE_BASE: { keywords: string[]; response: string }[] = [
     },
     {
         keywords: ["hello", "hi", "hey", "greetings", "good morning", "good afternoon"],
-        response: "Hello! 👋 Welcome to HealthChain! I'm here to answer your questions about our platform. What would you like to know?"
+        response: "Hello! 👋 I'm Jasmin, the HealthChain assistant! I'm here to answer your questions about our platform. What would you like to know?"
     },
     {
         keywords: ["thank", "thanks", "awesome", "great", "perfect"],
@@ -85,7 +85,7 @@ function findLocalResponse(input: string): string {
 
     if (bestScore > 0) return bestResponse;
 
-    return "I'm not sure about that, but our team can help! Visit our **Contact page** or check the **FAQ page** for more information. Is there anything else I can help with?";
+    return "I'm Jasmin, the HealthChain assistant. I can only help with HealthChain-related questions — features, security, pricing, and more. Is there something about HealthChain I can help with?";
 }
 
 // ──────────────────────────────────────────────────────────
@@ -96,7 +96,7 @@ export function ChatbotWidget() {
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             role: "bot",
-            content: "Hi! 👋 I'm the HealthChain AI assistant. I can answer any question about our platform — security, features, pricing, how to get started, and more. How can I help you today?",
+            content: "Hi! 👋 I'm **Jasmin**, the HealthChain assistant. I can answer any question about our platform — security, features, pricing, how to get started, and more. How can I help you today?",
             timestamp: new Date(),
         },
     ]);
@@ -277,7 +277,7 @@ export function ChatbotWidget() {
                                     <Image src="/logo.svg" alt="HealthChain" width={24} height={24} />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-sm">HealthChain Assistant</h3>
+                                    <h3 className="font-bold text-sm">Jasmin</h3>
                                     <div className="flex items-center gap-1.5">
                                         <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
                                         <span className="text-[10px] text-blue-200 font-medium">
