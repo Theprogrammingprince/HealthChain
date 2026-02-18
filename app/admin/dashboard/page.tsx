@@ -79,18 +79,32 @@ export default function AdminPage() {
                     }));
                 }
 
-                // Fetch unread messages count
-                const { count: unreadCount, error: msgError } = await supabase
+                // Fetch unread messages count (contact form + support tickets)
+                let totalUnread = 0;
+
+                const { count: unreadContactCount, error: msgError } = await supabase
                     .from("contact_messages")
                     .select("*", { count: "exact", head: true })
                     .eq("status", "unread");
 
-                if (!msgError && unreadCount !== null) {
-                    setStats(prev => ({
-                        ...prev,
-                        unreadMessages: unreadCount,
-                    }));
+                if (!msgError && unreadContactCount !== null) {
+                    totalUnread += unreadContactCount;
                 }
+
+                // Also count open support tickets
+                const { count: openTicketCount, error: ticketError } = await supabase
+                    .from("support_tickets")
+                    .select("*", { count: "exact", head: true })
+                    .neq("status", "resolved");
+
+                if (!ticketError && openTicketCount !== null) {
+                    totalUnread += openTicketCount;
+                }
+
+                setStats(prev => ({
+                    ...prev,
+                    unreadMessages: totalUnread,
+                }));
             } catch (error) {
                 console.error("Error fetching stats:", error);
             } finally {
