@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Loader2, Bot, User, ChevronDown, Sparkles } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, User, Sparkles, RotateCcw } from "lucide-react";
 import Image from "next/image";
 
 interface ChatMessage {
@@ -11,7 +11,9 @@ interface ChatMessage {
     timestamp: Date;
 }
 
-// Knowledge base for the chatbot — a structured FAQ that powers responses
+// ──────────────────────────────────────────────────────────
+// Local keyword-based fallback (used when AI API is unavailable)
+// ──────────────────────────────────────────────────────────
 const KNOWLEDGE_BASE: { keywords: string[]; response: string }[] = [
     {
         keywords: ["what", "healthchain", "about", "platform"],
@@ -31,7 +33,7 @@ const KNOWLEDGE_BASE: { keywords: string[]; response: string }[] = [
     },
     {
         keywords: ["doctor", "hospital", "provider", "clinical"],
-        response: "**For Doctors:** You can register and verify your credentials through your affiliated hospital. Once approved, you can securely access patient records (with consent), add diagnoses, and manage clinical workflows.\n\n**For Hospitals:** Register your facility and get verified by our admin team. Then manage staff, patient records, and clinical operations all in one place."
+        response: "**For Doctors:** Register and verify your credentials through your affiliated hospital. Once approved, you can securely access patient records (with consent), add diagnoses, and manage clinical workflows.\n\n**For Hospitals:** Register your facility and get verified by our admin team. Then manage staff, patient records, and clinical operations."
     },
     {
         keywords: ["emergency", "sos", "urgent", "crisis"],
@@ -39,19 +41,19 @@ const KNOWLEDGE_BASE: { keywords: string[]; response: string }[] = [
     },
     {
         keywords: ["record", "upload", "document", "file", "medical"],
-        response: "You can upload and manage all types of medical documents:\n\n• **Lab Results** — blood tests, urinalysis, etc.\n• **Radiology** — X-rays, MRIs, CT scans\n• **Prescriptions** — pharmacy records\n• **General** — discharge summaries, referrals\n\nAll documents are encrypted and stored on IPFS. Only you control who can view them."
+        response: "You can upload and manage all types of medical documents:\n\n• **Lab Results** — blood tests, urinalysis, etc.\n• **Radiology** — X-rays, MRIs, CT scans\n• **Prescriptions** — pharmacy records\n• **General** — discharge summaries, referrals\n\nAll documents are encrypted and stored on IPFS."
     },
     {
         keywords: ["blockchain", "decentralized", "ipfs", "web3"],
-        response: "We leverage blockchain technology to ensure:\n\n• **Immutability** — records cannot be altered once verified\n• **Transparency** — every access is logged on-chain\n• **Decentralization** — no single entity controls your data\n• **Interoperability** — share records across providers seamlessly\n\nIPFS ensures files are distributed and never stored in one vulnerable location."
+        response: "We leverage blockchain technology to ensure:\n\n• **Immutability** — records cannot be altered once verified\n• **Transparency** — every access is logged on-chain\n• **Decentralization** — no single entity controls your data\n• **Interoperability** — share records across providers seamlessly"
     },
     {
         keywords: ["contact", "support", "help", "reach", "email"],
-        response: "You can reach our team through:\n\n• **Support Page** — Visit our [Contact page](/contact) for direct inquiries\n• **Dashboard Support** — If you're a registered user, use the in-dashboard Support Center for ticket-based assistance\n• **FAQ** — Check our [FAQ page](/faq) for common questions\n\nWe're here to help! 💬"
+        response: "You can reach our team through:\n\n• **Contact Page** — Visit our contact page for direct inquiries\n• **Dashboard Support** — Registered users can create support tickets\n• **FAQ** — Check our FAQ page for common questions\n\nWe're here to help! 💬"
     },
     {
         keywords: ["access", "permission", "share", "consent", "authorize"],
-        response: "HealthChain gives you full control over who sees your data:\n\n• **Grant Access** — Choose specific providers or individuals\n• **Access Levels** — View summary, view records, or full access\n• **One-Time Codes** — Generate temporary access codes for new providers\n• **Revoke Anytime** — Remove access instantly with one click\n\nEverything is logged on the blockchain for total transparency."
+        response: "HealthChain gives you full control over who sees your data:\n\n• **Grant Access** — Choose specific providers\n• **Access Levels** — View summary, view records, or full access\n• **One-Time Codes** — Generate temporary access codes\n• **Revoke Anytime** — Remove access instantly"
     },
     {
         keywords: ["hello", "hi", "hey", "greetings", "good morning", "good afternoon"],
@@ -63,10 +65,8 @@ const KNOWLEDGE_BASE: { keywords: string[]; response: string }[] = [
     },
 ];
 
-function findBestResponse(input: string): string {
+function findLocalResponse(input: string): string {
     const lower = input.toLowerCase().trim();
-
-    // Score each knowledge item
     let bestScore = 0;
     let bestResponse = "";
 
@@ -74,7 +74,7 @@ function findBestResponse(input: string): string {
         let score = 0;
         for (const keyword of item.keywords) {
             if (lower.includes(keyword)) {
-                score += keyword.length; // Longer keyword matches are more relevant
+                score += keyword.length;
             }
         }
         if (score > bestScore) {
@@ -85,21 +85,24 @@ function findBestResponse(input: string): string {
 
     if (bestScore > 0) return bestResponse;
 
-    // Fallback
-    return "I'm not sure about that, but our team can help! Here are some options:\n\n• Visit our **[Contact page](/contact)** to reach our team\n• Check the **[FAQ page](/faq)** for common questions\n• **Sign up** to access in-dashboard support\n\nIs there anything else I can help with?";
+    return "I'm not sure about that, but our team can help! Visit our **Contact page** or check the **FAQ page** for more information. Is there anything else I can help with?";
 }
 
+// ──────────────────────────────────────────────────────────
+// ChatbotWidget Component
+// ──────────────────────────────────────────────────────────
 export function ChatbotWidget() {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             role: "bot",
-            content: "Hi! 👋 I'm the HealthChain assistant. I can answer questions about our platform, security, features, pricing, and more. How can I help you today?",
+            content: "Hi! 👋 I'm the HealthChain AI assistant. I can answer any question about our platform — security, features, pricing, how to get started, and more. How can I help you today?",
             timestamp: new Date(),
         },
     ]);
     const [input, setInput] = useState("");
     const [isTyping, setIsTyping] = useState(false);
+    const [useAI, setUseAI] = useState(true); // try AI first, fallback to local
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -117,8 +120,44 @@ export function ChatbotWidget() {
         }
     }, [isOpen]);
 
-    const handleSend = () => {
-        if (!input.trim()) return;
+    // Send message to AI API
+    const getAIResponse = useCallback(async (userMessage: string, history: ChatMessage[]): Promise<string> => {
+        try {
+            const chatHistory = history.map((msg) => ({
+                role: msg.role,
+                content: msg.content,
+            }));
+
+            // Add the new user message
+            chatHistory.push({ role: "user", content: userMessage });
+
+            const res = await fetch("/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ messages: chatHistory }),
+            });
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                if (data.fallback) {
+                    // API not configured — switch to local mode
+                    setUseAI(false);
+                    return findLocalResponse(userMessage);
+                }
+                throw new Error("API error");
+            }
+
+            const data = await res.json();
+            return data.response;
+        } catch (err) {
+            console.error("AI API error, using local fallback:", err);
+            setUseAI(false);
+            return findLocalResponse(userMessage);
+        }
+    }, []);
+
+    const handleSend = useCallback(async () => {
+        if (!input.trim() || isTyping) return;
 
         const userMessage: ChatMessage = {
             role: "user",
@@ -126,32 +165,84 @@ export function ChatbotWidget() {
             timestamp: new Date(),
         };
 
+        const currentInput = input.trim();
         setMessages((prev) => [...prev, userMessage]);
         setInput("");
         setIsTyping(true);
 
-        // Simulate typing delay for natural feel
-        setTimeout(() => {
-            const botResponse: ChatMessage = {
-                role: "bot",
-                content: findBestResponse(userMessage.content),
-                timestamp: new Date(),
-            };
-            setMessages((prev) => [...prev, botResponse]);
-            setIsTyping(false);
-        }, 600 + Math.random() * 800);
+        let responseText: string;
+
+        if (useAI) {
+            // Try AI-powered response
+            responseText = await getAIResponse(currentInput, messages);
+        } else {
+            // Local fallback with simulated delay
+            await new Promise((resolve) => setTimeout(resolve, 400 + Math.random() * 600));
+            responseText = findLocalResponse(currentInput);
+        }
+
+        const botResponse: ChatMessage = {
+            role: "bot",
+            content: responseText,
+            timestamp: new Date(),
+        };
+
+        setMessages((prev) => [...prev, botResponse]);
+        setIsTyping(false);
+    }, [input, isTyping, useAI, messages, getAIResponse]);
+
+    const handleQuickQuestion = useCallback(async (question: string) => {
+        if (isTyping) return;
+
+        const userMessage: ChatMessage = { role: "user", content: question, timestamp: new Date() };
+        setMessages((prev) => [...prev, userMessage]);
+        setIsTyping(true);
+
+        let responseText: string;
+        if (useAI) {
+            responseText = await getAIResponse(question, messages);
+        } else {
+            await new Promise((resolve) => setTimeout(resolve, 400 + Math.random() * 600));
+            responseText = findLocalResponse(question);
+        }
+
+        setMessages((prev) => [...prev, { role: "bot", content: responseText, timestamp: new Date() }]);
+        setIsTyping(false);
+    }, [isTyping, useAI, messages, getAIResponse]);
+
+    const handleReset = () => {
+        setMessages([{
+            role: "bot",
+            content: "Hi! 👋 I'm the HealthChain AI assistant. How can I help you today?",
+            timestamp: new Date(),
+        }]);
+        setUseAI(true);
     };
 
     const quickQuestions = [
         "What is HealthChain?",
         "Is it free?",
-        "How secure is it?",
+        "How secure is my data?",
         "How do I sign up?",
     ];
 
+    // Render markdown-style bold text and line breaks
+    const renderMessage = (content: string) => {
+        return content.split("\n").map((line, j) => (
+            <span key={j}>
+                {line.split(/(\*\*.*?\*\*)/g).map((part, k) =>
+                    part.startsWith("**") && part.endsWith("**")
+                        ? <strong key={k} className="font-semibold">{part.slice(2, -2)}</strong>
+                        : <span key={k}>{part}</span>
+                )}
+                {j < content.split("\n").length - 1 && <br />}
+            </span>
+        ));
+    };
+
     return (
         <>
-            {/* Chat Button */}
+            {/* Floating Chat Button */}
             <AnimatePresence>
                 {!isOpen && (
                     <motion.button
@@ -164,7 +255,6 @@ export function ChatbotWidget() {
                         aria-label="Open chat"
                     >
                         <MessageCircle className="w-6 h-6 sm:w-7 sm:h-7 group-hover:scale-110 transition-transform" />
-                        {/* Pulse ring */}
                         <span className="absolute inset-0 rounded-full bg-blue-500/20 animate-ping" />
                     </motion.button>
                 )}
@@ -180,7 +270,7 @@ export function ChatbotWidget() {
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                         className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[400px] h-[min(600px,calc(100vh-6rem))] bg-white rounded-2xl shadow-2xl shadow-black/20 border border-gray-200 flex flex-col overflow-hidden"
                     >
-                        {/* Chat Header */}
+                        {/* Header */}
                         <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 flex items-center justify-between flex-shrink-0">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
@@ -190,19 +280,30 @@ export function ChatbotWidget() {
                                     <h3 className="font-bold text-sm">HealthChain Assistant</h3>
                                     <div className="flex items-center gap-1.5">
                                         <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                                        <span className="text-[10px] text-blue-200 font-medium">Online</span>
+                                        <span className="text-[10px] text-blue-200 font-medium">
+                                            {useAI ? "AI-Powered" : "Online"}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => setIsOpen(false)}
-                                className="w-8 h-8 rounded-full hover:bg-white/20 flex items-center justify-center transition-colors"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
+                            <div className="flex items-center gap-1">
+                                <button
+                                    onClick={handleReset}
+                                    className="w-8 h-8 rounded-full hover:bg-white/20 flex items-center justify-center transition-colors"
+                                    title="Reset conversation"
+                                >
+                                    <RotateCcw className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                    onClick={() => setIsOpen(false)}
+                                    className="w-8 h-8 rounded-full hover:bg-white/20 flex items-center justify-center transition-colors"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
                         </div>
 
-                        {/* Messages Area */}
+                        {/* Messages */}
                         <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
                             {messages.map((msg, i) => (
                                 <motion.div
@@ -213,34 +314,20 @@ export function ChatbotWidget() {
                                     className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                                 >
                                     <div className={`flex items-end gap-2 max-w-[85%] ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
-                                        {/* Avatar */}
-                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === "bot"
-                                            ? "bg-blue-100 text-blue-600"
-                                            : "bg-gray-200 text-gray-600"
-                                            }`}>
+                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === "bot" ? "bg-blue-100 text-blue-600" : "bg-gray-200 text-gray-600"}`}>
                                             {msg.role === "bot" ? <Sparkles className="w-3.5 h-3.5" /> : <User className="w-3.5 h-3.5" />}
                                         </div>
-                                        {/* Bubble */}
                                         <div className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed ${msg.role === "user"
                                             ? "bg-blue-600 text-white rounded-br-md"
                                             : "bg-white text-gray-800 rounded-bl-md border border-gray-100 shadow-sm"
                                             }`}>
-                                            {msg.content.split("\n").map((line, j) => (
-                                                <span key={j}>
-                                                    {line.split(/(\*\*.*?\*\*)/g).map((part, k) =>
-                                                        part.startsWith("**") && part.endsWith("**")
-                                                            ? <strong key={k} className="font-semibold">{part.slice(2, -2)}</strong>
-                                                            : <span key={k}>{part}</span>
-                                                    )}
-                                                    {j < msg.content.split("\n").length - 1 && <br />}
-                                                </span>
-                                            ))}
+                                            {renderMessage(msg.content)}
                                         </div>
                                     </div>
                                 </motion.div>
                             ))}
 
-                            {/* Typing indicator */}
+                            {/* Typing Indicator */}
                             {isTyping && (
                                 <motion.div
                                     initial={{ opacity: 0, y: 8 }}
@@ -262,27 +349,15 @@ export function ChatbotWidget() {
                             <div ref={messagesEndRef} />
                         </div>
 
-                        {/* Quick Questions - shown only when there are few messages */}
-                        {messages.length <= 2 && (
+                        {/* Quick Questions */}
+                        {messages.length <= 2 && !isTyping && (
                             <div className="px-4 py-2 border-t border-gray-100 bg-white flex-shrink-0">
                                 <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-2">Quick Questions</p>
                                 <div className="flex flex-wrap gap-1.5">
                                     {quickQuestions.map((q) => (
                                         <button
                                             key={q}
-                                            onClick={() => {
-                                                setInput(q);
-                                                setTimeout(() => {
-                                                    const userMessage: ChatMessage = { role: "user", content: q, timestamp: new Date() };
-                                                    setMessages((prev) => [...prev, userMessage]);
-                                                    setInput("");
-                                                    setIsTyping(true);
-                                                    setTimeout(() => {
-                                                        setMessages((prev) => [...prev, { role: "bot", content: findBestResponse(q), timestamp: new Date() }]);
-                                                        setIsTyping(false);
-                                                    }, 600 + Math.random() * 800);
-                                                }, 50);
-                                            }}
+                                            onClick={() => handleQuickQuestion(q)}
                                             className="text-xs px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors font-medium border border-blue-100"
                                         >
                                             {q}
@@ -292,7 +367,7 @@ export function ChatbotWidget() {
                             </div>
                         )}
 
-                        {/* Input Area */}
+                        {/* Input */}
                         <div className="p-3 border-t border-gray-100 bg-white flex-shrink-0">
                             <div className="flex items-center gap-2">
                                 <input
@@ -306,19 +381,20 @@ export function ChatbotWidget() {
                                             handleSend();
                                         }
                                     }}
-                                    placeholder="Ask me anything..."
-                                    className="flex-1 bg-gray-100 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:bg-white border border-transparent focus:border-blue-200 transition-all"
+                                    placeholder="Ask me anything about HealthChain..."
+                                    disabled={isTyping}
+                                    className="flex-1 bg-gray-100 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:bg-white border border-transparent focus:border-blue-200 transition-all disabled:opacity-50"
                                 />
                                 <button
                                     onClick={handleSend}
                                     disabled={!input.trim() || isTyping}
                                     className="w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
                                 >
-                                    <Send className="w-4 h-4" />
+                                    {isTyping ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                                 </button>
                             </div>
                             <p className="text-[10px] text-gray-400 mt-1.5 text-center">
-                                Powered by HealthChain • <span className="text-gray-500">Not medical advice</span>
+                                Powered by HealthChain{useAI ? " AI" : ""} • <span className="text-gray-500">Not medical advice</span>
                             </p>
                         </div>
                     </motion.div>
