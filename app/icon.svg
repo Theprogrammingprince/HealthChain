@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="v2bg" x1="8" y1="4" x2="40" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#1E40AF"/>
+    </linearGradient>
+  </defs>
+  <circle cx="24" cy="24" r="22" fill="url(#v2bg)"/>
+  <path
+    d="M24 6 C24 6, 38 12, 38 12 C38 12, 38 28, 38 28 C38 36, 24 42, 24 42 C24 42, 10 36, 10 28 C10 28, 10 12, 10 12 Z"
+    fill="none"
+    stroke="white"
+    stroke-width="1.5"
+    opacity="0.25"
+  />
+  <polyline
+    points="10,25 16,25 19,25 21,18 24,32 27,14 29,28 31,22 33,25 38,25"
+    stroke="white"
+    stroke-width="2.4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+</svg>
