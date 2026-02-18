@@ -56,6 +56,7 @@ export default function DashboardPage() {
         walletAddress,
         records,
         userVitals,
+        profileImage,
         disconnectWallet,
         fetchUserProfile,
         supabaseUser
@@ -190,14 +191,14 @@ export default function DashboardPage() {
                             <code className="text-[10px] sm:text-[11px] text-gray-400 font-mono">{displayAddress}</code>
                         </div>
 
-                        <Link href="/dashboard/notifications" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 hover:bg-white/10 transition-colors">
+                        <Link href="/patient/dashboard/notifications" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 hover:bg-white/10 transition-colors">
                             <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
                         </Link>
 
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Avatar className="cursor-pointer border-2 border-white/5 hover:border-[#00BFFF]/50 transition-all w-8 h-8 sm:w-10 sm:h-10">
-                                    <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${walletAddress}`} />
+                                    <AvatarImage src={profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${walletAddress}`} />
                                     <AvatarFallback className="bg-white/5"><User /></AvatarFallback>
                                 </Avatar>
                             </DropdownMenuTrigger>
@@ -210,7 +211,7 @@ export default function DashboardPage() {
                                 <DropdownMenuItem className="focus:bg-white/5 cursor-pointer rounded-xl p-3">
                                     <User className="w-4 h-4 mr-2" /> Private Profile
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="focus:bg-white/5 cursor-pointer rounded-xl p-3" onClick={() => router.push('/support')}>
+                                <DropdownMenuItem className="focus:bg-white/5 cursor-pointer rounded-xl p-3" onClick={() => router.push('/patient/dashboard/support')}>
                                     <LifeBuoy className="w-4 h-4 mr-2" /> Support Protocol
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator className="bg-white/10" />
@@ -431,7 +432,7 @@ export default function DashboardPage() {
                         Protocol Node: 0x92...AF10 • Latency: 42ms • Block: 68,291,203
                     </p>
                     <div className="flex items-center gap-3 sm:gap-6 flex-wrap justify-center">
-                        <Link href="/support" className="text-[9px] sm:text-[10px] font-bold text-gray-600 hover:text-[#00BFFF] uppercase tracking-widest transition-colors">Support Center</Link>
+                        <Link href="/patient/dashboard/support" className="text-[9px] sm:text-[10px] font-bold text-gray-600 hover:text-[#00BFFF] uppercase tracking-widest transition-colors">Support Center</Link>
                         <button className="text-[9px] sm:text-[10px] font-bold text-gray-600 hover:text-[#00BFFF] uppercase tracking-widest transition-colors">Privacy Policy</button>
                         <button className="text-[9px] sm:text-[10px] font-bold text-gray-600 hover:text-[#00BFFF] uppercase tracking-widest transition-colors">Governance</button>
                     </div>
