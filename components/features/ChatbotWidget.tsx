@@ -241,7 +241,7 @@ export function ChatbotWidget() {
     };
 
     return (
-        <>
+        <div className="chatbot-widget">
             {/* Floating Chat Button */}
             <AnimatePresence>
                 {!isOpen && (
@@ -400,6 +400,6 @@ export function ChatbotWidget() {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </>
+        </div>
     );
 }

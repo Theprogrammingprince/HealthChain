@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { useAppStore } from "@/lib/store";
 import { toast } from "sonner";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     LifeBuoy,
@@ -18,7 +19,12 @@ import {
     Plus,
     ChevronRight,
     User,
-    Headphones
+    Headphones,
+    Paperclip,
+    Image as ImageIcon,
+    FileText,
+    Download,
+    X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
@@ -37,7 +43,13 @@ interface SupportMessage {
     sender: "user" | "admin";
     message: string;
     created_at: string;
+    attachment_url?: string | null;
+    attachment_name?: string | null;
+    attachment_type?: string | null;
 }
+
+const isImageType = (type: string | null | undefined) =>
+    type?.startsWith('image/') || false;
 
 export default function DashboardSupportPage() {
     const { supabaseUser, userVitals } = useAppStore();
@@ -52,6 +64,12 @@ export default function DashboardSupportPage() {
     const [isLoadingTickets, setIsLoadingTickets] = useState(true);
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
     const [showNewTicketForm, setShowNewTicketForm] = useState(false);
+
+    // File upload state
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [uploadingFile, setUploadingFile] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -80,7 +98,6 @@ export default function DashboardSupportPage() {
                 setTickets(data || []);
             } catch (err) {
                 console.error("Failed to fetch tickets:", err);
-                // Fallback: show empty state
                 setTickets([]);
             } finally {
                 setIsLoadingTickets(false);
@@ -89,7 +106,7 @@ export default function DashboardSupportPage() {
         fetchTickets();
     }, [supabaseUser]);
 
-    // Fetch messages for active ticket
+    // Fetch messages for active ticket + realtime subscription
     useEffect(() => {
         if (!activeTicket) return;
         const fetchMessages = async () => {
@@ -125,7 +142,11 @@ export default function DashboardSupportPage() {
                 },
                 (payload) => {
                     const newMsg = payload.new as SupportMessage;
-                    setMessages((prev) => [...prev, newMsg]);
+                    setMessages((prev) => {
+                        // Avoid duplicates
+                        if (prev.some(m => m.id === newMsg.id)) return prev;
+                        return [...prev, newMsg];
+                    });
                     if (newMsg.sender === "admin") {
                         toast("Admin replied", { description: newMsg.message.slice(0, 60) + "..." });
                     }
@@ -137,6 +158,56 @@ export default function DashboardSupportPage() {
             supabase.removeChannel(channel);
         };
     }, [activeTicket]);
+
+    // File upload handler
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Max 10MB
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error("File too large", { description: "Maximum file size is 10MB." });
+            return;
+        }
+
+        setSelectedFile(file);
+    };
+
+    const uploadFile = async (file: File, ticketId: string): Promise<{ url: string; name: string; type: string } | null> => {
+        setUploadingFile(true);
+        try {
+            const ext = file.name.split('.').pop();
+            const path = `support/${ticketId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+
+            const { error: uploadError } = await supabase
+                .storage
+                .from('support-attachments')
+                .upload(path, file, { cacheControl: '3600', upsert: false });
+
+            if (uploadError) {
+                console.error('Upload error:', uploadError);
+                toast.error("Upload failed", { description: uploadError.message });
+                return null;
+            }
+
+            const { data: urlData } = supabase
+                .storage
+                .from('support-attachments')
+                .getPublicUrl(path);
+
+            return {
+                url: urlData.publicUrl,
+                name: file.name,
+                type: file.type,
+            };
+        } catch (err) {
+            console.error('File upload error:', err);
+            toast.error("Upload failed");
+            return null;
+        } finally {
+            setUploadingFile(false);
+        }
+    };
 
     // Create new ticket
     const handleCreateTicket = async () => {
@@ -186,20 +257,41 @@ export default function DashboardSupportPage() {
 
     // Send message in active thread
     const handleSendMessage = async () => {
-        if (!newMessage.trim() || !activeTicket || !supabaseUser) return;
+        if ((!newMessage.trim() && !selectedFile) || !activeTicket || !supabaseUser) return;
         setIsSending(true);
         try {
+            let attachmentData = null;
+
+            // Upload file if selected
+            if (selectedFile) {
+                attachmentData = await uploadFile(selectedFile, activeTicket.id);
+                if (!attachmentData && !newMessage.trim()) {
+                    setIsSending(false);
+                    return;
+                }
+            }
+
+            const messageData: Record<string, unknown> = {
+                ticket_id: activeTicket.id,
+                sender: "user",
+                message: newMessage.trim() || (attachmentData ? `📎 Sent a file: ${attachmentData.name}` : ''),
+                user_id: supabaseUser.id,
+            };
+
+            if (attachmentData) {
+                messageData.attachment_url = attachmentData.url;
+                messageData.attachment_name = attachmentData.name;
+                messageData.attachment_type = attachmentData.type;
+            }
+
             const { error } = await supabase
                 .from("support_messages")
-                .insert({
-                    ticket_id: activeTicket.id,
-                    sender: "user",
-                    message: newMessage.trim(),
-                    user_id: supabaseUser.id,
-                });
+                .insert(messageData);
 
             if (error) throw error;
             setNewMessage("");
+            setSelectedFile(null);
+            if (fileInputRef.current) fileInputRef.current.value = '';
             inputRef.current?.focus();
         } catch (err) {
             console.error("Failed to send:", err);
@@ -207,6 +299,49 @@ export default function DashboardSupportPage() {
         } finally {
             setIsSending(false);
         }
+    };
+
+    // Render attachment
+    const renderAttachment = (msg: SupportMessage) => {
+        if (!msg.attachment_url) return null;
+
+        if (isImageType(msg.attachment_type)) {
+            return (
+                <div className="mt-2 rounded-xl overflow-hidden border border-white/10 max-w-[280px]">
+                    <Image
+                        src={msg.attachment_url}
+                        alt={msg.attachment_name || 'Image'}
+                        width={280}
+                        height={200}
+                        className="w-full h-auto object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => window.open(msg.attachment_url!, '_blank')}
+                        unoptimized
+                    />
+                    <div className="p-2 bg-white/5 flex items-center gap-2 text-[10px] text-gray-500">
+                        <ImageIcon className="w-3 h-3" />
+                        <span className="truncate">{msg.attachment_name}</span>
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <a
+                href={msg.attachment_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors max-w-[280px]"
+            >
+                <div className="w-9 h-9 rounded-lg bg-[#00BFFF]/10 border border-[#00BFFF]/20 flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-4 h-4 text-[#00BFFF]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-white truncate">{msg.attachment_name || 'File'}</p>
+                    <p className="text-[10px] text-gray-500 uppercase">{msg.attachment_type?.split('/')[1] || 'file'}</p>
+                </div>
+                <Download className="w-4 h-4 text-gray-500 flex-shrink-0" />
+            </a>
+        );
     };
 
     const statusConfig = {
@@ -243,89 +378,83 @@ export default function DashboardSupportPage() {
                 </div>
             </header>
 
-            <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 sm:py-10">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[calc(100vh-12rem)]">
-
-                    {/* Left: Ticket List */}
-                    <div className="lg:col-span-4 space-y-3">
-                        <h2 className="text-xs font-black uppercase tracking-widest text-gray-500 mb-4 flex items-center gap-2">
-                            <MessageSquare className="w-4 h-4" /> Your Tickets ({tickets.length})
-                        </h2>
-
+            <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 min-h-[calc(100vh-8rem)]">
+                    {/* Ticket List */}
+                    <div className="lg:col-span-4 space-y-3 max-h-[calc(100vh-10rem)] overflow-y-auto pr-1">
                         {isLoadingTickets ? (
-                            <div className="space-y-3">
-                                {[1, 2, 3].map(i => (
-                                    <div key={i} className="bg-white/5 rounded-2xl p-4 animate-pulse h-24" />
-                                ))}
+                            <div className="flex items-center justify-center py-20">
+                                <Loader2 className="w-6 h-6 animate-spin text-gray-600" />
                             </div>
-                        ) : tickets.length === 0 && !showNewTicketForm ? (
+                        ) : tickets.length === 0 ? (
                             <div className="text-center py-16 bg-white/5 rounded-2xl border border-dashed border-white/10">
-                                <Headphones className="mx-auto text-gray-600 mb-4" size={48} />
-                                <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mb-4">No Tickets Yet</p>
+                                <LifeBuoy className="w-12 h-12 text-gray-700 mx-auto mb-4" />
+                                <h3 className="text-lg font-bold text-gray-400 mb-2">No Tickets Yet</h3>
+                                <p className="text-sm text-gray-600 mb-6">Create your first support ticket</p>
                                 <Button
                                     onClick={() => setShowNewTicketForm(true)}
-                                    variant="outline"
-                                    className="border-white/10 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl"
+                                    className="bg-[#00BFFF] hover:bg-[#00BFFF]/80 text-black font-bold text-xs uppercase tracking-wider rounded-xl"
                                 >
-                                    <Plus className="w-4 h-4 mr-2" /> Create Your First Ticket
+                                    <Plus className="w-4 h-4 mr-2" /> New Ticket
                                 </Button>
                             </div>
                         ) : (
-                            <div className="space-y-2">
-                                {tickets.map(ticket => {
-                                    const status = statusConfig[ticket.status];
-                                    const StatusIcon = status.icon;
-                                    const isActive = activeTicket?.id === ticket.id;
-                                    return (
-                                        <motion.button
-                                            key={ticket.id}
-                                            onClick={() => { setActiveTicket(ticket); setShowNewTicketForm(false); }}
-                                            className={`w-full text-left p-4 rounded-2xl border transition-all duration-200 ${isActive
-                                                ? "bg-[#00BFFF]/10 border-[#00BFFF]/30"
-                                                : "bg-white/5 border-white/5 hover:bg-white/[0.07] hover:border-white/10"
-                                                }`}
-                                            whileTap={{ scale: 0.98 }}
-                                        >
-                                            <div className="flex items-start justify-between gap-3">
-                                                <div className="flex-1 min-w-0">
-                                                    <h3 className="font-bold text-sm truncate">{ticket.subject}</h3>
-                                                    <div className="flex items-center gap-2 mt-2">
-                                                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${status.bg} ${status.color} ${status.border} border`}>
-                                                            <StatusIcon className="w-3 h-3" />
-                                                            {status.label}
-                                                        </span>
-                                                        <span className="text-[10px] text-gray-600">
-                                                            {formatDistanceToNow(new Date(ticket.updated_at), { addSuffix: true })}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <ChevronRight className={`w-4 h-4 mt-1 transition-colors ${isActive ? "text-[#00BFFF]" : "text-gray-700"}`} />
+                            tickets.map((ticket) => {
+                                const status = statusConfig[ticket.status];
+                                const StatusIcon = status.icon;
+                                return (
+                                    <button
+                                        key={ticket.id}
+                                        onClick={() => { setActiveTicket(ticket); setShowNewTicketForm(false); setSelectedFile(null); }}
+                                        className={`w-full text-left p-4 rounded-2xl border transition-all ${activeTicket?.id === ticket.id
+                                            ? "bg-[#00BFFF]/5 border-[#00BFFF]/20"
+                                            : "bg-white/[0.02] border-white/5 hover:bg-white/[0.04] hover:border-white/10"
+                                            }`}
+                                    >
+                                        <div className="flex items-start justify-between gap-2">
+                                            <div className="min-w-0 flex-1">
+                                                <h3 className="font-bold text-sm truncate mb-1">{ticket.subject}</h3>
+                                                <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${status.bg} ${status.color} ${status.border} border`}>
+                                                    <StatusIcon className="w-3 h-3" />
+                                                    {status.label}
+                                                </span>
                                             </div>
-                                        </motion.button>
-                                    );
-                                })}
-                            </div>
+                                            <div className="flex items-center gap-2 flex-shrink-0">
+                                                <span className="text-[10px] text-gray-600">
+                                                    {formatDistanceToNow(new Date(ticket.updated_at), { addSuffix: true })}
+                                                </span>
+                                                <ChevronRight className="w-4 h-4 text-gray-700" />
+                                            </div>
+                                        </div>
+                                    </button>
+                                );
+                            })
                         )}
                     </div>
 
-                    {/* Right: Chat / New Ticket Form */}
+                    {/* Chat / New Ticket Form */}
                     <div className="lg:col-span-8">
                         <AnimatePresence mode="wait">
                             {showNewTicketForm ? (
-                                /* New Ticket Form */
                                 <motion.div
                                     key="new-ticket"
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    className="bg-white/5 border border-white/10 rounded-2xl p-6 sm:p-8"
+                                    exit={{ opacity: 0 }}
+                                    className="bg-white/5 rounded-2xl border border-white/10 p-6 sm:p-8"
                                 >
-                                    <h2 className="text-xl font-black uppercase tracking-tight mb-6 flex items-center gap-3">
-                                        <Plus className="text-[#00BFFF]" /> Create New Ticket
+                                    <h2 className="text-xl font-black mb-6 uppercase tracking-tight flex items-center gap-3">
+                                        <div className="p-2 rounded-lg bg-[#00BFFF]/10">
+                                            <MessageSquare className="w-5 h-5 text-[#00BFFF]" />
+                                        </div>
+                                        New Support Ticket
                                     </h2>
+
                                     <div className="space-y-5">
                                         <div>
-                                            <label className="text-xs font-bold uppercase tracking-widest text-gray-500 block mb-2">Subject</label>
+                                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
+                                                Subject
+                                            </label>
                                             <input
                                                 type="text"
                                                 value={newSubject}
@@ -335,11 +464,13 @@ export default function DashboardSupportPage() {
                                             />
                                         </div>
                                         <div>
-                                            <label className="text-xs font-bold uppercase tracking-widest text-gray-500 block mb-2">Describe Your Issue</label>
+                                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
+                                                Message
+                                            </label>
                                             <textarea
                                                 value={newInitialMessage}
                                                 onChange={(e) => setNewInitialMessage(e.target.value)}
-                                                placeholder="Tell us what you need help with. Include as much detail as possible..."
+                                                placeholder="Describe your issue in detail..."
                                                 rows={5}
                                                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:border-[#00BFFF]/50 focus:outline-none focus:ring-1 focus:ring-[#00BFFF]/30 transition-all resize-none"
                                             />
@@ -348,7 +479,7 @@ export default function DashboardSupportPage() {
                                             <Button
                                                 onClick={handleCreateTicket}
                                                 disabled={!newSubject.trim() || !newInitialMessage.trim() || isCreating}
-                                                className="bg-[#00BFFF] hover:bg-[#00BFFF]/80 text-black font-bold text-xs uppercase tracking-wider rounded-xl px-6 h-11"
+                                                className="bg-[#00BFFF] hover:bg-[#00BFFF]/80 text-black font-bold text-xs uppercase tracking-wider rounded-xl h-11 px-6"
                                             >
                                                 {isCreating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
                                                 Submit Ticket
@@ -356,7 +487,7 @@ export default function DashboardSupportPage() {
                                             <Button
                                                 onClick={() => setShowNewTicketForm(false)}
                                                 variant="ghost"
-                                                className="text-gray-500 hover:text-white text-xs uppercase tracking-wider rounded-xl"
+                                                className="text-gray-500 hover:text-white text-xs font-bold uppercase tracking-wider rounded-xl"
                                             >
                                                 Cancel
                                             </Button>
@@ -364,34 +495,31 @@ export default function DashboardSupportPage() {
                                     </div>
                                 </motion.div>
                             ) : activeTicket ? (
-                                /* Chat Thread */
                                 <motion.div
                                     key={`ticket-${activeTicket.id}`}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    className="bg-white/5 border border-white/10 rounded-2xl flex flex-col h-[calc(100vh-14rem)]"
+                                    exit={{ opacity: 0 }}
+                                    className="bg-white/5 rounded-2xl border border-white/10 flex flex-col h-[calc(100vh-10rem)]"
                                 >
                                     {/* Chat Header */}
-                                    <div className="p-4 sm:p-6 border-b border-white/5">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <h3 className="font-bold text-lg">{activeTicket.subject}</h3>
-                                                <div className="flex items-center gap-3 mt-1">
-                                                    {(() => {
-                                                        const status = statusConfig[activeTicket.status];
-                                                        const StatusIcon = status.icon;
-                                                        return (
-                                                            <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${status.bg} ${status.color} ${status.border} border`}>
-                                                                <StatusIcon className="w-3 h-3" />
-                                                                {status.label}
-                                                            </span>
-                                                        );
-                                                    })()}
-                                                    <span className="text-[10px] text-gray-600">
-                                                        Created {formatDistanceToNow(new Date(activeTicket.created_at), { addSuffix: true })}
-                                                    </span>
-                                                </div>
+                                    <div className="p-4 sm:p-5 border-b border-white/10 flex justify-between items-center">
+                                        <div>
+                                            <h3 className="font-bold text-base sm:text-lg">{activeTicket.subject}</h3>
+                                            <div className="flex items-center gap-3 mt-1">
+                                                {(() => {
+                                                    const status = statusConfig[activeTicket.status];
+                                                    const StatusIcon = status.icon;
+                                                    return (
+                                                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${status.bg} ${status.color} ${status.border} border`}>
+                                                            <StatusIcon className="w-3 h-3" />
+                                                            {status.label}
+                                                        </span>
+                                                    );
+                                                })()}
+                                                <span className="text-[10px] text-gray-600">
+                                                    Created {formatDistanceToNow(new Date(activeTicket.created_at), { addSuffix: true })}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -438,6 +566,7 @@ export default function DashboardSupportPage() {
                                                             </span>
                                                         </div>
                                                         <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{msg.message}</p>
+                                                        {renderAttachment(msg)}
                                                     </div>
                                                 </motion.div>
                                             ))
@@ -448,7 +577,42 @@ export default function DashboardSupportPage() {
                                     {/* Message Input */}
                                     {activeTicket.status !== "resolved" && (
                                         <div className="p-4 sm:p-6 border-t border-white/5">
+                                            {/* Selected file preview */}
+                                            {selectedFile && (
+                                                <div className="mb-3 flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
+                                                    {selectedFile.type.startsWith('image/') ? (
+                                                        <ImageIcon className="w-5 h-5 text-[#00BFFF] flex-shrink-0" />
+                                                    ) : (
+                                                        <FileText className="w-5 h-5 text-[#00BFFF] flex-shrink-0" />
+                                                    )}
+                                                    <span className="text-xs text-gray-300 truncate flex-1">{selectedFile.name}</span>
+                                                    <span className="text-[10px] text-gray-600">{(selectedFile.size / 1024).toFixed(0)} KB</span>
+                                                    <button
+                                                        onClick={() => { setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+                                                        className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                                                    >
+                                                        <X className="w-3 h-3 text-gray-400" />
+                                                    </button>
+                                                </div>
+                                            )}
+
                                             <div className="flex items-end gap-3">
+                                                {/* File upload button */}
+                                                <input
+                                                    ref={fileInputRef}
+                                                    type="file"
+                                                    accept="image/*,.pdf,.doc,.docx,.txt,.csv,.xlsx"
+                                                    className="hidden"
+                                                    onChange={handleFileSelect}
+                                                />
+                                                <button
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    className="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors flex-shrink-0"
+                                                    title="Attach file or image"
+                                                >
+                                                    <Paperclip className="w-4 h-4 text-gray-400" />
+                                                </button>
+
                                                 <textarea
                                                     ref={inputRef}
                                                     value={newMessage}
@@ -465,13 +629,13 @@ export default function DashboardSupportPage() {
                                                 />
                                                 <Button
                                                     onClick={handleSendMessage}
-                                                    disabled={!newMessage.trim() || isSending}
+                                                    disabled={(!newMessage.trim() && !selectedFile) || isSending || uploadingFile}
                                                     className="bg-[#00BFFF] hover:bg-[#00BFFF]/80 text-black rounded-xl h-11 w-11 p-0 flex-shrink-0"
                                                 >
-                                                    {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                                    {(isSending || uploadingFile) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                                                 </Button>
                                             </div>
-                                            <p className="text-[10px] text-gray-700 mt-2">Press Enter to send, Shift+Enter for new line</p>
+                                            <p className="text-[10px] text-gray-700 mt-2">Enter to send • Shift+Enter for new line • 📎 for photos & documents</p>
                                         </div>
                                     )}
 

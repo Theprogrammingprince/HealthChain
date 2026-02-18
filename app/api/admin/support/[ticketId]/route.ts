@@ -32,14 +32,14 @@ export async function GET(
     }
 }
 
-// POST: Admin sends a reply to a support ticket
+// POST: Admin sends a reply to a support ticket (with optional attachment)
 export async function POST(
     request: Request,
     { params }: { params: Promise<{ ticketId: string }> }
 ) {
     try {
         const { ticketId } = await params;
-        const { reply, status } = await request.json();
+        const { reply, status, attachment_url, attachment_name, attachment_type } = await request.json();
 
         if (!reply?.trim()) {
             return NextResponse.json({ error: 'Reply content is required' }, { status: 400 });
@@ -56,14 +56,23 @@ export async function POST(
             return NextResponse.json({ error: 'Ticket not found' }, { status: 404 });
         }
 
-        // Insert the admin reply message
+        // Insert the admin reply message (with optional attachment)
+        const messageData: Record<string, unknown> = {
+            ticket_id: ticketId,
+            sender: 'admin',
+            message: reply.trim(),
+        };
+
+        // Add attachment fields if provided
+        if (attachment_url) {
+            messageData.attachment_url = attachment_url;
+            messageData.attachment_name = attachment_name || 'file';
+            messageData.attachment_type = attachment_type || 'application/octet-stream';
+        }
+
         const { error: msgError } = await supabaseAdmin
             .from('support_messages')
-            .insert({
-                ticket_id: ticketId,
-                sender: 'admin',
-                message: reply.trim(),
-            });
+            .insert(messageData);
 
         if (msgError) {
             console.error('Failed to insert admin reply:', msgError);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Mail,
@@ -18,11 +18,17 @@ import {
     MailOpen,
     ChevronDown,
     LifeBuoy,
-    AlertCircle,
-    Headphones
+    Headphones,
+    Paperclip,
+    Image as ImageIcon,
+    FileText,
+    Download,
+    RefreshCw
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { supabase } from "@/lib/supabaseClient";
+import Image from "next/image";
 
 // ──────────── Types ────────────
 interface ContactMessage {
@@ -56,6 +62,9 @@ interface TicketMessage {
     sender: 'user' | 'admin';
     message: string;
     created_at: string;
+    attachment_url?: string | null;
+    attachment_name?: string | null;
+    attachment_type?: string | null;
 }
 
 // ──────────── Helper ────────────
@@ -74,6 +83,9 @@ const formatDate = (dateStr: string) => {
 
 const getInitials = (first: string, last: string) =>
     `${(first?.[0] || '').toUpperCase()}${(last?.[0] || '').toUpperCase()}`;
+
+const isImageType = (type: string | null | undefined) =>
+    type?.startsWith('image/') || false;
 
 // ──────────── Component ────────────
 export default function AdminMessagesPage() {
@@ -98,24 +110,31 @@ export default function AdminMessagesPage() {
     const [ticketFilter, setTicketFilter] = useState<'all' | 'open' | 'resolved'>('all');
     const [ticketSearch, setTicketSearch] = useState('');
 
+    // ───── File upload state ─────
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [uploadingFile, setUploadingFile] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     const [loading, setLoading] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const activeTicketRef = useRef<SupportTicket | null>(null);
+
+    // Keep ref in sync with state
+    useEffect(() => {
+        activeTicketRef.current = activeTicket;
+    }, [activeTicket]);
 
     // ───── Scroll to bottom ─────
-    const scrollToBottom = () => {
+    const scrollToBottom = useCallback(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
+    }, []);
 
     useEffect(() => {
         scrollToBottom();
-    }, [ticketMessages]);
+    }, [ticketMessages, scrollToBottom]);
 
     // ───── Fetch all data ─────
-    useEffect(() => {
-        fetchAll();
-    }, []);
-
-    const fetchAll = async () => {
+    const fetchAll = useCallback(async () => {
         try {
             const res = await fetch('/api/admin/messages');
             const data = await res.json();
@@ -126,7 +145,70 @@ export default function AdminMessagesPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchAll();
+    }, [fetchAll]);
+
+    // ───── Real-time subscription for support messages ─────
+    useEffect(() => {
+        // Subscribe to ALL new support messages so admin gets instant updates
+        const channel = supabase
+            .channel('admin-support-messages')
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'support_messages',
+                },
+                (payload) => {
+                    const newMsg = payload.new as TicketMessage;
+
+                    // If this message is for the currently active ticket, add it to the chat
+                    if (activeTicketRef.current && newMsg.ticket_id === activeTicketRef.current.id) {
+                        setTicketMessages((prev) => {
+                            // Avoid duplicates
+                            if (prev.some(m => m.id === newMsg.id)) return prev;
+                            return [...prev, newMsg];
+                        });
+                    }
+
+                    // Show toast for new patient messages
+                    if (newMsg.sender === 'user') {
+                        toast("New patient message", {
+                            description: newMsg.message.slice(0, 80) + (newMsg.message.length > 80 ? '...' : ''),
+                        });
+                    }
+
+                    // Refresh ticket list to update previews and unread status
+                    fetchAll();
+                }
+            )
+            .subscribe();
+
+        // Also subscribe to ticket status changes
+        const ticketChannel = supabase
+            .channel('admin-support-tickets')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'support_tickets',
+                },
+                () => {
+                    fetchAll();
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+            supabase.removeChannel(ticketChannel);
+        };
+    }, [fetchAll]);
 
     // ───── Fetch ticket messages ─────
     const fetchTicketMessages = async (ticketId: string) => {
@@ -144,7 +226,58 @@ export default function AdminMessagesPage() {
 
     const handleSelectTicket = (ticket: SupportTicket) => {
         setActiveTicket(ticket);
+        setSelectedFile(null);
         fetchTicketMessages(ticket.id);
+    };
+
+    // ───── File upload handler ─────
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Max 10MB
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error("File too large", { description: "Maximum file size is 10MB." });
+            return;
+        }
+
+        setSelectedFile(file);
+    };
+
+    const uploadFile = async (file: File, ticketId: string): Promise<{ url: string; name: string; type: string } | null> => {
+        setUploadingFile(true);
+        try {
+            const ext = file.name.split('.').pop();
+            const path = `support/${ticketId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+
+            const { error: uploadError } = await supabase
+                .storage
+                .from('support-attachments')
+                .upload(path, file, { cacheControl: '3600', upsert: false });
+
+            if (uploadError) {
+                console.error('Upload error:', uploadError);
+                toast.error("Upload failed", { description: uploadError.message });
+                return null;
+            }
+
+            const { data: urlData } = supabase
+                .storage
+                .from('support-attachments')
+                .getPublicUrl(path);
+
+            return {
+                url: urlData.publicUrl,
+                name: file.name,
+                type: file.type,
+            };
+        } catch (err) {
+            console.error('File upload error:', err);
+            toast.error("Upload failed");
+            return null;
+        } finally {
+            setUploadingFile(false);
+        }
     };
 
     // ───── Contact reply handler ─────
@@ -177,24 +310,40 @@ export default function AdminMessagesPage() {
 
     // ───── Support ticket reply handler ─────
     const handleTicketReply = async (status?: string) => {
-        if (!ticketReply.trim() || !activeTicket) return;
+        if ((!ticketReply.trim() && !selectedFile) || !activeTicket) return;
         setSendingTicketReply(true);
 
         try {
+            let attachmentData = null;
+
+            // Upload file if selected
+            if (selectedFile) {
+                attachmentData = await uploadFile(selectedFile, activeTicket.id);
+                if (!attachmentData && !ticketReply.trim()) {
+                    setSendingTicketReply(false);
+                    return;
+                }
+            }
+
             const res = await fetch(`/api/admin/support/${activeTicket.id}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    reply: ticketReply,
+                    reply: ticketReply.trim() || (attachmentData ? `📎 Sent a file: ${attachmentData.name}` : ''),
                     status: status || undefined,
+                    attachment_url: attachmentData?.url || null,
+                    attachment_name: attachmentData?.name || null,
+                    attachment_type: attachmentData?.type || null,
                 }),
             });
 
             if (res.ok) {
                 toast.success("Reply sent to patient");
                 setTicketReply('');
+                setSelectedFile(null);
+                if (fileInputRef.current) fileInputRef.current.value = '';
                 fetchTicketMessages(activeTicket.id);
-                fetchAll(); // refresh ticket list
+                fetchAll();
             } else {
                 const data = await res.json();
                 toast.error("Failed to send reply", { description: data.error });
@@ -233,6 +382,49 @@ export default function AdminMessagesPage() {
         } finally {
             setSendingTicketReply(false);
         }
+    };
+
+    // ───── Render attachment ─────
+    const renderAttachment = (msg: TicketMessage) => {
+        if (!msg.attachment_url) return null;
+
+        if (isImageType(msg.attachment_type)) {
+            return (
+                <div className="mt-2 rounded-xl overflow-hidden border border-white/10 max-w-[300px]">
+                    <Image
+                        src={msg.attachment_url}
+                        alt={msg.attachment_name || 'Image'}
+                        width={300}
+                        height={200}
+                        className="w-full h-auto object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => window.open(msg.attachment_url!, '_blank')}
+                        unoptimized
+                    />
+                    <div className="p-2 bg-white/5 flex items-center gap-2 text-[10px] text-gray-500">
+                        <ImageIcon className="w-3 h-3" />
+                        <span className="truncate">{msg.attachment_name}</span>
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <a
+                href={msg.attachment_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors max-w-[300px]"
+            >
+                <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-5 h-5 text-blue-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-white truncate">{msg.attachment_name || 'File'}</p>
+                    <p className="text-[10px] text-gray-500 uppercase">{msg.attachment_type?.split('/')[1] || 'file'}</p>
+                </div>
+                <Download className="w-4 h-4 text-gray-500 flex-shrink-0" />
+            </a>
+        );
     };
 
     // ───── Filters ─────
@@ -295,38 +487,49 @@ export default function AdminMessagesPage() {
                         </div>
                     </div>
 
-                    {/* View Switcher */}
-                    <div className="flex bg-white/5 rounded-xl p-1 border border-white/10">
+                    <div className="flex items-center gap-3">
+                        {/* Refresh */}
                         <button
-                            onClick={() => { setActiveView('support'); setActiveTicket(null); }}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${activeView === 'support'
-                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-                                : 'text-gray-500 hover:text-gray-300'
-                                }`}
+                            onClick={() => { fetchAll(); if (activeTicket) fetchTicketMessages(activeTicket.id); }}
+                            className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors"
+                            title="Refresh"
                         >
-                            <LifeBuoy className="w-3.5 h-3.5" />
-                            Support Tickets
-                            {openTicketCount > 0 && (
-                                <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full ml-1">
-                                    {openTicketCount}
-                                </span>
-                            )}
+                            <RefreshCw className="w-4 h-4 text-gray-400" />
                         </button>
-                        <button
-                            onClick={() => { setActiveView('contact'); setActiveTicket(null); }}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${activeView === 'contact'
-                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-                                : 'text-gray-500 hover:text-gray-300'
-                                }`}
-                        >
-                            <Mail className="w-3.5 h-3.5" />
-                            Contact Form
-                            {unreadContactCount > 0 && (
-                                <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full ml-1">
-                                    {unreadContactCount}
-                                </span>
-                            )}
-                        </button>
+
+                        {/* View Switcher */}
+                        <div className="flex bg-white/5 rounded-xl p-1 border border-white/10">
+                            <button
+                                onClick={() => { setActiveView('support'); setActiveTicket(null); }}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${activeView === 'support'
+                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                                    : 'text-gray-500 hover:text-gray-300'
+                                    }`}
+                            >
+                                <LifeBuoy className="w-3.5 h-3.5" />
+                                Support Tickets
+                                {openTicketCount > 0 && (
+                                    <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full ml-1">
+                                        {openTicketCount}
+                                    </span>
+                                )}
+                            </button>
+                            <button
+                                onClick={() => { setActiveView('contact'); setActiveTicket(null); }}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${activeView === 'contact'
+                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                                    : 'text-gray-500 hover:text-gray-300'
+                                    }`}
+                            >
+                                <Mail className="w-3.5 h-3.5" />
+                                Contact Form
+                                {unreadContactCount > 0 && (
+                                    <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full ml-1">
+                                        {unreadContactCount}
+                                    </span>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -496,6 +699,7 @@ export default function AdminMessagesPage() {
                                                             </span>
                                                         </div>
                                                         <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{msg.message}</p>
+                                                        {renderAttachment(msg)}
                                                     </div>
                                                 </motion.div>
                                             ))
@@ -506,7 +710,42 @@ export default function AdminMessagesPage() {
                                     {/* Reply Input */}
                                     {activeTicket.status !== 'resolved' ? (
                                         <div className="p-4 border-t border-white/5">
+                                            {/* Selected file preview */}
+                                            {selectedFile && (
+                                                <div className="mb-3 flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
+                                                    {selectedFile.type.startsWith('image/') ? (
+                                                        <ImageIcon className="w-5 h-5 text-blue-400 flex-shrink-0" />
+                                                    ) : (
+                                                        <FileText className="w-5 h-5 text-blue-400 flex-shrink-0" />
+                                                    )}
+                                                    <span className="text-xs text-gray-300 truncate flex-1">{selectedFile.name}</span>
+                                                    <span className="text-[10px] text-gray-600">{(selectedFile.size / 1024).toFixed(0)} KB</span>
+                                                    <button
+                                                        onClick={() => { setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+                                                        className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                                                    >
+                                                        <X className="w-3 h-3 text-gray-400" />
+                                                    </button>
+                                                </div>
+                                            )}
+
                                             <div className="flex items-end gap-3">
+                                                {/* File upload button */}
+                                                <input
+                                                    ref={fileInputRef}
+                                                    type="file"
+                                                    accept="image/*,.pdf,.doc,.docx,.txt,.csv,.xlsx"
+                                                    className="hidden"
+                                                    onChange={handleFileSelect}
+                                                />
+                                                <button
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    className="w-11 h-[52px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors flex-shrink-0"
+                                                    title="Attach file"
+                                                >
+                                                    <Paperclip className="w-4 h-4 text-gray-400" />
+                                                </button>
+
                                                 <textarea
                                                     value={ticketReply}
                                                     onChange={(e) => setTicketReply(e.target.value)}
@@ -522,14 +761,14 @@ export default function AdminMessagesPage() {
                                                 />
                                                 <button
                                                     onClick={() => handleTicketReply()}
-                                                    disabled={!ticketReply.trim() || sendingTicketReply}
+                                                    disabled={(!ticketReply.trim() && !selectedFile) || sendingTicketReply || uploadingFile}
                                                     className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20 h-[52px]"
                                                 >
-                                                    {sendingTicketReply ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                                    {(sendingTicketReply || uploadingFile) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                                                     Send
                                                 </button>
                                             </div>
-                                            <p className="text-[10px] text-gray-600 mt-2">Enter to send • Shift+Enter for new line</p>
+                                            <p className="text-[10px] text-gray-600 mt-2">Enter to send • Shift+Enter for new line • Max 10MB per file</p>
                                         </div>
                                     ) : (
                                         <div className="p-4 border-t border-white/5 text-center">
