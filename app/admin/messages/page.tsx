@@ -27,7 +27,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
-import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
 
 // ──────────── Types ────────────
@@ -151,78 +150,65 @@ export default function AdminMessagesPage() {
         fetchAll();
     }, [fetchAll]);
 
-    // ───── Real-time subscription for support messages ─────
-    useEffect(() => {
-        // Subscribe to ALL new support messages so admin gets instant updates
-        const channel = supabase
-            .channel('admin-support-messages')
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'support_messages',
-                },
-                (payload) => {
-                    const newMsg = payload.new as TicketMessage;
-
-                    // If this message is for the currently active ticket, add it to the chat
-                    if (activeTicketRef.current && newMsg.ticket_id === activeTicketRef.current.id) {
-                        setTicketMessages((prev) => {
-                            // Avoid duplicates
-                            if (prev.some(m => m.id === newMsg.id)) return prev;
-                            return [...prev, newMsg];
-                        });
-                    }
-
-                    // Show toast for new patient messages
-                    if (newMsg.sender === 'user') {
-                        toast("New patient message", {
-                            description: newMsg.message.slice(0, 80) + (newMsg.message.length > 80 ? '...' : ''),
-                        });
-                    }
-
-                    // Refresh ticket list to update previews and unread status
-                    fetchAll();
-                }
-            )
-            .subscribe();
-
-        // Also subscribe to ticket status changes
-        const ticketChannel = supabase
-            .channel('admin-support-tickets')
-            .on(
-                'postgres_changes',
-                {
-                    event: '*',
-                    schema: 'public',
-                    table: 'support_tickets',
-                },
-                () => {
-                    fetchAll();
-                }
-            )
-            .subscribe();
-
-        return () => {
-            supabase.removeChannel(channel);
-            supabase.removeChannel(ticketChannel);
-        };
-    }, [fetchAll]);
-
-    // ───── Fetch ticket messages ─────
-    const fetchTicketMessages = async (ticketId: string) => {
-        setLoadingTicketMessages(true);
+    // ───── Fetch ticket messages (used for initial load & polling) ─────
+    const fetchTicketMessages = useCallback(async (ticketId: string, isPolling = false) => {
+        if (!isPolling) setLoadingTicketMessages(true);
         try {
             const res = await fetch(`/api/admin/support/${ticketId}`);
             const data = await res.json();
-            if (data.messages) setTicketMessages(data.messages);
+            if (data.messages) {
+                setTicketMessages((prev) => {
+                    const newMessages = data.messages as TicketMessage[];
+                    // Only update if there are actual changes (avoid unnecessary re-renders)
+                    if (prev.length === newMessages.length && prev.length > 0) {
+                        const lastPrev = prev[prev.length - 1];
+                        const lastNew = newMessages[newMessages.length - 1];
+                        if (lastPrev?.id === lastNew?.id) return prev;
+                    }
+
+                    // Check for new user messages to show toast
+                    if (isPolling && newMessages.length > prev.length) {
+                        const newOnes = newMessages.slice(prev.length);
+                        for (const msg of newOnes) {
+                            if (msg.sender === 'user') {
+                                toast("New patient message", {
+                                    description: msg.message.slice(0, 80) + (msg.message.length > 80 ? '...' : ''),
+                                });
+                            }
+                        }
+                    }
+
+                    return newMessages;
+                });
+            }
         } catch {
-            toast.error("Failed to load ticket messages");
+            if (!isPolling) toast.error("Failed to load ticket messages");
         } finally {
-            setLoadingTicketMessages(false);
+            if (!isPolling) setLoadingTicketMessages(false);
         }
-    };
+    }, []);
+
+    // ───── Poll for new messages every 3s when a ticket is active ─────
+    useEffect(() => {
+        if (!activeTicket) return;
+
+        const pollInterval = setInterval(() => {
+            if (activeTicketRef.current) {
+                fetchTicketMessages(activeTicketRef.current.id, true);
+            }
+        }, 3000); // Check every 3 seconds
+
+        return () => clearInterval(pollInterval);
+    }, [activeTicket, fetchTicketMessages]);
+
+    // ───── Poll ticket list every 8s for sidebar updates ─────
+    useEffect(() => {
+        const ticketListInterval = setInterval(() => {
+            fetchAll();
+        }, 8000); // Refresh ticket list every 8 seconds
+
+        return () => clearInterval(ticketListInterval);
+    }, [fetchAll]);
 
     const handleSelectTicket = (ticket: SupportTicket) => {
         setActiveTicket(ticket);
