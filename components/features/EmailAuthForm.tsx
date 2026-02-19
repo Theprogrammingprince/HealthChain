@@ -32,7 +32,7 @@ import {
 
 import { Checkbox } from "@/components/ui/checkbox";
 
-const authSchema = z.object({
+const signupSchema = z.object({
     firstName: z.string().min(1, "First name is required"),
     lastName: z.string().min(1, "Last name is required"),
     email: z.string().email("Invalid email address"),
@@ -43,7 +43,20 @@ const authSchema = z.object({
     specialty: z.string().optional().default("General Practice"),
 });
 
-type AuthFormData = z.infer<typeof authSchema>;
+const loginSchema = z.object({
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    consent: z.boolean(),
+    hospitalAffiliation: z.string().optional(),
+    medicalLicense: z.string().optional(),
+    specialty: z.string().optional().default("General Practice"),
+});
+
+const getSchema = (mode: "login" | "signup") => mode === "signup" ? signupSchema : loginSchema;
+
+type AuthFormData = z.infer<typeof signupSchema>;
 
 interface EmailAuthFormProps {
     mode: "login" | "signup";
@@ -64,7 +77,7 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
     const { setUserRole } = useAppStore();
 
     const form = useForm<AuthFormData>({
-        resolver: zodResolver(authSchema),
+        resolver: zodResolver(getSchema(mode)),
         defaultValues: {
             firstName: "",
             lastName: "",
