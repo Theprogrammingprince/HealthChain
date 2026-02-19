@@ -49,17 +49,17 @@ export function Footer() {
                     </div>
 
                     {/* Quick Links */}
-                    <div className="flex items-center gap-3">
-                        <Link href="/" className="text-gray-400 hover:text-white transition-colors">
+                    <div className="flex items-center gap-5">
+                        <Link href="/" className="text-white font-medium hover:text-blue-400 hover:translate-x-0.5 transition-all duration-300" style={{ textShadow: '0 0 8px rgba(255,255,255,0.15)' }}>
                             Home
                         </Link>
-                        <Link href="/emergency" className="text-gray-400 hover:text-white transition-colors">
+                        <Link href="/emergency" className="text-white font-medium hover:text-blue-400 hover:translate-x-0.5 transition-all duration-300" style={{ textShadow: '0 0 8px rgba(255,255,255,0.15)' }}>
                             Emergency Access
                         </Link>
-                        <Link href="/about" className="text-gray-400 hover:text-white transition-colors">
+                        <Link href="/about" className="text-white font-medium hover:text-blue-400 hover:translate-x-0.5 transition-all duration-300" style={{ textShadow: '0 0 8px rgba(255,255,255,0.15)' }}>
                             About Us
                         </Link>
-                        <Link href="/faq" className="text-gray-400 hover:text-white transition-colors">
+                        <Link href="/faq" className="text-white font-medium hover:text-blue-400 hover:translate-x-0.5 transition-all duration-300" style={{ textShadow: '0 0 8px rgba(255,255,255,0.15)' }}>
                             FAQ
                         </Link>
                     </div>
@@ -109,26 +109,29 @@ export function Footer() {
                         <Link
                             href="https://x.com/healthchainorg"
                             target="_blank"
-                            className="flex items-center justify-between gap-8 text-gray-500 hover:text-blue-400 transition-colors group"
+                            className="flex items-center justify-between gap-8 text-white font-medium hover:text-blue-400 transition-all duration-300 group hover:translate-x-0.5"
+                            style={{ textShadow: '0 0 8px rgba(255,255,255,0.15)' }}
                         >
                             <span>X (Twitter)</span>
-                            <Twitter className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            <Twitter className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
                         </Link>
                         {/* <Link
                             href="https://github.com"
                             target="_blank"
-                            className="flex items-center justify-between gap-8 text-gray-500 hover:text-white transition-colors group"
+                            className="flex items-center justify-between gap-8 text-white font-medium hover:text-blue-400 transition-all duration-300 group hover:translate-x-0.5"
+                            style={{ textShadow: '0 0 8px rgba(255,255,255,0.15)' }}
                         >
                             <span>GitHub</span>
-                            <Github className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            <Github className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
                         </Link> */}
                         <Link
                             href="https://linkedin.com"
                             target="_blank"
-                            className="flex items-center justify-between gap-8 text-gray-500 hover:text-blue-600 transition-colors group"
+                            className="flex items-center justify-between gap-8 text-white font-medium hover:text-blue-400 transition-all duration-300 group hover:translate-x-0.5"
+                            style={{ textShadow: '0 0 8px rgba(255,255,255,0.15)' }}
                         >
                             <span>LinkedIn</span>
-                            <Linkedin className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            <Linkedin className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
                         </Link>
                     </div>
                 </motion.div>
@@ -143,26 +146,26 @@ export function Footer() {
                 >
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-8 mb-8">
                         <div>
-                            <h3 className="font-semibold text-white mb-4">Platform</h3>
-                            <ul className="space-y-2 text-sm">
-                                <li><Link href="/emergency" className="text-gray-500 hover:text-blue-400 transition-colors">Emergency Access</Link></li>
-                                <li><Link href="/" className="text-gray-500 hover:text-blue-400 transition-colors">Home</Link></li>
+                            <h3 className="font-bold text-white mb-4" style={{ textShadow: '0 0 8px rgba(255,255,255,0.15)' }}>Platform</h3>
+                            <ul className="space-y-3 text-sm">
+                                <li><Link href="/emergency" className="text-white font-medium hover:text-blue-400 hover:translate-x-1 inline-block transition-all duration-300" style={{ textShadow: '0 0 8px rgba(255,255,255,0.15)' }}>Emergency Access</Link></li>
+                                <li><Link href="/" className="text-white font-medium hover:text-blue-400 hover:translate-x-1 inline-block transition-all duration-300" style={{ textShadow: '0 0 8px rgba(255,255,255,0.15)' }}>Home</Link></li>
                             </ul>
                         </div>
                         <div>
-                            <h3 className="font-semibold text-white mb-4">Support</h3>
-                            <ul className="space-y-2 text-sm">
-                                <li><Link href="/support" className="text-gray-500 hover:text-blue-400 transition-colors">Support Center</Link></li>
-                                <li><Link href="/faq" className="text-gray-500 hover:text-blue-400 transition-colors">FAQ</Link></li>
-                                <li><Link href="/contact" className="text-gray-500 hover:text-blue-400 transition-colors">Contact Us</Link></li>
+                            <h3 className="font-bold text-white mb-4" style={{ textShadow: '0 0 8px rgba(255,255,255,0.15)' }}>Support</h3>
+                            <ul className="space-y-3 text-sm">
+                                <li><Link href="/support" className="text-white font-medium hover:text-blue-400 hover:translate-x-1 inline-block transition-all duration-300" style={{ textShadow: '0 0 8px rgba(255,255,255,0.15)' }}>Support Center</Link></li>
+                                <li><Link href="/faq" className="text-white font-medium hover:text-blue-400 hover:translate-x-1 inline-block transition-all duration-300" style={{ textShadow: '0 0 8px rgba(255,255,255,0.15)' }}>FAQ</Link></li>
+                                <li><Link href="/contact" className="text-white font-medium hover:text-blue-400 hover:translate-x-1 inline-block transition-all duration-300" style={{ textShadow: '0 0 8px rgba(255,255,255,0.15)' }}>Contact Us</Link></li>
                             </ul>
                         </div>
                         <div>
-                            <h3 className="font-semibold text-white mb-4">Company</h3>
-                            <ul className="space-y-2 text-sm">
-                                <li><Link href="/about" className="text-gray-500 hover:text-blue-400 transition-colors">About Us</Link></li>
-                                <li><Link href="/privacy" className="text-gray-500 hover:text-blue-400 transition-colors">Privacy Policy</Link></li>
-                                <li><Link href="/terms" className="text-gray-500 hover:text-blue-400 transition-colors">Terms of Service</Link></li>
+                            <h3 className="font-bold text-white mb-4" style={{ textShadow: '0 0 8px rgba(255,255,255,0.15)' }}>Company</h3>
+                            <ul className="space-y-3 text-sm">
+                                <li><Link href="/about" className="text-white font-medium hover:text-blue-400 hover:translate-x-1 inline-block transition-all duration-300" style={{ textShadow: '0 0 8px rgba(255,255,255,0.15)' }}>About Us</Link></li>
+                                <li><Link href="/privacy" className="text-white font-medium hover:text-blue-400 hover:translate-x-1 inline-block transition-all duration-300" style={{ textShadow: '0 0 8px rgba(255,255,255,0.15)' }}>Privacy Policy</Link></li>
+                                <li><Link href="/terms" className="text-white font-medium hover:text-blue-400 hover:translate-x-1 inline-block transition-all duration-300" style={{ textShadow: '0 0 8px rgba(255,255,255,0.15)' }}>Terms of Service</Link></li>
                             </ul>
                         </div>
                     </div>
