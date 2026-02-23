@@ -70,14 +70,18 @@ export default function AuthCallbackPage() {
         const processSession = async (session: any) => {
             setStatus('Setting up your account...')
 
-            // Retrieve the intended role
-            const storedRole = localStorage.getItem('healthchain_intended_role')
-            const role = session.user.user_metadata?.role || storedRole?.toLowerCase() || 'patient'
+            // Retrieve the intended role (always trust the role the user just picked in the UI)
+            const storedRoleRaw = localStorage.getItem('healthchain_intended_role')
+            const storedRole = storedRoleRaw?.toLowerCase()
+            const metadataRole = (session.user.user_metadata?.role as string | undefined)?.toLowerCase()
 
-            // Update metadata if missing
-            if (!session.user.user_metadata?.role && storedRole) {
+            // Prefer the explicit role chosen on the auth page; fall back to existing metadata; default to patient
+            const role = storedRole || metadataRole || 'patient'
+
+            // Keep Supabase metadata in sync with the chosen role
+            if (storedRole && storedRole !== metadataRole) {
                 await supabase.auth.updateUser({
-                    data: { role: storedRole.toLowerCase() }
+                    data: { role: storedRole }
                 })
             }
 
