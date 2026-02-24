@@ -45,9 +45,7 @@ const authSchema = z.object({
     specialty: z.string().optional().default("General Practice"),
 });
 
-const getSchema = (mode: "login" | "signup") => mode === "signup" ? signupSchema : loginSchema;
-
-type AuthFormData = z.infer<typeof signupSchema>;
+type AuthFormData = z.infer<typeof authSchema>;
 
 interface EmailAuthFormProps {
     mode: "login" | "signup";
@@ -68,7 +66,7 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
     const { setUserRole } = useAppStore();
 
     const form = useForm<AuthFormData>({
-        resolver: zodResolver(getSchema(mode)),
+        resolver: zodResolver(authSchema),
         defaultValues: {
             firstName: "",
             lastName: "",
@@ -385,7 +383,7 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                     <div className="space-y-2">
                         <h3 className="text-2xl font-black tracking-tighter uppercase text-gray-900">Enter Code</h3>
                         <p className="text-gray-500 text-sm font-medium">
-                            Enter the {OTP_LENGTH}-digit code sent to <span className="text-white">{form.getValues('email')}</span>
+                            Enter the {OTP_LENGTH}-digit code sent to <span className="text-indigo-600 font-bold">{form.getValues('email')}</span>
                         </p>
                     </div>
 
