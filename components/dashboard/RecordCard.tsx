@@ -58,7 +58,7 @@ export function RecordCard({ record }: { record: PatientRecord }) {
                         {record.date} • {record.facility || "Private Record"}
                     </p>
                     {record.doctor && (
-                        <p className="text-gray-600 text-[10px] mt-1 italic">
+                        <p className="text-gray-400 text-[10px] mt-1 italic">
                             Attending: {record.doctor}
                         </p>
                     )}

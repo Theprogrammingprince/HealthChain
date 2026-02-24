@@ -145,7 +145,7 @@ export default function DashboardPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-[#00BFFF]/30">
+        <div className="dark min-h-screen bg-[#0A0A0A] text-white selection:bg-[#00BFFF]/30">
             {/* Dynamic Background */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden sm:block hidden">
                 <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-[#00BFFF]/5 rounded-full blur-[160px] animate-pulse" />
@@ -258,7 +258,7 @@ export default function DashboardPage() {
                                             <FileText className="text-[#00BFFF] w-5 h-5 sm:w-6 sm:h-6" />
                                             Medical Documents
                                         </h2>
-                                        <p className="text-gray-500 text-xs sm:text-sm mt-1">SECURELY STORED ON DECENTRALIZED IPFS CHANNELS</p>
+                                        <p className="text-gray-400 text-xs sm:text-sm mt-1">SECURELY STORED ON DECENTRALIZED IPFS CHANNELS</p>
                                     </div>
                                     <DocumentUploadDialog />
                                 </div>
@@ -285,9 +285,9 @@ export default function DashboardPage() {
                                             </div>
                                             {records.filter(r => r.category === cat).length === 0 && (
                                                 <div className="flex flex-col items-center justify-center py-20 bg-white/2 border border-dashed border-white/10 rounded-3xl">
-                                                    <Plus className="w-12 h-12 text-gray-700 mb-4" />
-                                                    <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">No {cat} Records Still</p>
-                                                    <p className="text-gray-600 text-xs mt-2 italic">Upload documents to verify your on-chain history</p>
+                                                    <Plus className="w-12 h-12 text-gray-500 mb-4" />
+                                                    <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">No {cat} Records Still</p>
+                                                    <p className="text-gray-500 text-xs mt-2 italic">Upload documents to verify your on-chain history</p>
                                                 </div>
                                             )}
                                         </TabsContent>
@@ -328,7 +328,7 @@ export default function DashboardPage() {
                                         </p>
                                         <div className="flex items-center justify-center gap-2 mt-1">
                                             <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                                            <code className="text-[8px] sm:text-[9px] text-gray-500 font-mono break-all">
+                                            <code className="text-[8px] sm:text-[9px] text-gray-400 font-mono break-all">
                                                 {walletAddress ? `${walletAddress.slice(0, 8)}...${walletAddress.slice(-6)}` : "0x..."}
                                             </code>
                                         </div>
@@ -337,7 +337,7 @@ export default function DashboardPage() {
                                     <div className="grid grid-cols-2 gap-2 sm:gap-3 pt-2">
                                         <div className="bg-white/5 p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-white/5 text-left">
                                             <span className="text-[10px] text-gray-500 block mb-1 uppercase font-black">Genotype</span>
-                                            <span className="text-xs sm:text-sm font-bold text-primary">{userVitals.genotype}</span>
+                                            <span className="text-xs sm:text-sm font-bold text-[#00BFFF]">{userVitals.genotype}</span>
                                         </div>
                                         <div className="bg-white/5 p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-white/5 text-left">
                                             <span className="text-[10px] text-gray-500 block mb-1 uppercase font-black">Blood Group</span>
@@ -393,9 +393,9 @@ export default function DashboardPage() {
                                             </div>
                                             <div className="flex-1">
                                                 <p className="text-[11px] sm:text-xs font-bold text-white uppercase">Emergency Mode</p>
-                                                <p className="text-[9px] sm:text-[10px] text-gray-500">Enable one-time rescue access</p>
+                                                <p className="text-[9px] sm:text-[10px] text-gray-400">Enable one-time rescue access</p>
                                             </div>
-                                            <ArrowRight size={14} className="text-gray-700 group-hover:text-white" />
+                                            <ArrowRight size={14} className="text-gray-500 group-hover:text-white" />
                                         </div>
                                     </div>
                                 </div>
@@ -410,7 +410,7 @@ export default function DashboardPage() {
                                 </p>
                                 <div className="flex items-center justify-center gap-3 pt-4">
                                     <div className="w-1.5 h-1.5 bg-[#10B981] rounded-full animate-pulse" />
-                                    <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Encrypted Tunnel Active</span>
+                                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Encrypted Tunnel Active</span>
                                 </div>
                             </motion.section>
 
@@ -428,13 +428,13 @@ export default function DashboardPage() {
                         <ShieldCheck className="w-5 h-5" />
                         <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.1em] sm:tracking-[0.2em]">HealthChain Resilience Network</span>
                     </div>
-                    <p className="text-[9px] sm:text-[11px] font-bold text-gray-700 uppercase tracking-widest text-center">
+                    <p className="text-[9px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-widest text-center">
                         Protocol Node: 0x92...AF10 • Latency: 42ms • Block: 68,291,203
                     </p>
                     <div className="flex items-center gap-3 sm:gap-6 flex-wrap justify-center">
-                        <Link href="/patient/dashboard/support" className="text-[9px] sm:text-[10px] font-bold text-gray-600 hover:text-[#00BFFF] uppercase tracking-widest transition-colors">Support Center</Link>
-                        <button className="text-[9px] sm:text-[10px] font-bold text-gray-600 hover:text-[#00BFFF] uppercase tracking-widest transition-colors">Privacy Policy</button>
-                        <button className="text-[9px] sm:text-[10px] font-bold text-gray-600 hover:text-[#00BFFF] uppercase tracking-widest transition-colors">Governance</button>
+                        <Link href="/patient/dashboard/support" className="text-[9px] sm:text-[10px] font-bold text-gray-400 hover:text-[#00BFFF] uppercase tracking-widest transition-colors">Support Center</Link>
+                        <button className="text-[9px] sm:text-[10px] font-bold text-gray-400 hover:text-[#00BFFF] uppercase tracking-widest transition-colors">Privacy Policy</button>
+                        <button className="text-[9px] sm:text-[10px] font-bold text-gray-400 hover:text-[#00BFFF] uppercase tracking-widest transition-colors">Governance</button>
                     </div>
                 </div>
             </footer>

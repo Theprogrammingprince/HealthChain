@@ -206,7 +206,7 @@ export function RecordEntryForm() {
                                         name="bloodPressure"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-[10px] text-gray-600 font-bold uppercase">BP (mmHg)</FormLabel>
+                                                <FormLabel className="text-[10px] text-gray-400 font-bold uppercase">BP (mmHg)</FormLabel>
                                                 <FormControl>
                                                     <Input placeholder="120/80" {...field} className="bg-zinc-950 border-white/5 text-white h-10 rounded-lg" />
                                                 </FormControl>
@@ -218,7 +218,7 @@ export function RecordEntryForm() {
                                         name="glucose"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-[10px] text-gray-600 font-bold uppercase">Glucose</FormLabel>
+                                                <FormLabel className="text-[10px] text-gray-400 font-bold uppercase">Glucose</FormLabel>
                                                 <FormControl>
                                                     <Input placeholder="95 mg/dL" {...field} className="bg-zinc-950 border-white/5 text-white h-10 rounded-lg" />
                                                 </FormControl>

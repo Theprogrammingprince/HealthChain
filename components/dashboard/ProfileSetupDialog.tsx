@@ -360,6 +360,35 @@ export function ProfileSetupDialog({ isOpen, onClose }: ProfileSetupDialogProps)
                                             </div>
                                         </div>
                                     </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="blood_pressure_step2" className="text-xs font-bold uppercase tracking-widest text-gray-500">Blood Pressure</Label>
+                                            <div className="relative">
+                                                <Input
+                                                    id="blood_pressure_step2"
+                                                    placeholder="120/80"
+                                                    className="bg-white/5 border-white/10 rounded-xl h-11 pl-10"
+                                                    value={formData.blood_pressure}
+                                                    onChange={(e) => setFormData({ ...formData, blood_pressure: e.target.value })}
+                                                />
+                                                <Heart className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="glucose_step2" className="text-xs font-bold uppercase tracking-widest text-gray-500">Glucose Level</Label>
+                                            <div className="relative">
+                                                <Input
+                                                    id="glucose_step2"
+                                                    placeholder="90 mg/dL"
+                                                    className="bg-white/5 border-white/10 rounded-xl h-11 pl-10"
+                                                    value={formData.glucose}
+                                                    onChange={(e) => setFormData({ ...formData, glucose: e.target.value })}
+                                                />
+                                                <Activity className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}

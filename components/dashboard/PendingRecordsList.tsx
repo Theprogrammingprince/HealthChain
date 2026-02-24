@@ -241,7 +241,7 @@ export function PendingRecordsList() {
                                             </p>
                                         )}
                                         <div className="flex items-center gap-2 mt-2">
-                                            <span className="text-[9px] font-mono text-gray-600">
+                                            <span className="text-[9px] font-mono text-gray-400">
                                                 ID: {record.submission_code}
                                             </span>
                                         </div>

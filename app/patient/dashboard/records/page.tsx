@@ -10,7 +10,6 @@ import { ProfileSetupDialog } from "@/components/dashboard/ProfileSetupDialog";
 import { RecordCard } from "@/components/dashboard/RecordCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentUploadDialog } from "@/components/dashboard/DocumentUploadDialog";
-import { UserNav } from "@/components/dashboard/UserNav"; // Assuming we extract this later or just mock header for now
 import { useRouter } from "next/navigation";
 
 export default function RecordsPage() {
@@ -33,7 +32,7 @@ export default function RecordsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-[#00BFFF]/30 pb-20">
+        <div className="dark min-h-screen bg-[#0A0A0A] text-white selection:bg-[#00BFFF]/30 pb-20">
             {/* Header - Duplicate for now to ensure consistency */}
             <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-[#0A0A0A]/60 backdrop-blur-2xl">
                 <div className="max-w-[1400px] mx-auto px-6 h-20 flex items-center justify-between">
@@ -79,7 +78,7 @@ export default function RecordsPage() {
 
                     {/* Vitals Grid */}
                     <motion.section variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <Card className="bg-white/5 border-white/10 rounded-3xl overflow-hidden">
+                        <Card className="bg-white/5 border-white/10 rounded-3xl overflow-hidden text-white">
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-[10px] font-black uppercase tracking-widest text-gray-500 flex items-center gap-2">
                                     <Scale className="w-4 h-4 text-[#00BFFF]" /> Physical
@@ -107,7 +106,7 @@ export default function RecordsPage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="bg-white/5 border-white/10 rounded-3xl overflow-hidden">
+                        <Card className="bg-white/5 border-white/10 rounded-3xl overflow-hidden text-white">
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-[10px] font-black uppercase tracking-widest text-gray-500 flex items-center gap-2">
                                     <Heart className="w-4 h-4 text-red-500" /> Cardiovascular
@@ -131,7 +130,7 @@ export default function RecordsPage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="bg-white/5 border-white/10 rounded-3xl overflow-hidden col-span-1 md:col-span-2">
+                        <Card className="bg-white/5 border-white/10 rounded-3xl overflow-hidden col-span-1 md:col-span-2 text-white">
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-[10px] font-black uppercase tracking-widest text-gray-500 flex items-center gap-2">
                                     <Activity className="w-4 h-4 text-emerald-500" /> Clinical History
@@ -145,7 +144,7 @@ export default function RecordsPage() {
                                             <span key={i} className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-xs font-bold uppercase tracking-wide">
                                                 {a}
                                             </span>
-                                        )) : <span className="text-gray-600 italic text-sm">None recorded</span>}
+                                        )) : <span className="text-gray-400 italic text-sm">None recorded</span>}
                                     </div>
                                 </div>
                                 <div>
@@ -155,7 +154,7 @@ export default function RecordsPage() {
                                             <span key={i} className="px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-lg text-xs font-bold uppercase tracking-wide">
                                                 {c}
                                             </span>
-                                        )) : <span className="text-gray-600 italic text-sm">None recorded</span>}
+                                        )) : <span className="text-gray-400 italic text-sm">None recorded</span>}
                                     </div>
                                 </div>
                                 <div className="md:col-span-2">
@@ -165,7 +164,7 @@ export default function RecordsPage() {
                                             <span key={i} className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-lg text-xs font-bold uppercase tracking-wide">
                                                 {m}
                                             </span>
-                                        )) : <span className="text-gray-600 italic text-sm">None recorded</span>}
+                                        )) : <span className="text-gray-400 italic text-sm">None recorded</span>}
                                     </div>
                                 </div>
                             </CardContent>
@@ -188,7 +187,7 @@ export default function RecordsPage() {
                                     <TabsTrigger
                                         key={cat}
                                         value={cat}
-                                        className="data-[state=active]:bg-[#00BFFF] data-[state=active]:text-black rounded-lg transition-all font-bold px-6"
+                                        className="data-[state=active]:bg-[#00BFFF] data-[state=active]:text-black text-gray-300 rounded-lg transition-all font-bold px-6"
                                     >
                                         {cat}
                                     </TabsTrigger>
@@ -204,8 +203,8 @@ export default function RecordsPage() {
                                     </div>
                                     {records.filter(r => r.category === cat).length === 0 && (
                                         <div className="flex flex-col items-center justify-center py-20 bg-white/2 border border-dashed border-white/10 rounded-3xl">
-                                            <Plus className="w-12 h-12 text-gray-700 mb-4" />
-                                            <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">No {cat} Records</p>
+                                            <Plus className="w-12 h-12 text-gray-500 mb-4" />
+                                            <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">No {cat} Records</p>
                                         </div>
                                     )}
                                 </TabsContent>
