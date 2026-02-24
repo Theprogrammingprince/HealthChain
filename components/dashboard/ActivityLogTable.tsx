@@ -280,7 +280,7 @@ export function ActivityLogTable() {
                                         >
                                             <TableCell className="text-gray-400 font-mono text-[11px] font-medium">
                                                 <div className="flex items-center gap-2">
-                                                    <Calendar className="w-3 h-3 text-gray-600" />
+                                                    <Calendar className="w-3 h-3 text-gray-500" />
                                                     {log.date}
                                                 </div>
                                             </TableCell>
@@ -312,11 +312,11 @@ export function ActivityLogTable() {
                                                         </Tooltip>
                                                     </TooltipProvider>
                                                 ) : (
-                                                    <span className="text-[11px] text-gray-700">—</span>
+                                                    <span className="text-[11px] text-gray-500">—</span>
                                                 )}
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                <button className="text-xs text-gray-600 hover:text-cyan-400 font-mono transition-colors flex items-center gap-2 justify-end ml-auto">
+                                                <button className="text-xs text-gray-400 hover:text-cyan-400 font-mono transition-colors flex items-center gap-2 justify-end ml-auto">
                                                     {log.txHash.substring(0, 10)}...
                                                     <ExternalLink size={12} />
                                                 </button>
@@ -330,7 +330,7 @@ export function ActivityLogTable() {
                         {!isLoading && filteredLogs.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={5} className="h-40 text-center">
-                                    <div className="flex flex-col items-center justify-center text-gray-600">
+                                    <div className="flex flex-col items-center justify-center text-gray-400">
                                         <ShieldCheck className="w-10 h-10 mb-3 grayscale opacity-20" />
                                         <p className="text-[10px] font-bold uppercase tracking-widest">
                                             {searchTerm || actionFilter !== 'all'
@@ -349,7 +349,7 @@ export function ActivityLogTable() {
                         * This log is an immutable mirror of events recorded on the Polygon network.
                     </p>
                     <div className="flex items-center gap-4">
-                        <span className="text-[10px] text-gray-600 font-mono">
+                        <span className="text-[10px] text-gray-400 font-mono">
                             Showing {filteredLogs.length} of {logs.length} entries
                         </span>
                     </div>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+// import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { Footer } from "@/components/layout/Footer";
 import { Providers } from "@/components/providers";
@@ -13,10 +13,9 @@ import {
 import { ChatbotWidget } from "@/components/features/ChatbotWidget";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
+// Static fallback for the font variable to prevent build errors when network is blocked
+// This bypasses Turbopack's attempt to fetch Google Fonts
+const inter = { variable: "font-sans" };
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://healthchain.io';
 

@@ -42,7 +42,7 @@ export default function PatientEmergencyPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-[#00BFFF]/30 pb-20">
+        <div className="dark min-h-screen bg-[#0A0A0A] text-white selection:bg-[#00BFFF]/30 pb-20">
             {/* Background Grid */}
             <div className="fixed inset-0 pointer-events-none opacity-20"
                 style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #333 1px, transparent 0)', backgroundSize: '40px 40px' }} />

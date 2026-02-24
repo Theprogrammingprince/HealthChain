@@ -32,6 +32,8 @@ import {
 
 import { Checkbox } from "@/components/ui/checkbox";
 
+const OTP_LENGTH = 8;
+
 const authSchema = z.object({
     firstName: z.string().optional(),
     lastName: z.string().optional(),
@@ -78,6 +80,12 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
     });
 
     useEffect(() => {
+        // Allow force-showing OTP screen via URL param for testing/routing
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('step') === 'otp') {
+            setShowSuccess(true);
+        }
+
         if (mode === "signup" && role === "Doctor") {
             const fetchHospitals = async () => {
                 try {
@@ -139,8 +147,8 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
     };
 
     const handleVerifyOtp = async () => {
-        if (otpCode.length !== 6) {
-            toast.error("Please enter a 6-digit verification code.");
+        if (otpCode.length !== OTP_LENGTH) {
+            toast.error(`Please enter a ${OTP_LENGTH}-digit verification code.`);
             return;
         }
 
@@ -367,30 +375,30 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
         return (
             <div className="text-center space-y-6 py-8 animate-in fade-in zoom-in duration-300">
                 <div className="flex justify-center">
-                    <div className="w-20 h-20 bg-indigo-500/20 rounded-full flex items-center justify-center border border-indigo-500/20">
-                        <Mail className="w-10 h-10 text-indigo-400" />
+                    <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center border border-indigo-100">
+                        <Mail className="w-10 h-10 text-indigo-600" />
                     </div>
                 </div>
                 <div className="space-y-4">
                     <div className="space-y-2">
-                        <h3 className="text-2xl font-black tracking-tighter uppercase">Enter Code</h3>
+                        <h3 className="text-2xl font-black tracking-tighter uppercase text-gray-900">Enter Code</h3>
                         <p className="text-gray-500 text-sm font-medium">
-                            Enter the 6-digit code sent to <span className="text-white">{form.getValues('email')}</span>
+                            Enter the {OTP_LENGTH}-digit code sent to <span className="text-indigo-600 font-bold">{form.getValues('email')}</span>
                         </p>
                     </div>
 
                     <div className="flex flex-col items-center gap-4">
                         <Input
                             type="text"
-                            maxLength={6}
-                            placeholder="000000"
+                            maxLength={OTP_LENGTH}
+                            placeholder={Array(OTP_LENGTH).fill("0").join("")}
                             value={otpCode}
                             onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
-                            className="text-center text-3xl h-16 font-bold tracking-[0.5em] bg-white/5 border-white/10 text-white focus:border-indigo-500/50"
+                            className="text-center text-3xl h-16 font-bold tracking-[0.5em] bg-gray-50 border-gray-200 text-gray-900 focus:border-indigo-500 focus:ring-indigo-500/20"
                         />
                         <Button
                             onClick={handleVerifyOtp}
-                            disabled={otpCode.length !== 6 || isVerifying}
+                            disabled={otpCode.length !== OTP_LENGTH || isVerifying}
                             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 rounded-xl font-bold uppercase tracking-widest text-[10px]"
                         >
                             {isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify Identity"}
@@ -398,14 +406,14 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                     </div>
                 </div>
 
-                <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-left">
+                <div className="p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl text-left">
                     <div className="flex items-start gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-indigo-400 mt-0.5" />
-                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        <CheckCircle2 className="w-5 h-5 text-indigo-600 mt-0.5" />
+                        <p className="text-[10px] font-black uppercase tracking-widest text-indigo-900">
                             {role === 'Doctor' ? 'Manual Verification Required' : 'Protocol Step: OTP Verification'}
                         </p>
                     </div>
-                    <p className="text-xs text-gray-500 mt-2 ml-8">
+                    <p className="text-xs text-gray-600 mt-2 ml-8 leading-relaxed">
                         {role === 'Doctor'
                             ? "Once you verify your email, your medical credentials will be reviewed by the administration. You will gain full access upon approval."
                             : "Enter the code from your inbox to establish a secure connection to your dashboard."
@@ -415,22 +423,22 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                 <Button
                     onClick={() => router.push('/')}
                     variant="ghost"
-                    className="text-gray-500 hover:text-white group"
+                    className="text-gray-500 hover:text-gray-900 group"
                 >
                     <span className="text-[10px] font-black uppercase tracking-widest mr-2">Return to Hub</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
 
                 {/* Resend Email Button */}
-                <div className="pt-4 border-t border-white/5">
-                    <p className="text-[10px] text-gray-600 mb-3 uppercase tracking-widest font-bold">
+                <div className="pt-4 border-t border-gray-100">
+                    <p className="text-[10px] text-gray-500 mb-3 uppercase tracking-widest font-bold">
                         Didn't receive the email?
                     </p>
                     <Button
                         onClick={handleResendEmail}
                         variant="outline"
                         disabled={resendCooldown > 0 || isResending}
-                        className="w-full border-white/10 hover:bg-white/5 text-gray-400 hover:text-white disabled:opacity-50"
+                        className="w-full border-gray-200 hover:bg-gray-50 text-gray-600 hover:text-gray-900 disabled:opacity-50"
                     >
                         {isResending ? (
                             <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...</>

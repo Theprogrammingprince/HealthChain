@@ -103,7 +103,7 @@ export function HealthSummaryCard({ onEdit }: { onEdit?: () => void }) {
                                             </Badge>
                                         ))
                                     ) : (
-                                        <span className="text-[10px] text-gray-600 font-bold uppercase tracking-widest italic">None Recorded</span>
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest italic">None Recorded</span>
                                     )}
                                 </div>
                             </div>
@@ -122,7 +122,7 @@ export function HealthSummaryCard({ onEdit }: { onEdit?: () => void }) {
                                             <p key={c} className="text-xs text-white font-medium">{c}</p>
                                         ))
                                     ) : (
-                                        <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest italic mt-2">None</p>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest italic mt-2">None</p>
                                     )}
                                 </div>
                             </div>
@@ -137,7 +137,7 @@ export function HealthSummaryCard({ onEdit }: { onEdit?: () => void }) {
                                             <p key={m} className="text-xs text-white font-medium truncate" title={m}>{m}</p>
                                         ))
                                     ) : (
-                                        <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest italic mt-2">None</p>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest italic mt-2">None</p>
                                     )}
                                 </div>
                             </div>
@@ -150,8 +150,8 @@ export function HealthSummaryCard({ onEdit }: { onEdit?: () => void }) {
                 <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between">
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2">
-                            <Clock className="w-3 h-3 text-gray-600" />
-                            <span className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">LATEST CHECKUP: {userVitals.lastCheckup}</span>
+                            <Clock className="w-3 h-3 text-gray-400" />
+                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">LATEST CHECKUP: {userVitals.lastCheckup}</span>
                         </div>
                         <div className="hidden sm:flex items-center gap-2">
                             <Badge className="bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20 border-none cursor-default">
