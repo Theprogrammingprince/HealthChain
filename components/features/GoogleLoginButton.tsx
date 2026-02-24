@@ -12,8 +12,9 @@ export function GoogleLoginButton({ role = 'Patient' }: { role?: 'Patient' | 'Ho
     const handleLogin = async () => {
         setIsConnecting(true);
         try {
-            // Save role to localStorage so we can retrieve it after redirect
-            localStorage.setItem('healthchain_intended_role', role);
+            // Save a normalized role to localStorage so we can retrieve it after redirect
+            const normalizedRole = role.toLowerCase();
+            localStorage.setItem('healthchain_intended_role', normalizedRole);
 
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',

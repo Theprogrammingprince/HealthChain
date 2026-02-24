@@ -32,18 +32,9 @@ import {
 
 import { Checkbox } from "@/components/ui/checkbox";
 
-const signupSchema = z.object({
-    firstName: z.string().min(1, "First name is required"),
-    lastName: z.string().min(1, "Last name is required"),
-    email: z.string().email("Invalid email address"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    consent: z.boolean(),
-    hospitalAffiliation: z.string().optional(),
-    medicalLicense: z.string().optional(),
-    specialty: z.string().optional().default("General Practice"),
-});
+const OTP_LENGTH = 8;
 
-const loginSchema = z.object({
+const authSchema = z.object({
     firstName: z.string().optional(),
     lastName: z.string().optional(),
     email: z.string().email("Invalid email address"),
@@ -158,8 +149,8 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
     };
 
     const handleVerifyOtp = async () => {
-        if (otpCode.length !== 6) {
-            toast.error("Please enter a 6-digit verification code.");
+        if (otpCode.length !== OTP_LENGTH) {
+            toast.error(`Please enter a ${OTP_LENGTH}-digit verification code.`);
             return;
         }
 
@@ -394,23 +385,23 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                     <div className="space-y-2">
                         <h3 className="text-2xl font-black tracking-tighter uppercase text-gray-900">Enter Code</h3>
                         <p className="text-gray-500 text-sm font-medium">
-                            Enter the 6-digit code sent to <span className="text-indigo-600 font-bold">{form.getValues('email')}</span>
+                            Enter the {OTP_LENGTH}-digit code sent to <span className="text-white">{form.getValues('email')}</span>
                         </p>
                     </div>
 
                     <div className="flex flex-col items-center gap-4">
                         <Input
                             type="text"
-                            maxLength={6}
-                            placeholder="000000"
+                            maxLength={OTP_LENGTH}
+                            placeholder={Array(OTP_LENGTH).fill("0").join("")}
                             value={otpCode}
                             onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
                             className="text-center text-3xl h-16 font-bold tracking-[0.5em] bg-gray-50 border-gray-200 text-gray-900 focus:border-indigo-500 focus:ring-indigo-500/20"
                         />
                         <Button
                             onClick={handleVerifyOtp}
-                            disabled={otpCode.length !== 6 || isVerifying}
-                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 rounded-xl font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-indigo-200"
+                            disabled={otpCode.length !== OTP_LENGTH || isVerifying}
+                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white h-12 rounded-xl font-bold uppercase tracking-widest text-[10px]"
                         >
                             {isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify Identity"}
                         </Button>
