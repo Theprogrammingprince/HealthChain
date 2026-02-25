@@ -17,19 +17,19 @@ export function RoleSwitcher({ role, onRoleChange }: RoleSwitcherProps) {
 
     return (
         <div className="mb-6">
-            <div className="inline-flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+            <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1 w-full">
                 {roles.map((r) => {
                     const Icon = r.icon;
                     const isActive = role === r.value;
-                    
+
                     return (
                         <motion.button
                             key={r.value}
                             onClick={() => onRoleChange(r.value)}
                             className={`
-                                relative px-4 py-2 rounded-md text-sm font-medium transition-all
-                                ${isActive 
-                                    ? 'text-gray-900' 
+                                relative flex-1 px-4 py-2.5 rounded-md text-sm font-medium transition-all
+                                ${isActive
+                                    ? 'text-gray-900'
                                     : 'text-gray-600 hover:text-gray-900'
                                 }
                             `}

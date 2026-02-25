@@ -37,7 +37,7 @@ export default function AuditHistoryPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-[#00BFFF]/30 pb-20">
+        <div className="dark min-h-screen bg-[#0A0A0A] text-white selection:bg-[#00BFFF]/30 pb-20">
             {/* Header */}
             <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-[#0A0A0A]/60 backdrop-blur-2xl">
                 <div className="max-w-[1400px] mx-auto px-6 h-20 flex items-center justify-between">

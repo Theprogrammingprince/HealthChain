@@ -234,7 +234,7 @@ This document is encrypted and blockchain-verified via HealthChain.
                                 {tokenCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                             </Button>
                         </div>
-                        <div className="flex items-center gap-1 mt-2 text-[9px] text-gray-600">
+                        <div className="flex items-center gap-1 mt-2 text-[9px] text-gray-400">
                             <Clock className="w-3 h-3" />
                             <span>Valid for {expiryMinutes} minutes upon first scan</span>
                         </div>
@@ -441,7 +441,7 @@ This document is encrypted and blockchain-verified via HealthChain.
                         </div>
 
                         {/* Footer */}
-                        <div className="pt-4 border-t border-white/10 flex items-center justify-between text-[10px] text-gray-600">
+                        <div className="pt-4 border-t border-white/10 flex items-center justify-between text-[10px] text-gray-400">
                             <span>Token: {emergencyToken}</span>
                             <span>Generated: {new Date().toLocaleString()}</span>
                         </div>
