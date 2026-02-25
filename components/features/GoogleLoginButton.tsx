@@ -2,12 +2,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 
 import { toast } from "sonner";
 
 export function GoogleLoginButton({ role = 'Patient' }: { role?: 'Patient' | 'Hospital' | 'Doctor' }) {
     const [isConnecting, setIsConnecting] = useState(false);
+    const supabase = createClient();
 
     const handleLogin = async () => {
         setIsConnecting(true);
@@ -26,6 +27,7 @@ export function GoogleLoginButton({ role = 'Patient' }: { role?: 'Patient' | 'Ho
                     redirectTo: `${window.location.origin}/auth/callback`
                 }
             });
+
 
             if (error) {
                 if (error.message.includes("provider is not enabled")) {

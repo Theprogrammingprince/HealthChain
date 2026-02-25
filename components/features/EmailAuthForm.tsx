@@ -249,7 +249,9 @@ export function EmailAuthForm({ mode, role = "Patient", onSuccess }: EmailAuthFo
                     password: data.password,
                     options: {
                         data: userMetadata,
+                        emailRedirectTo: `${window.location.origin}/auth/callback`,
                     },
+
                 });
 
                 if (authError) throw authError;
